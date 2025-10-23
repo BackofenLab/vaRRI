@@ -1,0 +1,9 @@
+# fornac with phantomjs
+
+use phantomjs as a headless browser to generate a png of the fornac script
+
+# Problems
+
+phantomjs has no support since 2018
+
+fornac uses import module that is not supported by phantomjs
