@@ -5,6 +5,7 @@ import argparse
 from playwright.sync_api import sync_playwright
 import urllib.parse
 import re
+import traceback
 
 # -----------------------------------------------------------------
 project_dir = Path(__file__).resolve().parent.parent.absolute()
@@ -31,11 +32,20 @@ except Exception as e:
     print("Error reading fornac.css: ")
     print(e)
 
+def sequence_coloring(first_seq, second_seq) -> list:
+    color = []
+    color += ["lightsalmon" for _ in first_seq]
+    color += ["lightgreen" for _ in second_seq]
+
+    return color
+
+
+
 
 # -----------------------------------------------------------------
 # open a headless chromium browser instance and load html file with
 # FornaContainer. Extract the created svg into a seperated svg file
-def run(structure, sequence, file_type):
+def run(structure, sequence, file_type, coloring_type="default"):
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -51,7 +61,38 @@ def run(structure, sequence, file_type):
 					};
 					container.addRNA(options.structure, options);
 				}""", [structure, sequence])
+
+#
+            coloring = []
+            # this option colors all nucleotides of one sequence in one color
+            if coloring_type == "distinct":
+                first_seq = sequence.split("&")[0]
+                second_seq = sequence.split("&")[1] if "&" in sequence else ""
+                coloring = sequence_coloring(first_seq, second_seq)
             
+            # color all circles with the given color in the coloring list
+            page.evaluate("""(coloring) => {
+                    function coloringTheCircles(coloring) {
+                        if (coloring.length == 0) {return;}
+                        var list_of_nodes = document.getElementsByClassName("fornac-node");
+                        for (const [index, node] of Object.entries(list_of_nodes)){
+                            if (node.getAttribute("r") == "5"){
+                            if (coloring.length < index) {
+                            document.getElementById("debug").innerHTML += 
+                            'index out of color array bounds: ' + index.toString() + '|';
+                            continue;
+                            }
+                            node.setAttribute("style", "fill: " + coloring[index] + ";");
+                            }    
+                        }
+                    }
+                    coloringTheCircles(coloring)
+				}""", coloring)          
+             
+            # debugging:
+            debug_text = page.locator("div").first.inner_html()
+            print(debug_text)
+
 
 			#  extracting the built svg file
             svg = page.locator("svg").first.inner_html()
@@ -76,7 +117,8 @@ def run(structure, sequence, file_type):
 			# close chromium borwser
             browser.close()
     except Exception as e:
-        print(f"Error found: {e}", e)
+        print(f"Error found: {e}")
+        print(traceback.print_exc())
         
 
 
@@ -102,7 +144,12 @@ if __name__ == '__main__':
 			'-file_type',
 			help='decide if the picture should be a png or svg',
             default='svg')
-
+    parser.add_argument(
+			'-coloring_type',
+			help='how should the nucleotides be colored?' \
+            'default: default coloring fornac' \
+            'distinct: each sequence gets its own color',
+            default='default')
     args = parser.parse_args()
     
     if args.structure is None or args.sequence is None:
@@ -113,5 +160,6 @@ if __name__ == '__main__':
         raise Exception("structure and sequence have differnt lengths")
     if not (args.file_type == "svg" or args.file_type == "png"):
         raise Exception("file_type is not accepted (only svg and png)")
-   
-    run(args.structure, args.sequence, args.file_type)
+    if not (args.coloring_type == "default" or args.coloring_type == "distinct"):
+        raise Exception("coloring_type is not accepted (only default and distinct)")
+    run(args.structure, args.sequence, args.file_type, args.coloring_type)
