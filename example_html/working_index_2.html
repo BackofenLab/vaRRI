@@ -3,15 +3,15 @@
 
 <div id='rna_ss'> </div>
 
-    <link rel='stylesheet' type='text/css' href='file:////home/fabi/BachelorProjekt/vaRRI/fornac/fornac.css' />
-    <script type='text/javascript' src='file:////home/fabi/BachelorProjekt/vaRRI/fornac/d3.js'></script>
-    <script type='text/javascript' src='file:////home/fabi/BachelorProjekt/vaRRI/fornac/fornac.js'></script>
+    <link rel='stylesheet' type='text/css' href='../fornac/fornac.css' />
+    <script type='text/javascript' src='../fornac/d3.js'></script>
+    <script type='text/javascript' src='../fornac/fornac.js'></script>
     <script type='text/javascript'>
         var container = new fornac.FornaContainer("#rna_ss", {'animation': false});
 
-   var options = {'structure': '..((((...))))...((...((...((..&............))...))...))..',
-        'sequence': 'ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG'
-    }; 
+        var options = {'structure': '..((((...))))...((...((...((..&............))...))...))..',
+                'sequence': 'ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG'
+            }; 
 
         container.addRNA(options.structure, options);
     </script>
