@@ -37,6 +37,29 @@ def sequence_coloring(first_seq, second_seq) -> list:
 
     return color
 
+def validNumber(number: str) -> bool:
+    # check if the given string is either a valid negative or postiv number
+    if "-" in number:
+        number = number[1:]
+    return number.isdigit()
+
+def transformHybridDB(hybrid_input: str, sequence: str):
+    # takes input of form: 6|||..&3|||.. and returns a sctructure string
+    # TODO explain what im doing here
+    # or TODO remake 
+    seq_1, seq_2 = sequence.split("&")
+    hyb_1, hyb_2 = hybrid_input.split("&")
+    index_1, index_2 = int(hyb_1[0]), int(hyb_2[0])
+    inter_1, inter_2 = hyb_1[1:], hyb_2[1:] 
+    struc_1 = "."*index_1 + inter_1 + "." * int(len(seq_1)-index_1-len(inter_1))
+    struc_2 = "." * index_2 + inter_2 + "." * int(len(seq_2)-index_2 - len(inter_2))
+    return struc_1.replace("|","(") + "&" + struc_2.replace("|",")")
+
+    #structure = ["&" if i == "&" else "." for i in sequence]
+
+
+
+
 
 # -----------------------------------------------------------------
 # open a headless chromium browser instance and load html file with
@@ -44,11 +67,21 @@ def sequence_coloring(first_seq, second_seq) -> list:
 def run(structure, sequence, file_name, file_type, coloring_type="default", offset_1 = 0, offset_2 = 0):
     try:
         with sync_playwright() as p:
+            # basic formating
+            first_seq = sequence.split("&")[0]
+            second_seq = sequence.split("&")[1] if "&" in sequence else ""
+            first_struc = structure.split("&")[0]
+            second_struc = structure.split("&")[1] if "&" in structure else ""
+
             # start browser and load page with fornac script
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
             assert template_barebone_html.exists()
             page.goto("file:///" + str(template_barebone_html))
+
+            # fix fornac Error: incorrectly cutting of the first 2 nodes in the second sequence
+            structure_fix = structure.replace("&", "&..")
+            sequence_fix = sequence.replace("&", "&ee")
 			
 			# use fornac to generate structure
             page.evaluate("""([structure, sequence]) => {
@@ -57,13 +90,11 @@ def run(structure, sequence, file_name, file_type, coloring_type="default", offs
 								'sequence': sequence
 					};
 					container.addRNA(options.structure, options);
-				}""", [structure, sequence])
+				}""", [structure_fix, sequence_fix])
 
             # -----------------------------------------------------
             # changing the background color
             coloring = []
-            first_seq = sequence.split("&")[0]
-            second_seq = sequence.split("&")[1] if "&" in sequence else ""
             # this option colors all nucleotides of one sequence in one color
             if coloring_type == "distinct":
                 coloring = sequence_coloring(first_seq, second_seq)
@@ -82,13 +113,33 @@ def run(structure, sequence, file_name, file_type, coloring_type="default", offs
             
 
             # -----------------------------------------------------
+            # changing the indexing number of each node
+            # TODO more comments
+            numbering = []
+            for offset in [offset_1, offset_2]:
+                numbering += [i for i in range(offset, len(first_seq)+offset, 1)]
+                if 0 in numbering:
+                    numbering.remove(0)
+                    numbering += [numbering[-1] + 1]
+
+            page.evaluate("""(numbering) => {
+                    var list_of_nodes = document.querySelectorAll('[r="5"]');
+                    for (const [index, node] of Object.entries(list_of_nodes)){
+                        title_element = node.children[0];
+                        title_element.innerHTML = numbering[index];
+                    }
+				}""", [str(i) for i in numbering])
+
+            split =  len(first_seq)
+            
+            # adding the 2 empty nodes between the 2 sequences, 
+            # because fornac counts them in when constructing index nodes
+            numbering = numbering[:split] + ["e", "e"] + numbering[split:]
+
             # changing the indexing
             indexing = []
             # index for the first sequence
-            indexing = [str(i) for i in range(10 + offset_1, len(first_seq)+1+offset_1, 10)]
-            # indexing for the second sequence
-            first_index = 8 - (len(first_seq) % 10) + offset_2
-            indexing += [str(i) for i in range(first_index, len(second_seq)+1+offset_2, 10)]
+            indexing = [str(numbering[i]) for i in range(9, len(numbering)+1, 10)]
 
             page.evaluate("""(indexing) => {
                     var list_of_text_elements = document.querySelectorAll('[label_type="label"]');
@@ -96,6 +147,7 @@ def run(structure, sequence, file_name, file_type, coloring_type="default", offs
                         node.innerHTML = indexing[index];                            
                     }
 				}""", indexing)
+
 
             # -----------------------------------------------------
             # changing the basepair ring color
@@ -190,16 +242,35 @@ if __name__ == '__main__':
             'distinct: each sequence gets its own color',
             default='default')
     parser.add_argument(
-			'--offset_first',
+			'--offset_1',
 			help='with what offset should the indexing of the first sequence start?' \
             'default: 0',
             default="0")
     parser.add_argument(
-			'--offset_second',
+			'--offset_2',
 			help='with what offset should the indexing of the second sequence start if ther is one?' \
             'default: 0',
             default="0")
+    parser.add_argument(
+			'--hybridDB',
+			help='additional version of inputing structure:  hybridDB="16||||||&9||||||"' \
+            'default: False',
+            default=False)
     args = parser.parse_args()
+
+ 
+    sequence = args.sequence
+    structure = args.structure
+    hybrid = args.hybridDB
+    # TODO assert structure is ""
+    if hybrid != False:
+        # TODO make sure hybrid input is valid
+        # TODO transform hybriddb into a structure
+        structure = transformHybridDB(hybrid, sequence)
+        print(structure)
+
+    # TODO assert structure and sequence is given
+
 
     output_file = args.output
 
@@ -208,9 +279,7 @@ if __name__ == '__main__':
     # split output file name into the name and the file type
     output_file_name = "".join(output_file.split(".")[:-1])
     output_file_type = output_file.split(".")[-1]
- 
-    sequence = args.sequence
-    structure = args.structure
+
 
     # assert that the output specifies a valid file type
     if not (output_file_type == "svg" or output_file_type == "png"):
@@ -226,14 +295,14 @@ if __name__ == '__main__':
         raise Exception("structure and sequence have differnt lengths")
     if not (args.coloring_mode == "default" or args.coloring_mode == "distinct"):
         raise Exception("coloring_mode is not accepted (only default and distinct)")
-    if (not args.offset_first.isdigit()) or (not args.offset_second.isdigit()):
+    if (not validNumber(args.offset_1)) or (not validNumber(args.offset_1)):
         raise Exception("index starting positions must be a number of type integer")
-    offset_1 = int(args.offset_first)
-    offset_2 = int(args.offset_second)
+    offset_1 = int(args.offset_1)
+    offset_2 = int(args.offset_2)
 
     # assert that there are as many "(" as ")"
     if structure.count("(") != structure.count(")"):
         raise Exception("the structure is invalid. The number of ( and ) must be the same")  
-
+    
 
     run(structure, sequence, output_file_name, output_file_type, args.coloring_mode, offset_1, offset_2)
