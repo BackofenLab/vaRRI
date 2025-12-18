@@ -43,21 +43,36 @@ def validNumber(number: str) -> bool:
         number = number[1:]
     return number.isdigit()
 
-def transformHybridDB(hybrid_input: str, sequence: str):
+def transformHybridDB(hybrid_input: str, sequence: str, offsets: tuple):
     # takes input of form: 6|||..&3|||.. and returns a sctructure string
     # TODO explain what im doing here
-    # or TODO remake 
+    offset_1, offset_2 = offsets
     seq_1, seq_2 = sequence.split("&")
     hyb_1, hyb_2 = hybrid_input.split("&")
-    index_1, index_2 = int(hyb_1[0]), int(hyb_2[0])
-    inter_1, inter_2 = hyb_1[1:], hyb_2[1:] 
-    struc_1 = "."*index_1 + inter_1 + "." * int(len(seq_1)-index_1-len(inter_1))
-    struc_2 = "." * index_2 + inter_2 + "." * int(len(seq_2)-index_2 - len(inter_2))
-    return struc_1.replace("|","(") + "&" + struc_2.replace("|",")")
 
-    #structure = ["&" if i == "&" else "." for i in sequence]
+    structure = {}
+    structure["1"] = ""
+    structure["2"] = ""
 
+    for seq, hyb, offset, num in [(seq_1, hyb_1, offset_1, "1"), (seq_2, hyb_2, offset_2, "2")]:
+        inter_seq = re.search("[\.|]+", hyb).group()
+        start = int(re.search("-?\d+", hyb).group())
+        end = start + len(inter_seq)
+        # match subsequence of the interaction to the index in the sequence
+        # replace[index in the sequence] = |
+        # replace[-10] = |
+        replace = {}
+        for index, pos in enumerate(range(start, end)):
+            replace[pos] = inter_seq[index]
+        
+        start = offset
+        end = start + len(seq)
+        # now iterating over the whole sequence starting at the offset
+        # if we iterate through the subsequence, replace it
+        for index, pos in enumerate(range(start, end)):
+            structure[num] += "." if pos not in replace else replace[pos]
 
+    return structure["1"].replace("|","(") + "&" + structure["2"].replace("|",")")
 
 
 
@@ -80,6 +95,7 @@ def run(structure, sequence, file_name, file_type, coloring_type="default", offs
             page.goto("file:///" + str(template_barebone_html))
 
             # fix fornac Error: incorrectly cutting of the first 2 nodes in the second sequence
+            # HACK gegebenenfalls fixen wenn fornac updated
             structure_fix = structure.replace("&", "&..")
             sequence_fix = sequence.replace("&", "&ee")
 			
@@ -223,11 +239,15 @@ if __name__ == '__main__':
 			'example: \n ' \
 			'python3.10 rna_to_svg.py "..((((...))))...((...((...((..&............))...))...)).." "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG"')
     parser.add_argument(
-			'structure',
-			help='structure of the rna, in dot-bracket notation')
+			'-u',
+            '--structure',
+			help='structure of the rna, in dot-bracket notation',
+            default="")
     parser.add_argument(
-			'sequence',
-			help='sequence of the rna, out of the letters C,G,U and A')
+			'-e',
+            '--sequence',
+			help='sequence of the rna, out of the letters C,G,U and A',
+            default="")
     parser.add_argument(
             '-o',
 			'--output',
@@ -236,18 +256,20 @@ if __name__ == '__main__':
             default='default.svg')
     parser.add_argument(
             '-c',
-			'--coloring_mode',
+			'--coloring',
 			help='how should the nucleotides be colored?' \
             'default: default coloring fornac' \
             'distinct: each sequence gets its own color',
             default='default')
     parser.add_argument(
-			'--offset_1',
+            '-o1',
+			'--offset1',
 			help='with what offset should the indexing of the first sequence start?' \
             'default: 0',
             default="0")
     parser.add_argument(
-			'--offset_2',
+            '-o2',
+			'--offset2',
 			help='with what offset should the indexing of the second sequence start if ther is one?' \
             'default: 0',
             default="0")
@@ -256,53 +278,194 @@ if __name__ == '__main__':
 			help='additional version of inputing structure:  hybridDB="16||||||&9||||||"' \
             'default: False',
             default=False)
-    args = parser.parse_args()
-
- 
-    sequence = args.sequence
-    structure = args.structure
-    hybrid = args.hybridDB
-    # TODO assert structure is ""
-    if hybrid != False:
-        # TODO make sure hybrid input is valid
-        # TODO transform hybriddb into a structure
-        structure = transformHybridDB(hybrid, sequence)
-        print(structure)
-
-    # TODO assert structure and sequence is given
-
-
-    output_file = args.output
-
-    if "." not in output_file:
-        output_file += ".svg"
-    # split output file name into the name and the file type
-    output_file_name = "".join(output_file.split(".")[:-1])
-    output_file_type = output_file.split(".")[-1]
-
-
-    # assert that the output specifies a valid file type
-    if not (output_file_type == "svg" or output_file_type == "png"):
-        raise Exception("the specified file type is not accepted (only svg and png)")
-    # assert that the output specifies a name and a type
-    if (output_file_name == "" or output_file_type == ""):
-        raise Exception("the specified output name is not valid")
     
-    if args.structure is None or args.sequence is None or args.structure == "" or args.sequence == "":
-        raise Exception("Error: a rna structure and sequence is needed")
-    
-    if len(args.structure) != len(args.sequence):
-        raise Exception("structure and sequence have differnt lengths")
-    if not (args.coloring_mode == "default" or args.coloring_mode == "distinct"):
-        raise Exception("coloring_mode is not accepted (only default and distinct)")
-    if (not validNumber(args.offset_1)) or (not validNumber(args.offset_1)):
-        raise Exception("index starting positions must be a number of type integer")
-    offset_1 = int(args.offset_1)
-    offset_2 = int(args.offset_2)
+    # dictionary of all input variables
+    args = vars(parser.parse_args())
+    # dictionary of all validated input variables
+    validated = {}
 
-    # assert that there are as many "(" as ")"
-    if structure.count("(") != structure.count(")"):
-        raise Exception("the structure is invalid. The number of ( and ) must be the same")  
+    def checkHybridInput(hybrid, sequence, offsets):
+        # make sure that both sequences have the same structre
+        structures = re.findall("[\.|]+", hybrid)
+        starts = [int(start) for start in re.findall("-?\d+", hybrid)]
+        assert len(structures) == 2
+        if structures[0] != structures[1]:
+            raise ValueError("The given hybrid input has 2 different structures")
+        
+        # make sure the hybrid input is within bounds of the sequences
+        sequences = re.findall("[AGCU]+", sequence)
+        assert len(sequences) == 2
+        for seq, struc, offset, start in zip(sequences, structures, offsets, starts):
+            if len(seq) + offset < len(struc) + start: 
+                raise ValueError("The given hybrid input is not within the bounds of the sequence:" \
+                f"end Sequence: {len(seq) + offset} end interaction {len(struc) + start}")
+            if offset > start: 
+                raise ValueError("The given hybrid input is not within the bounds of the sequence:" \
+                f"start Sequence: {offset} start interaction: {start}")        
+
+    def checkStructureInputSimple(structure):
+        # check if the struture has only valid basepairs
+        # ie for every open bracket, one closing bracket
+        basepairs = 0
+        for char in structure:
+            if char == "(":
+                basepairs += 1
+            if char == ")":
+                basepairs -= 1
+            if basepairs < 0:
+                raise ValueError("The number of brackets dont line up: Too many closing brackets")
+        if basepairs > 0:
+            raise ValueError("The number of brackets dont line up: Too many opening brackets")
+
+    def checkStructureInput(structure, sequence):
+        # FUNKTIONIERT NICHT MIT PSEUDO KNOTS
+        # ([)]
+        # AGUC
+        # possible basepairs: A-U, G-C, G-U
+        # idee: ein U kann zu A und G paaren. so sei ein U-A paar
+        # Wenn ein pseudoknot aber nun dazwischen kommt und das U mit einem G bindet
+        # kann sich mit dem C und dem A kein paar mehr bilden
+        # 
+        # ich schließe mit einem inneren C ein äußeres G was eigentlich für eine GU paar vorgesehen war 
+
+        # open c u close gc au
+        # ([)]
+        # CUGA  
+        # open G A clos GU ERRO 
+        # (())
+        # GAUC
+        
+        # check structure and sequence having the same lenght
+        if len(structure) != len(sequence):
+            raise ValueError("structure and sequence dont have the same length")
+        # check if the struture has only valid basepairs
+        # ie for every open bracket, one closing bracket
+
+
+
+        # possible basepairs: A-U, G-C, G-U
+        combinations = {"A": ["U"], "U": ["A", "G"],
+                        "G": ["C", "U"], "C": ["G"]}
+        # basepairs = [(nucelotide, position)]
+        left_basepairs = []
+        for index, char in enumerate(structure):
+            if char == "(":
+                # for each ( add the nucelotide to the left basepair list
+                left_basepairs += [(sequence[index], index)]
+            if char == ")":
+                # for each ) remove a pairing nuclotide in in hte left basepair list
+                for matching_nucleo in combinations[sequence[index]]:
+                    # makes a list out of all matching nucleotides (left)
+                    matching_nucleos = [(n,i) for n,i in left_basepairs if n == matching_nucleo]
+                    # remove the 
+                    if matching_nucleo:
+                        left_basepairs.remove(matching_nucleos[0])
+                        break
+                else:
+                    raise ValueError(f"The right nucleotide {sequence[index]} on position {index}" +
+                                     "does not have a matching nucleotide on its left: " +
+                                     "The Structure and the sequence dont fit together")
+        if len(left_basepairs) != 0:
+            nucleo, index = left_basepairs.pop()
+            raise ValueError(f"The left nucleotide {nucleo} on position {index}" + 
+                             "has no matching nucleotide on its right:" +
+                             "The Structure and the sequence dont fit together")
+
+
+
+
+
+
+
+    def validateStructureInput(args: dict, validated: dict):
+        structure = args["structure"]
+        sequence = validated["sequence"]
+        offset_1 = validated["offset1"]
+        offset_2 = validated["offset2"]
+        
+        if re.fullmatch("(-?\d+[|\.]+)&(-?\d+[|\.]+)", structure):
+            # identifyed hybrid input, only works if there are 2 sequences
+            # make sure both have the same structure 
+            # and both structures are within the sequences
+            # depends on valid: sequence, structure and offset input
+
+            checkHybridInput(structure, sequence, (offset_1, offset_2))
+
+            # transform hybrid input to valid stracture input
+            structure = transformHybridDB(structure, sequence, (offset_1, offset_2))
+        
+        if re.fullmatch("([\.()]+&)?[\.()]+", structure):
+            # make sure all basepairs work
+            checkStructureInputSimple(structure)
+            return structure
+        if structure == "":
+            raise ValueError("No structure given")
+        raise ValueError(f"The given structure input is not valid: {structure}")
     
 
-    run(structure, sequence, output_file_name, output_file_type, args.coloring_mode, offset_1, offset_2)
+    def validateSequenceInput(args: dict):
+        sequence = args["sequence"]
+
+        # making sure the sequnce is in the right format: ([AGUC]+&)?[AGUC]+
+        if re.fullmatch("([AGCU]+&)?[AGCU]+", sequence):
+            return sequence
+        # check if no sequences was given
+        if sequence == "":
+            raise ValueError("No sequences is given")
+
+        raise ValueError("The given sequence input is not valid")
+    
+    def validateOffset(args : dict, offset: str):
+        if re.fullmatch("-?\d+", args[offset]):
+            return int(args[offset])
+        raise ValueError(f"The given offset input is not valid: {args[offset]}")
+        
+    def validateOutput(args: dict):
+        output_file: str = args["output"]
+        valid_output_file_types = ["svg", "png"]
+
+        # TODO allow filenames with path ie, with /
+        # and check if path exists
+
+        # check if the outpuf file name is specified.
+        if output_file == "":
+            raise ValueError("The Output file name is not specified")
+
+        # if no type is specified, then add default type svg
+        if "." not in output_file:
+            output_file += ".svg"
+        if output_file.count(".") > 1:
+            raise ValueError("Too many . in the outputfile name, only allowed 1")
+        
+        output_file_name, output_file_type = output_file.split(".")
+
+        if re.fullmatch("[-_]+", output_file_name):
+            raise ValueError("Using only special Characters in outputfile name is not allowed")
+        if output_file_type not in valid_output_file_types:
+            raise ValueError("The sepcified output file type is not accepted. Allowed types are svg and png")
+        if not re.fullmatch("[-_a-zA-Z\d]+", output_file_name):
+            raise ValueError("The given output file name uses characters that are not allowed ([-_a-zA-Z\d]) ")
+        
+        return (output_file_name, output_file_type)
+            
+        
+    def validateColoring(args: dict):
+        coloring = args["coloring"]
+        if coloring in ["default", "distinct"]:
+            return coloring
+        raise ValueError("coloring input is not accepted (only default or distinct)")
+        
+    validated["offset1"] = validateOffset(args, "offset1")
+    validated["offset2"] = validateOffset(args, "offset2")
+    validated["sequence"] = validateSequenceInput(args)
+    validated["structure"] = validateStructureInput(args, validated)
+
+    validated["output_name"], validated["output_type"] = validateOutput(args)
+
+    validated["coloring"] = validateColoring(args)
+
+    # TODO fix negative hybrid input 1. structre problem
+    
+
+    run(validated["structure"], validated["sequence"], validated["output_name"], 
+        validated["output_type"], validated["coloring"], validated["offset1"], validated["offset2"])
