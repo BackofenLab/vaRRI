@@ -8,8 +8,21 @@ import re
 import traceback
 
 # import input validation functions:
-from input_validation import validateStructureInput, validateSequenceInput, validateOffset, validateOutput, validateColoring
+from input_validation import (validateStructureInput, 
+                              validateSequenceInput, 
+                              validateOffset, 
+                              validateOutput, 
+                              validateColoring, 
+                              formatStructure,
+                              formatSequence,
+                              getMolecules,
+                              validateHighlighting)
 
+from modifications import (changeBackgroundColor,
+                           updateIndexing,
+                           highlightingRegions,
+                           highlightingBasepairs,
+                           )
 # -----------------------------------------------------------------
 project_dir = Path(__file__).resolve().parent.parent.absolute()
 working_dir = Path(__file__).resolve().parent.absolute()
@@ -34,34 +47,24 @@ except Exception as e:
     print("Error reading fornac.css: ")
     print(e)
 
-def sequence_coloring(first_seq, second_seq) -> list:
-    color = []
-    color += ["lightsalmon" for _ in first_seq]
-    color += ["lightgreen" for _ in second_seq]
-
-    return color
-
-
-
-
 
 # -----------------------------------------------------------------
 # open a headless chromium browser instance and load html file with
 # FornaContainer. Extract the created svg into a seperated svg file
-def run(structure, sequence, file_name, file_type, coloring_type="default", offset_1 = 0, offset_2 = 0):
+def run(v):
     try:
         with sync_playwright() as p:
+            # complete structure and sequence with fix
+            structure, sequence = v["structure"], v["sequence"]
 
-            # fix fornac Error: incorrectly cutting of the first 2 nodes in the second sequence
-            # HACK gegebenenfalls fixen wenn fornac updated
-            structure = structure.replace("&", "&..")
-            sequence = sequence.replace("&", "&ee")
+            file_name, file_type, coloring_type = v["output_name"], v["output_type"], v["coloring"]
 
-            # basic formating
-            first_seq = sequence.split("&")[0]
-            second_seq = sequence.split("&")[1] if "&" in sequence else ""
-            first_struc = structure.split("&")[0]
-            second_struc = structure.split("&")[1] if "&" in structure else ""
+            # amount of molecules either 1 or 2
+            molecules = v["molecules"]
+
+            # options [nothing, pairs, region]
+            highlighting = v["highlighting"]
+
 
             # start browser and load page with fornac script
             browser = p.chromium.launch(headless=True)
@@ -80,120 +83,24 @@ def run(structure, sequence, file_name, file_type, coloring_type="default", offs
 
             # -----------------------------------------------------
             # changing the background color
-            coloring = []
             # this option colors all nucleotides of one sequence in one color
             if coloring_type == "distinct":
-                coloring = sequence_coloring(first_seq, second_seq)
-            
-            # color all circles with the given color in the coloring list
-            page.evaluate("""(coloring) => {
-                    function coloringTheCircles(coloring) {
-                        if (coloring.length == 0) {return;}
-                        var list_of_nodes = document.querySelectorAll('[r="5"]');
-                        for (const [index, node] of Object.entries(list_of_nodes)){            
-                            node.setAttribute("style", "fill: " + coloring[index] + ";");
-                        }
-                    }
-                    coloringTheCircles(coloring)
-				}""", coloring)          
-            
-
-            # -----------------------------------------------------
-            # changing the indexing number of each node
-            # TODO more comments
-            numbering = []
-            for offset in [offset_1, offset_2]:
-                numbering += [i for i in range(offset, len(first_seq)+offset, 1)]
-                if 0 in numbering:
-                    numbering.remove(0)
-                    numbering += [numbering[-1] + 1]
-
-            page.evaluate("""(numbering) => {
-                    var list_of_nodes = document.querySelectorAll('[r="5"]');
-                    for (const [index, node] of Object.entries(list_of_nodes)){
-                        title_element = node.children[0];
-                        title_element.innerHTML = numbering[index];
-                    }
-				}""", [str(i) for i in numbering])
-
-            split =  len(first_seq)
-            
-            # adding the 2 empty nodes between the 2 sequences, 
-            # because fornac counts them in when constructing index nodes
-            numbering = numbering[:split] + ["e", "e"] + numbering[split:]
-
-            # changing the indexing
-            indexing = []
-            # index for the first sequence
-            indexing = [str(numbering[i]) for i in range(9, len(numbering)+1, 10)]
-
-            page.evaluate("""(indexing) => {
-                    var list_of_text_elements = document.querySelectorAll('[label_type="label"]');
-                    for (const [index, node] of Object.entries(list_of_text_elements)){
-                        node.innerHTML = indexing[index];                            
-                    }
-				}""", indexing)
+                changeBackgroundColor(page, v)
 
 
             # -----------------------------------------------------
-            # changing the basepair ring color
-            '''
-            end_of_seq1 = len(first_seq)
-            page.evaluate("""(end_of_seq1) => {
-                    var list_of_basepair_links = document.querySelectorAll('[link_type="basepair"]');
-                    var basepair_indicies = [];
-                    for (const [index, node] of Object.entries(list_of_basepair_links)){
-                        text = node.children[0].innerHTML;
-                        basepairs = text.split(":")[1];
-                        basepair_node_1 = basepairs.split("-")[0];
-                        basepair_node_2 = basepairs.split("-")[1];
-                        if (basepair_node_1 < end_of_seq1 && basepair_node_2 > end_of_seq1) {                          
-                            basepair_indicies.push(basepair_node_1);
-                            basepair_indicies.push(basepair_node_2);
-                        }
-                    }
+            # changing the indexing number of each node and the index markers
+            updateIndexing(page, v)
 
-                    for (const index of basepair_indicies){
-                        node = document.querySelector('circle[node_num="' + index.toString() + '"]'); 
-                        style = node.getAttribute("style");
-                        node.setAttribute("style", style + "stroke: red;");
-                    }
-				}""", end_of_seq1)  
-                '''    
-            # --------------------------------------------------------
-            # TODO make circle edge red, between first and last basepair in first sequence and in seconde
-            # assert "(" in first_struc
-            # assert "(" in second_struc
-            # TODO only do this given 2 structures and the right option enabled!
-            # TODO not all basepairs are interbasepairs. first exclude all intrabasepairs
 
-            basepair_region = []
-            assert second_seq != "" and second_struc != ""
-            for structure in [first_struc, second_struc]:
-                basepair_list = listIntermolPairs(structure)
-                assert basepair_list
-                # fornac starts counting nodes with 1 -> list index start with 0
-                region = (basepair_list[0]+1, basepair_list[-1]+1)
-                basepair_region += [region]
-
-            # transform from local indexing to fornac indexing
-            local_1, local_2 = basepair_region[1]
-            offset = len(first_struc)
-            basepair_region[1] = (local_1 + offset, local_2 + offset)
-                
-
-            print(f"basepairregions: {basepair_region}")
-
-            page.evaluate("""(basepair_region) => {
-                    for (const [start, final] of basepair_region){
-                        for (let index = start; index <= final; index++) {
-                            node = document.querySelector('circle[node_num="' + index.toString() + '"]'); 
-                            style = node.getAttribute("style");
-                            node.setAttribute("style", style + "stroke: red;");          
-                          }
-                    }
-				}""", basepair_region)      
-
+            # -----------------------------------------------------
+            # changing the higlighting of different molecules in a intermolecular setting
+            # only works when 2 molecules given
+            if molecules == "2":
+                if highlighting == "region":
+                    highlightingRegions(page, v)
+                if highlighting == "basepairs":
+                    highlightingBasepairs(page, v)
 
 
             # debugging:
@@ -226,42 +133,10 @@ def run(structure, sequence, file_name, file_type, coloring_type="default", offs
             
 			# close chromium borwser
             browser.close()
-            
+
     except Exception as e:
         print(f"Error found: {e}")
         print(traceback.print_exc())
-        
-
-def listIntermolPairs(struc):
-    '''
-    takes a structure and returns a list of indicies 
-    where intermolecular basepairs are, given no pseudoknots
-
-    in the first sequence:
-    if a bracket doesnt close it is a intermol bracket
-    we just return the list of not closed brackets
-
-    in the second sequence:
-    if a brackets closes, but there are no opened brackets,
-    it also must be a 
-
-
-    eg (())...((...(())&(())...))...(())
-    eg ((..(..))&((..)..))
-       ^                 ^
-    '''
-    inter_basepairs = []
-    basepairs = []
-    for index, char in enumerate(struc):
-        if char == "(":
-            basepairs += [index]
-        if char == ")":
-            if basepairs:
-                basepairs.pop()
-            else:
-                inter_basepairs += [index]
-    
-    return inter_basepairs if not basepairs else basepairs
 
 
 
@@ -301,6 +176,16 @@ if __name__ == '__main__':
             'distinct: each sequence gets its own color',
             default='default')
     parser.add_argument(
+            '-i',
+			'--highlighting',
+			help='what should be highlighted?' \
+            'nothing: default fornac, no special higlighting' \
+            'basepairs: each intermolecular basepair base, gets a red cricle' \
+            'regions: every base inside the intermolecular region, ' \
+            'starting with the first intermolecular basepair and ending with the last,' \
+            'gets a red circle',
+            default='region')
+    parser.add_argument(
             '-o1',
 			'--offset1',
 			help='with what offset should the indexing of the first sequence start?' \
@@ -312,12 +197,6 @@ if __name__ == '__main__':
 			help='with what offset should the indexing of the second sequence start if ther is one?' \
             'default: 0',
             default="0")
-    parser.add_argument(
-			'--hybridDB',
-			help='additional version of inputing structure:  hybridDB="16||||||&9||||||"' \
-            'default: False',
-            default=False)
-    
     # dictionary of all input variables
     args = vars(parser.parse_args())
     # dictionary of all validated input variables
@@ -329,12 +208,26 @@ if __name__ == '__main__':
     validated["sequence"] = validateSequenceInput(args)
     validated["structure"] = validateStructureInput(args, validated)
 
+    # structure and sequence have the fix and can be used with fornac, 
+    # structure1 and structure2 are data only 
+    validated["structure1"], validated["structure2"], validated["structure"] = formatStructure(validated)
+    # sequence1 and sequence2 are data only
+    validated["sequence1"], validated["sequence2"], validated["sequence"] = formatSequence(validated)
+
     validated["output_name"], validated["output_type"] = validateOutput(args)
 
     validated["coloring"] = validateColoring(args)
 
+    validated["molecules"] = getMolecules(validated)
+
+    validated["highlighting"] = validateHighlighting(args)
+
     # TODO fix negative hybrid input 1. structre problem
     
+    for key in ["structure", "sequence", "molecules",
+                "structure1", "structure2", "sequence1", "sequence2",
+                "output_name", "output_type", "coloring", "highlighting",
+                "offset1", "offset2"]:
+        assert key in validated
 
-    run(validated["structure"], validated["sequence"], validated["output_name"], 
-        validated["output_type"], validated["coloring"], validated["offset1"], validated["offset2"])
+    run(validated)

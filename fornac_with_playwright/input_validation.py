@@ -17,7 +17,50 @@ def checkStructureInputSimple(structure):
 def sameLength(structure, sequence):
 	return len(structure) == len(sequence)
 
+def split(string):
+	'''
+	Always retruns 2 strings even if there is no &	
+	'''
+	first = string.split("&")[0]
+	second = string.split("&")[1] if "&" in string else ""
+	return first, second
+	
+def validateHighlighting(args: dict):
+	input_highlighting = args["highlighting"]
+	valid_highlighting = ["nothing", "basepairs", "region"]
+	if input_highlighting in valid_highlighting:
+		return input_highlighting
+	raise ValueError(f"The given highlighting input ({input_highlighting}) " +
+				  		"is not accepted [nothing, basepairs, region]") 
 
+
+def formatStructure(validated: dict):
+	structure = validated["structure"]
+	# basic formating
+	first_struc, second_struc = split(structure)
+
+	# fix fornac Error: incorrectly cutting of the first 2 nodes in the second sequence
+	# HACK gegebenenfalls fixen wenn fornac updated
+	structure = structure.replace("&", "&..")
+	return first_struc, second_struc, structure
+
+def formatSequence(validated: dict):
+	sequence = validated["sequence"]
+	# basic formating
+	first_seq, second_seq = split(sequence)
+
+	# fix fornac Error: incorrectly cutting of the first 2 nodes in the second sequence
+	# HACK gegebenenfalls fixen wenn fornac updated
+	sequence = sequence.replace("&", "&..")
+	return first_seq, second_seq, sequence
+
+def getMolecules(validated: dict):
+	# returns how many molecules given. either one or two
+	if validated["sequence2"] != "" or validated["structure2"] != "":
+		assert validated["sequence2"] != ""
+		assert validated["structure2"] != ""
+		return "2"
+	return "1"
 
 def validateStructureInput(args: dict, validated: dict):
 	structure = args["structure"]
@@ -101,7 +144,7 @@ def validateColoring(args: dict):
 	coloring = args["coloring"]
 	if coloring in ["default", "distinct"]:
 		return coloring
-	raise ValueError("coloring input is not accepted (only default or distinct)")
+	raise ValueError("The given coloring input is not accepted (only default or distinct)")
 
 def checkHybridInput(hybrid, sequence, offsets):
 	# make sure that both sequences have the same structre
