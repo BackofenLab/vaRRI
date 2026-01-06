@@ -82,7 +82,7 @@ def validateStructureInput(args: dict, validated: dict):
 	if not sameLength(structure, sequence):
 		# if the sequence and the structure do not have the same length
 		# raise Error
-		raise ValueError(f"Structure length ({structure}) and Sequence length ({sequence}) do not match")
+		raise ValueError(f"Structure length ({len(structure)}) and Sequence length ({len(sequence)}) do not match")
 	
 	
 	if re.fullmatch("([\.()]+&)?[\.()]+", structure):
@@ -104,7 +104,7 @@ def validateSequenceInput(args: dict):
 	if sequence == "":
 		raise ValueError("No sequences is given")
 
-	raise ValueError("The given sequence input is not valid")
+	raise ValueError(f"The given sequence input has invalid characters: {sequence}")
 
 def validateOffset(args : dict, offset: str):
 	if re.fullmatch("-?\d+", args[offset]):
@@ -112,32 +112,30 @@ def validateOffset(args : dict, offset: str):
 	raise ValueError(f"The given offset input is not valid: {args[offset]}")
 	
 def validateOutput(args: dict):
-	output_file: str = args["output"]
+	output: str = args["output"]
 	valid_output_file_types = ["svg", "png"]
 
-	# TODO allow filenames with path ie, with /
-	# and check if path exists
-
 	# check if the outpuf file name is specified.
-	if output_file == "":
+	if output == "":
 		raise ValueError("The Output file name is not specified")
 
+	# we only want to look at the last part of the path:
+	# eg dir1/subdir/file.test <-
+	output_path_last = output.split("/")[-1]
+
 	# if no type is specified, then add default type svg
-	if "." not in output_file:
-		output_file += ".svg"
-	if output_file.count(".") > 1:
+	if "." not in output_path_last:
+		output_path_last += ".svg"
+	if output_path_last.count(".") > 1:
 		raise ValueError("Too many . in the outputfile name, only allowed 1")
 	
-	output_file_name, output_file_type = output_file.split(".")
-
-	if re.fullmatch("[-_]+", output_file_name):
-		raise ValueError("Using only special Characters in outputfile name is not allowed")
+	output_file_name, output_file_type = output_path_last.split(".")
+	match = re.search(".*\/", output) 
+	output_path = match.group() if match else ""
 	if output_file_type not in valid_output_file_types:
 		raise ValueError("The sepcified output file type is not accepted. Allowed types are svg and png")
-	if not re.fullmatch("[-_a-zA-Z\d]+", output_file_name):
-		raise ValueError("The given output file name uses characters that are not allowed ([-_a-zA-Z\d]) ")
 	
-	return (output_file_name, output_file_type)
+	return (output_path + output_file_name, output_file_type)
 		
 	
 def validateColoring(args: dict):

@@ -1,6 +1,8 @@
-python3.10 rna_to_svg.py --structure "..((((...))))...((...((...((..&............))...))...)).." --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o test0.svg
-python3.10 rna_to_svg.py --structure "..((((...))))...((...((...((..&............))...))...)).." --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o test1.svg --offset1 666 --offset2 -666
-python3.10 rna_to_svg.py --structure "..((((...))))...((...((...((..&............))...))...)).." --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o test2.svg --offset1 -666 --offset2 666 -c distinct
-python3.10 rna_to_svg.py --structure "..((((...))))...((...((...((..&............))...))...)).." --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o test3.svg --offset1 -666 --offset2 666 -c distinct
-python3.10 rna_to_svg.py -u "1|||&5|||" --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o test4.svg -c distinct
-python3.10 rna_to_svg.py -u "100|||&205|||" --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o test4.svg --offset1 99 --offset2 200 -c distinct
+python3.10 rna_to_svg.py --structure "..((((...))))...((...((...((..&............))...))...)).." --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o tests/test0.svg
+python3.10 rna_to_svg.py --structure "..((((...))))...((...((...((..&............))...))...)).." --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o tests/test1.svg --offset1=666 --offset2=666
+python3.10 rna_to_svg.py --structure "..((((...))))...((...((...((..&............))...))...)).." --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o tests/test2.svg --offset1=-666 --offset2=666 -c distinct
+python3.10 rna_to_svg.py --structure "..((((...))))...((...((...((..&............))...))...)).." --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o tests/test3.svg --offset1=666 --offset2=-666 -c distinct
+python3.10 rna_to_svg.py --structure "..((((...))))...((...((...((..&............))...))...)).." --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o tests/test4.svg --offset1=-666 --offset2=-666 -c distinct
+python3.10 rna_to_svg.py -u "1|||&5|||" --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o tests/test5.svg -c distinct
+python3.10 rna_to_svg.py -u "100|||&205|||" --sequence "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o tests/test6.svg --offset1 99 --offset2 200 -c distinct
+python3.10 rna_to_svg.py --structure "..((((...))))...((...((..(((...))).((.....&...))...))...)).." --sequence "ACGAUCAGAGAUCAGAGCAUACGACCCCAAAGGGAGCAGAAA&AGAGCAUACGACAGCAG" -o tests/test7.svg -c distinct -o1 2 -o2 2000 -i basepairs

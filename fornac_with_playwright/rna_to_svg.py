@@ -4,8 +4,8 @@ import argparse
 # playwright version: pytest-playwright-0.7.2
 from playwright.sync_api import sync_playwright
 import urllib.parse
-import re
-import traceback
+import os
+import sys
 
 # import input validation functions:
 from input_validation import (validateStructureInput, 
@@ -25,7 +25,7 @@ from modifications import (changeBackgroundColor,
                            )
 # -----------------------------------------------------------------
 project_dir = Path(__file__).resolve().parent.parent.absolute()
-working_dir = Path(__file__).resolve().parent.absolute()
+working_dir = Path(os.getcwd())
 # get the path to fornac.css and template_barebone.html
 fornac_css = project_dir / "fornac" / "fornac.css"
 template_barebone_html = project_dir / "example_html" / "template_barebone.html"
@@ -33,112 +33,116 @@ template_barebone_html = project_dir / "example_html" / "template_barebone.html"
 path_rna_timestamp = working_dir / ("rna_" + str(time.time()))
 
 # -----------------------------------------------------------------
-# TODO set String with placeholder instead of puzzle together
-# creating the elemnts for the svg file:
-svg_header = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"> \n'
-svg_footer = '\n</svg>'
-svg_style = ''
+# creating the template for the svg file:
+svg_template = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"> \n' \
+                '<style type="text/css">\n FORNAC_PLACEHOLDER \n</style>\n' \
+                'SVG_PLACEHOLDER' \
+                '\n</svg>'
+
 
 try:
     assert (fornac_css).exists()
     with open(fornac_css, "r") as f:
-    	svg_style = '<style type="text/css">\n' + f.read() + '\n</style>\n'
-except Exception as e:
-    print("Error reading fornac.css: ")
-    print(e)
+    	svg_template = svg_template.replace("FORNAC_PLACEHOLDER", f.read()) 
+except FileNotFoundError:
+    print("Error reading fornac.css: File was not found in project directory")
 
+
+def buildMolecules(page, v):
+    # complete structure and sequence with fix
+    structure, sequence = v["structure"], v["sequence"]
+    page.evaluate("""([structure, sequence]) => {
+            var container = new fornac.FornaContainer("#rna_ss", {'animation': false});
+            var options = {'structure': structure,
+                        'sequence': sequence
+            };
+            container.addRNA(options.structure, options);
+        }""", [structure, sequence])
 
 # -----------------------------------------------------------------
 # open a headless chromium browser instance and load html file with
 # FornaContainer. Extract the created svg into a seperated svg file
 def run(v):
-    try:
-        with sync_playwright() as p:
-            # complete structure and sequence with fix
-            structure, sequence = v["structure"], v["sequence"]
+    with sync_playwright() as p:
+        file_name, file_type = v["output_name"], v["output_type"]
 
-            file_name, file_type, coloring_type = v["output_name"], v["output_type"], v["coloring"]
-
-            # amount of molecules either 1 or 2
-            molecules = v["molecules"]
-
-            # options [nothing, pairs, region]
-            highlighting = v["highlighting"]
+        # amount of molecules [1, 2]
+        molecules = v["molecules"]
+        # options [default, distinct]
+        coloring_type = v["coloring"]
+        # options [nothing, pairs, region]
+        highlighting = v["highlighting"]
 
 
-            # start browser and load page with fornac script
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page()
-            assert template_barebone_html.exists()
-            page.goto("file:///" + str(template_barebone_html))
-			
-			# use fornac to generate structure
-            page.evaluate("""([structure, sequence]) => {
-					var container = new fornac.FornaContainer("#rna_ss", {'animation': false});
-					var options = {'structure': structure,
-								'sequence': sequence
-					};
-					container.addRNA(options.structure, options);
-				}""", [structure, sequence])
+        # start browser and load page with fornac script
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        assert template_barebone_html.exists()
+        page.goto("file:///" + str(template_barebone_html))
+        
+        # use fornac to generate structure
+        buildMolecules(page, v)
 
-            # -----------------------------------------------------
-            # changing the background color
-            # this option colors all nucleotides of one sequence in one color
-            if coloring_type == "distinct":
-                changeBackgroundColor(page, v)
+        # -----------------------------------------------------
+        # changing the background color
+        # this option colors all nucleotides of one sequence in one color
+        if coloring_type == "distinct":
+            changeBackgroundColor(page, v)
 
+        # -----------------------------------------------------
+        # changing the indexing number of each node and the index markers
+        updateIndexing(page, v)
 
-            # -----------------------------------------------------
-            # changing the indexing number of each node and the index markers
-            updateIndexing(page, v)
+        # -----------------------------------------------------
+        # changing the higlighting of different molecules in a intermolecular setting
+        # only works when 2 molecules given
+        if molecules == "2":
+            if highlighting == "region":
+                highlightingRegions(page, v)
+            if highlighting == "basepairs":
+                highlightingBasepairs(page, v)
 
+        #  extracting the built svg file
+        svg = page.locator("svg").first.inner_html()
 
-            # -----------------------------------------------------
-            # changing the higlighting of different molecules in a intermolecular setting
-            # only works when 2 molecules given
-            if molecules == "2":
-                if highlighting == "region":
-                    highlightingRegions(page, v)
-                if highlighting == "basepairs":
-                    highlightingBasepairs(page, v)
+        # adding the svg code into svg file template
+        final_svg = svg_template.replace("SVG_PLACEHOLDER", svg)
 
+        # finalise file name
+        if file_name == "default":
+            complete_path = working_dir / ("rna_" + str(time.time()) + "." + file_type)
+        else:
+            complete_path = working_dir / (file_name + "." + file_type)
 
-            # debugging:
-            debug_text = page.locator("div").first.inner_html()
-            print(debug_text)
-
-
-			#  extracting the built svg file
-            svg = page.locator("svg").first.inner_html()
-            # combining all svg file elements in one string
-            final_svg = svg_header + svg_style + svg + svg_footer
-
-            # finalise file name
-            if file_name == "default":
-                path_file = working_dir / ("rna_" + str(time.time()) + "." + file_type)
-            else:
-                path_file = working_dir / (file_name + "." + file_type)
-            
-            
+        error = ""
+        
+        try:
             if file_type == "png":
                 # create a new page with the svg code and take a screenshot
                 svg_page = browser.new_page()
                 url_svg = urllib.parse.quote(final_svg)
                 svg_page.goto(f"data:image/svg+xml,{url_svg}")
-                svg_page.screenshot(path=path_file)
+                svg_page.screenshot(path=complete_path)
+                print(f"[Log] png File created: {complete_path}")
             if file_type == "svg":
-    			# writing the svg code as a string into a file
-                with open(path_file, "w") as f:
+                # writing the svg code as a string into a file
+                with open(complete_path, "w") as f:
                     f.write(final_svg)
-            
-			# close chromium borwser
-            browser.close()
+                print(f"[Log] svg File created: {complete_path}")
 
-    except Exception as e:
-        print(f"Error found: {e}")
-        print(traceback.print_exc())
+        except PermissionError:
+            error = "Permission Denied for Path: "
+        except ValueError:
+            error = "Pfad ist ungültig: "
+        except FileNotFoundError:
+            error = "Path does not exist: "
 
+        if error:
+            print("[Error] " + error + str(complete_path))
+            sys.exit(2)
 
+        # close chromium borwser
+        browser.close()
 
 # -----------------------------------------------------------------
 # Input parameters for script: 
@@ -194,39 +198,52 @@ if __name__ == '__main__':
     parser.add_argument(
             '-o2',
 			'--offset2',
-			help='with what offset should the indexing of the second sequence start if ther is one?' \
+			help='with what offset should the indexing of the second sequence start if there is one?' \
             'default: 0',
             default="0")
+    
+    #-------------------------------------------------------------------------------
+    # input validation
+
     # dictionary of all input variables
     args = vars(parser.parse_args())
     # dictionary of all validated input variables
     validated = {}
 
+    try:
+        validated["offset1"] = validateOffset(args, "offset1")
+        validated["offset2"] = validateOffset(args, "offset2")
+        validated["sequence"] = validateSequenceInput(args)
+        validated["structure"] = validateStructureInput(args, validated)
 
-    validated["offset1"] = validateOffset(args, "offset1")
-    validated["offset2"] = validateOffset(args, "offset2")
-    validated["sequence"] = validateSequenceInput(args)
-    validated["structure"] = validateStructureInput(args, validated)
+        # if an interaction between 2 Molecules is given, fornac does not display 
+        # the first 2 nucelotides of the second molecule. 
+        # in the variables "structure" and "sequence" a fix has been added
 
-    # structure and sequence have the fix and can be used with fornac, 
-    # structure1 and structure2 are data only 
-    validated["structure1"], validated["structure2"], validated["structure"] = formatStructure(validated)
-    # sequence1 and sequence2 are data only
-    validated["sequence1"], validated["sequence2"], validated["sequence"] = formatSequence(validated)
+        # but "structure1" and "structure2" are data only and do not have the fix
+        validated["structure1"], validated["structure2"], validated["structure"] = formatStructure(validated)
+        # "sequence1" and "sequence2" are data only as well
+        validated["sequence1"], validated["sequence2"], validated["sequence"] = formatSequence(validated)
 
-    validated["output_name"], validated["output_type"] = validateOutput(args)
+        validated["output_name"], validated["output_type"] = validateOutput(args)
 
-    validated["coloring"] = validateColoring(args)
+        validated["coloring"] = validateColoring(args)
 
-    validated["molecules"] = getMolecules(validated)
+        validated["molecules"] = getMolecules(validated)
 
-    validated["highlighting"] = validateHighlighting(args)
+        validated["highlighting"] = validateHighlighting(args)
+    except ValueError as e:
+        print(f"[Error] {e}")
+        sys.exit(2)
+
+
 
     # TODO fix negative hybrid input 1. structre problem
     
     for key in ["structure", "sequence", "molecules",
                 "structure1", "structure2", "sequence1", "sequence2",
-                "output_name", "output_type", "coloring", "highlighting",
+                "output_name", "output_type",
+                "coloring", "highlighting",
                 "offset1", "offset2"]:
         assert key in validated
 

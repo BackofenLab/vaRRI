@@ -24,6 +24,7 @@ def changeBackgroundColor(page, v):
         }""", coloring)
     
 def updateIndexing(page, v):
+    # TODO more comments, explain whats happening
     offset1 = v["offset1"]
     offset2 = v["offset2"]
     length1 = len(v["sequence1"])
@@ -46,9 +47,9 @@ def updateIndexing(page, v):
     
     # adding the 2 empty nodes between the 2 sequences, 
     # because fornac counts them in when constructing index nodes
-    numbering = numbering[:length1] + ["e", "e"] + numbering[length2:]
+    numbering = numbering[:length1] + ["e", "e"] + numbering[length1:]
 
-    # changing the indexing
+    # changing the indexing for the marker, showing the index for every 10 nodes
     indexing = []
     # index for the first sequence
     indexing = [str(numbering[i]) for i in range(9, len(numbering)+1, 10)]
@@ -77,8 +78,10 @@ def highlightingRegions(page, v):
 
     # transform from local indexing to fornac indexing
     local_start, local_end = basepair_region[1]
-    split = len(structure1)
-    basepair_region[1] = (local_start + split, local_end + split)
+    # offset the start and end by the length of the first molecule 
+	# and 2 nodes that make up the separation of the 2 molecules
+    offset = len(structure1) + 2
+    basepair_region[1] = (local_start + offset, local_end + offset)
 
     page.evaluate("""(basepair_region) => {
             for (const [start, final] of basepair_region){
