@@ -1,3 +1,5 @@
+#!/usr/bin/python3.10
+
 from pathlib import Path
 import time
 import argparse
@@ -6,6 +8,7 @@ from playwright.sync_api import sync_playwright
 import urllib.parse
 import os
 import sys
+import logging
 
 # import input validation functions:
 from input_validation import (validateStructureInput, 
@@ -16,7 +19,8 @@ from input_validation import (validateStructureInput,
                               formatStructure,
                               formatSequence,
                               getMolecules,
-                              validateHighlighting)
+                              validateHighlighting,
+                              validateLogging)
 
 from modifications import (changeBackgroundColor,
                            updateIndexing,
@@ -31,6 +35,8 @@ fornac_css = project_dir / "fornac" / "fornac.css"
 template_barebone_html = project_dir / "example_html" / "template_barebone.html"
 # set the path and create the name of the new file without the file type
 path_rna_timestamp = working_dir / ("rna_" + str(time.time()))
+
+
 
 # -----------------------------------------------------------------
 # creating the template for the svg file:
@@ -58,6 +64,14 @@ def buildMolecules(page, v):
             };
             container.addRNA(options.structure, options);
         }""", [structure, sequence])
+    
+# -----------------------------------------------------------------
+def setupLogging(v: dict):
+    # setup logging
+    logging_option = logging.INFO if v["logging"] else logging.CRITICAL
+    logging.basicConfig(level=logging_option,
+                        format="[{levelname}] {message}",
+                        style="{")
 
 # -----------------------------------------------------------------
 # open a headless chromium browser instance and load html file with
@@ -123,12 +137,13 @@ def run(v):
                 url_svg = urllib.parse.quote(final_svg)
                 svg_page.goto(f"data:image/svg+xml,{url_svg}")
                 svg_page.screenshot(path=complete_path)
-                print(f"[Log] png File created: {complete_path}")
+                
+                logging.info(f"png File created: {complete_path}")
             if file_type == "svg":
                 # writing the svg code as a string into a file
                 with open(complete_path, "w") as f:
                     f.write(final_svg)
-                print(f"[Log] svg File created: {complete_path}")
+                logging.info(f"svg File created: {complete_path}")
 
         except PermissionError:
             error = "Permission Denied for Path: "
@@ -193,15 +208,22 @@ if __name__ == '__main__':
             '-o1',
 			'--offset1',
 			help='with what offset should the indexing of the first sequence start?' \
-            'default: 0',
-            default="0")
+            '0 is no option' \
+            'default: 1',
+            default="1")
     parser.add_argument(
             '-o2',
 			'--offset2',
 			help='with what offset should the indexing of the second sequence start if there is one?' \
-            'default: 0',
-            default="0")
-    
+            '0 is no option' \
+            'default: 1',
+            default="1")
+    parser.add_argument(
+            '-l',
+			'--logging',
+			help='Disable/Enable Logging' \
+            'default: True',
+            default="True")    
     #-------------------------------------------------------------------------------
     # input validation
 
@@ -211,6 +233,11 @@ if __name__ == '__main__':
     validated = {}
 
     try:
+        # setup logging if enabled
+        validated["logging"] = validateLogging(args)
+        setupLogging(validated)
+
+
         validated["offset1"] = validateOffset(args, "offset1")
         validated["offset2"] = validateOffset(args, "offset2")
         validated["sequence"] = validateSequenceInput(args)
@@ -232,13 +259,13 @@ if __name__ == '__main__':
         validated["molecules"] = getMolecules(validated)
 
         validated["highlighting"] = validateHighlighting(args)
+
+
     except ValueError as e:
         print(f"[Error] {e}")
         sys.exit(2)
 
 
-
-    # TODO fix negative hybrid input 1. structre problem
     
     for key in ["structure", "sequence", "molecules",
                 "structure1", "structure2", "sequence1", "sequence2",
