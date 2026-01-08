@@ -51,7 +51,7 @@ try:
     with open(fornac_css, "r") as f:
     	svg_template = svg_template.replace("FORNAC_PLACEHOLDER", f.read()) 
 except FileNotFoundError:
-    print("Error reading fornac.css: File was not found in project directory")
+    logging.error("fornac.css was not found in project directory")
 
 
 def buildMolecules(page, v):
@@ -262,7 +262,7 @@ if __name__ == '__main__':
 
 
     except ValueError as e:
-        print(f"[Error] {e}")
+        logging.error(e)
         sys.exit(2)
 
 

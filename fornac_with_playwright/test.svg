@@ -1,0 +1,217 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"> 
+<style type="text/css">
+ circle.fornac-node, polygon.fornac-node {
+  stroke: #ccc;
+  stroke-width: 0.8;
+  opacity: 1;
+  fill: white;
+}
+
+path.fornac-directionArrow {
+  fill: #777;
+  stroke: none;
+  stroke-width: 0.8px;
+}
+
+g.fornac-plot {
+    /* outline: 1px solid red; */
+}
+
+circle.fornac-node[base_type="a"] {
+  fill: #dbdb8d;
+}
+
+circle.fornac-node[base_type="c"] {
+  fill: #98df8a;
+}
+
+circle.fornac-node[base_type="g"] {
+  fill: #ff9896;
+}
+
+circle.fornac-node[base_type="u"], circle.fornac-node[base_type="t"] {
+  fill: #aec7e8;
+}
+
+.fornac-node > text {
+     pointer-events: none;
+ }
+
+circle.fornac-node[node_type="label"] {
+    stroke: transparent;
+    stroke-width: 0;
+    fill: white;
+    display: inline;
+}
+
+circle.fornac-node[node_type="protein"] {
+    fill: gray;
+    fill-opacity: 0.5;
+    stroke-width: 4;
+}
+
+.fornac-selectedNode > circle.fornac-node {
+    stroke: red;
+}
+
+text.fornac-nodeLabel {
+    font-weight: bold;
+    font-family: Tahoma, Geneva, sans-serif;
+    font-size: 0.4em;
+    color: rgb(100,100,100);
+    text-anchor: middle;
+    alignment-baseline: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+line.fornac-link {
+  stroke: #999;
+  stroke-opacity: 0.8;
+  stroke-width: 2;
+}
+
+line.fornac-link[link_type="pseudoknot"] {
+    stroke: red;
+}
+
+line.fornac-link[link_type="basepair"] {
+  stroke: red;
+}
+
+line.fornac-link[link_type="intermolecule"] {
+  stroke: blue;
+}
+
+line.fornac-link[link_type="chain_chain"] {
+  stroke-dasharray: 3,3;
+}
+
+line.fornac-link[link_type="fake"] {
+  stroke: green;
+}
+
+text.fornac-plotLabel {
+    font-family: Tahoma, Geneva, sans-serif;
+    font-weight: bolder;
+    font-size: 1.2em;
+    fill: rgba(200, 200, 200, 0.5);
+    text-anchor: middle;
+    alignment-baseline: central;
+}
+
+.fornac-transparent {
+    fill: transparent;
+    stroke-width: 0;
+    stroke-opacity: 0;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.fornac-dragLine {
+  stroke: #999;
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+.fornac-mouseEventHelper > .extent {
+  fill-opacity: .1;
+  stroke: #fff;
+  shape-rendering: crispEdges;
+}
+
+.d3-context-menu {
+	position: absolute;
+	display: none;
+	background-color: #f2f2f2;
+	border-radius: 4px;
+
+	font-family: Arial, sans-serif;
+	font-size: 14px;
+	min-width: 150px;
+	border: 1px solid #d4d4d4;
+
+	z-index:1200;
+}
+
+.d3-context-menu ul {
+	list-style-type: none;
+	margin: 4px 0px;
+	padding: 0px;
+	cursor: default;
+}
+
+.d3-context-menu ul li {
+	padding: 4px 16px;
+
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none;   /* Chrome/Safari/Opera */
+	-khtml-user-select: none;    /* Konqueror */
+	-moz-user-select: none;      /* Firefox */
+	-ms-user-select: none;       /* Internet Explorer/Edge */
+	user-select: none;
+}
+
+.d3-context-menu ul li:hover {
+	background-color: #4677f8;
+	color: #fefefe;
+}
+
+.d3-context-menu-selected {
+	background-color: #4677f8;
+	color: #fefefe;
+}
+
+/*
+	Header
+*/
+
+.d3-context-menu ul li.is-header
+.d3-context-menu ul li.is-header:hover {
+	background-color: #f2f2f2;
+	color: #444;
+	font-weight: bold;
+	font-style: italic;
+}
+
+/*
+	Disabled
+*/
+
+.d3-context-menu ul li.is-disabled
+.d3-context-menu ul li.is-disabled:hover {
+	background-color: #f2f2f2;
+	color: #888;
+	cursor: not-allowed;
+}
+
+/*
+	Divider
+*/
+
+.d3-context-menu ul li.is-divider {
+	padding: 0px 0px;
+}
+
+.d3-context-menu ul li.is-divider:hover {
+	background-color: #f2f2f2;
+}
+
+.d3-context-menu ul hr {
+	border: 0;
+    height: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/*# sourceMappingURL=fornac.css.map*/ 
+</style>
+<g class="fornac-plot" transform="translate(-78.67325592041016,-42.35505676269531)scale(1.414445161819458,1.414445161819458)"><g class="fornac-links"><line class="link fornac-link" x1="100" y1="100" x2="115" y2="100" link_type="backbone" pointer-events="all"><title>backbone:1-2</title></line><line class="link fornac-link" x1="115" y1="100" x2="127.61880299246772" y2="108.10961226183396" link_type="backbone" pointer-events="all"><title>backbone:2-3</title></line><line class="link fornac-link" x1="133.850028187496" y1="121.75409219215173" x2="131.71530561339674" y2="136.6014138203657" link_type="basepair" pointer-events="all"><title>basepair:4-21</title></line><line class="link fornac-link" x1="127.61880299246772" y1="108.10961226183396" x2="133.850028187496" y2="121.75409219215173" link_type="backbone" pointer-events="all"><title>backbone:3-4</title></line><line class="link fornac-link" x1="148.69734981571" y1="123.888814766251" x2="146.56262724161073" y2="138.736136394465" link_type="basepair" pointer-events="all"><title>basepair:5-20</title></line><line class="link fornac-link" x1="133.850028187496" y1="121.75409219215173" x2="148.69734981571" y2="123.888814766251" link_type="backbone" pointer-events="all"><title>backbone:4-5</title></line><line class="link fornac-link" x1="148.69734981571" y1="123.888814766251" x2="156.3514003116235" y2="110.9886011631355" link_type="backbone" pointer-events="all"><title>backbone:5-6</title></line><line class="link fornac-link" x1="156.3514003116235" y1="110.9886011631355" x2="168.3595189254889" y2="101.9994361654653" link_type="backbone" pointer-events="all"><title>backbone:6-7</title></line><line class="link fornac-link" x1="168.3595189254889" y1="101.9994361654653" x2="182.89357845221153" y2="98.28983865715207" link_type="backbone" pointer-events="all"><title>backbone:7-8</title></line><line class="link fornac-link" x1="182.89357845221153" y1="98.28983865715207" x2="197.74090008042552" y2="100.42456123125136" link_type="backbone" pointer-events="all"><title>backbone:8-9</title></line><line class="link fornac-link" x1="197.74090008042552" y1="100.42456123125136" x2="210.64111368354102" y2="108.07861172716485" link_type="backbone" pointer-events="all"><title>backbone:9-10</title></line><line class="link fornac-link" x1="210.64111368354102" y1="108.07861172716485" x2="219.63027868121122" y2="120.08673034103026" link_type="backbone" pointer-events="all"><title>backbone:10-11</title></line><line class="link fornac-link" x1="219.63027868121122" y1="120.08673034103026" x2="223.33987618952446" y2="134.62078986775288" link_type="backbone" pointer-events="all"><title>backbone:11-12</title></line><line class="link fornac-link" x1="223.33987618952446" y1="134.62078986775288" x2="221.2051536154252" y2="149.46811149596687" link_type="backbone" pointer-events="all"><title>backbone:12-13</title></line><line class="link fornac-link" x1="221.2051536154252" y1="149.46811149596687" x2="213.55110311951168" y2="162.36832509908237" link_type="backbone" pointer-events="all"><title>backbone:13-14</title></line><line class="link fornac-link" x1="213.55110311951168" y1="162.36832509908237" x2="201.54298450564627" y2="171.35749009675257" link_type="backbone" pointer-events="all"><title>backbone:14-15</title></line><line class="link fornac-link" x1="201.54298450564627" y1="171.35749009675257" x2="187.00892497892366" y2="175.0670876050658" link_type="backbone" pointer-events="all"><title>backbone:15-16</title></line><line class="link fornac-link" x1="146.56262724161073" y1="138.736136394465" x2="148.69734981571" y2="123.888814766251" link_type="basepair" pointer-events="all"><title>basepair:20-5</title></line><line class="link fornac-link" x1="150.27222474992396" y1="153.27019592118762" x2="146.56262724161073" y2="138.736136394465" link_type="backbone" pointer-events="all"><title>backbone:19-20</title></line><line class="link fornac-link" x1="131.71530561339674" y1="136.6014138203657" x2="133.850028187496" y2="121.75409219215173" link_type="basepair" pointer-events="all"><title>basepair:21-4</title></line><line class="link fornac-link" x1="146.56262724161073" y1="138.736136394465" x2="131.71530561339674" y2="136.6014138203657" link_type="backbone" pointer-events="all"><title>backbone:20-21</title></line><line class="link fornac-link" x1="131.71530561339674" y1="136.6014138203657" x2="121.89239460421746" y2="147.93765743567957" link_type="backbone" pointer-events="all"><title>backbone:21-22</title></line><line class="link fornac-link" x1="121.89239460421746" y1="147.93765743567957" x2="107.5" y2="152.163645788301" link_type="backbone" pointer-events="all"><title>backbone:22-23</title></line><line class="link fornac-link" x1="210.64111368354102" y1="108.07861172716485" x2="220.66480057130465" y2="96.91950328714711" link_type="label_link" pointer-events="all"><title>label_link:10--1</title></line><line class="link fornac-link" x1="146.56262724161073" y1="138.736136394465" x2="136.53894035384707" y2="149.89524483448275" link_type="label_link" pointer-events="all"><title>label_link:20--1</title></line></g><g class="fornac-nodes"><g class="gnode" struct_name="empty" transform="translate(100,100)" num="n1" rnum="n23"><path class="fornac-directionArrow" node_num="1"></path><circle class="fornac-node" node_type="nucleotide" node_num="1" r="5" style="fill: lightsalmon;"><title>s1[1]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:1</title></text></g><g class="gnode" struct_name="empty" transform="translate(115,100)" num="n2" rnum="n22"><path class="fornac-directionArrow" node_num="2" d="M-8.4,-2.0999999999999996L-5.4,0L-8.4,2.0999999999999996"></path><circle class="fornac-node" node_type="nucleotide" node_num="2" r="5" style="fill: lightsalmon;"><title>s1[2]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:2</title></text></g><g class="gnode" struct_name="empty" transform="translate(127.61880299246772,108.10961226183396)" num="n3" rnum="n21"><path class="fornac-directionArrow" node_num="3" d="M-5.931183959125169,-6.308015285572497L-4.542769077288379,-2.919460414260225L-8.201875392438676,-2.7747504476815363"></path><circle class="fornac-node" node_type="nucleotide" node_num="3" r="5" style="fill: lightsalmon;"><title>s1[3]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:3</title></text></g><g class="gnode" struct_name="empty" transform="translate(133.850028187496,121.75409219215173)" num="n4" rnum="n20"><path class="fornac-directionArrow" node_num="4" d="M-1.579258918971354,-8.513280288281917L-2.2432410702101846,-4.912012774914401L-5.3997132994603305,-6.768537233673996"></path><circle class="fornac-node" node_type="nucleotide" node_num="4" r="5" style="fill: lightsalmon;stroke: red;"><title>s1[4]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:4</title></text></g><g class="gnode" struct_name="empty" transform="translate(148.69734981571,123.888814766251)" num="n5" rnum="n19"><path class="fornac-directionArrow" node_num="5" d="M-8.015638951425938,-3.274069669445551L-5.3450357861570374,-0.7685001266757377L-8.613361272173734,0.8831803864543667"></path><circle class="fornac-node" node_type="nucleotide" node_num="5" r="5" style="fill: lightsalmon;stroke: red;"><title>s1[5]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:5</title></text></g><g class="gnode" struct_name="empty" transform="translate(156.3514003116235,110.9886011631355)" num="n6" rnum="n18"><path class="fornac-directionArrow" node_num="6" d="M-6.092298182147734,6.15255254831679L-2.7554581785288628,4.644076897121581L-2.480238373275394,8.295686687172571"></path><circle class="fornac-node" node_type="nucleotide" node_num="6" r="5" style="fill: lightsalmon;"><title>s1[6]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:6</title></text></g><g class="gnode" struct_name="empty" transform="translate(168.3595189254889,101.9994361654653)" num="n7" rnum="n17"><path class="fornac-directionArrow" node_num="7" d="M-7.983029523438457,3.352795792754157L-4.322922700991547,3.236099399161273L-5.4660633240908005,6.7150690046364705"></path><circle class="fornac-node" node_type="nucleotide" node_num="7" r="5" style="fill: lightsalmon;"><title>s1[7]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:7</title></text></g><g class="gnode" struct_name="empty" transform="translate(182.89357845221153,98.28983865715207)" num="n8" rnum="n16"><path class="fornac-directionArrow" node_num="8" d="M-8.658416986128515,0.04260627091423941L-5.232261429620141,1.3354551029927604L-7.619729683800812,4.112142938396571"></path><circle class="fornac-node" node_type="nucleotide" node_num="8" r="5" style="fill: lightsalmon;"><title>s1[8]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:8</title></text></g><g class="gnode" struct_name="empty" transform="translate(197.74090008042552,100.42456123125136)" num="n9" rnum="n15"><path class="fornac-directionArrow" node_num="9" d="M-8.015638951425935,-3.2740696694455584L-5.345035786157037,-0.7685001266757429L-8.613361272173734,0.8831803864543585"></path><circle class="fornac-node" node_type="nucleotide" node_num="9" r="5" style="fill: lightsalmon;"><title>s1[9]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:9</title></text></g><g class="gnode" struct_name="empty" transform="translate(210.64111368354102,108.07861172716485)" num="n10" rnum="n14"><path class="fornac-directionArrow" node_num="10" d="M-6.152552548316795,-6.092298182147729L-4.6440768971215824,-2.755458178528859L-8.295686687172573,-2.4802383732753874"></path><circle class="fornac-node" node_type="nucleotide" node_num="10" r="5" style="fill: lightsalmon;"><title>s1[10]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:10</title></text></g><g class="gnode" struct_name="empty" transform="translate(219.63027868121122,120.08673034103026)" num="n11" rnum="n13"><path class="fornac-directionArrow" node_num="11" d="M-3.352795792754157,-7.983029523438457L-3.236099399161273,-4.322922700991547L-6.7150690046364705,-5.4660633240908005"></path><circle class="fornac-node" node_type="nucleotide" node_num="11" r="5" style="fill: lightsalmon;"><title>s1[11]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:11</title></text></g><g class="gnode" struct_name="empty" transform="translate(223.33987618952446,134.62078986775288)" num="n12" rnum="n12"><path class="fornac-directionArrow" node_num="12" d="M-0.04260627091424718,-8.658416986128515L-1.335455102992765,-5.23226142962014L-4.112142938396578,-7.619729683800808"></path><circle class="fornac-node" node_type="nucleotide" node_num="12" r="5" style="fill: lightsalmon;"><title>s1[12]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:12</title></text></g><g class="gnode" struct_name="empty" transform="translate(221.2051536154252,149.46811149596687)" num="n13" rnum="n11"><path class="fornac-directionArrow" node_num="13" d="M3.274069669445551,-8.015638951425938L0.7685001266757377,-5.3450357861570374L-0.8831803864543667,-8.613361272173734"></path><circle class="fornac-node" node_type="nucleotide" node_num="13" r="5" style="fill: lightsalmon;"><title>s1[13]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:13</title></text></g><g class="gnode" struct_name="empty" transform="translate(213.55110311951168,162.36832509908237)" num="n14" rnum="n10"><path class="fornac-directionArrow" node_num="14" d="M6.092298182147734,-6.15255254831679L2.7554581785288628,-4.644076897121581L2.480238373275394,-8.295686687172571"></path><circle class="fornac-node" node_type="nucleotide" node_num="14" r="5" style="fill: lightsalmon;"><title>s1[14]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:14</title></text></g><g class="gnode" struct_name="empty" transform="translate(201.54298450564627,171.35749009675257)" num="n15" rnum="n9"><path class="fornac-directionArrow" node_num="15" d="M7.983029523438457,-3.352795792754157L4.322922700991547,-3.236099399161273L5.4660633240908005,-6.7150690046364705"></path><circle class="fornac-node" node_type="nucleotide" node_num="15" r="5" style="fill: lightsalmon;"><title>s1[15]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:15</title></text></g><g class="gnode" struct_name="empty" transform="translate(187.00892497892366,175.0670876050658)" num="n16" rnum="n8"><path class="fornac-directionArrow" node_num="16" d="M8.658416986128515,-0.04260627091424718L5.23226142962014,-1.335455102992765L7.619729683800808,-4.112142938396578"></path><circle class="fornac-node" node_type="nucleotide" node_num="16" r="5" style="fill: lightsalmon;"><title>s1[16]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:16</title></text></g><g class="gnode" struct_name="empty" transform="translate(172.16160335070967,172.93236503096654)" num="n17" rnum="n7"><text class="fornac-nodeLabel" label_type="middle"><title></title></text></g><g class="gnode" struct_name="empty" transform="translate(159.26138974759417,165.27831453505303)" num="n18" rnum="n6"><text class="fornac-nodeLabel" label_type="middle"><title></title></text></g><g class="gnode" struct_name="empty" transform="translate(150.27222474992396,153.27019592118762)" num="n19" rnum="n5"><path class="fornac-directionArrow" node_num="19"></path><circle class="fornac-node" node_type="nucleotide" node_num="19" r="5" style="fill: lightgreen;"><title>s2[1]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:19</title></text></g><g class="gnode" struct_name="empty" transform="translate(146.56262724161073,138.736136394465)" num="n20" rnum="n4"><path class="fornac-directionArrow" node_num="20" d="M0.04260627091424718,8.658416986128515L1.335455102992765,5.23226142962014L4.112142938396578,7.619729683800808"></path><circle class="fornac-node" node_type="nucleotide" node_num="20" r="5" style="fill: lightgreen;stroke: red;"><title>s2[2]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:20</title></text></g><g class="gnode" struct_name="empty" transform="translate(131.71530561339674,136.6014138203657)" num="n21" rnum="n3"><path class="fornac-directionArrow" node_num="21" d="M8.015638951425933,3.274069669445566L5.345035786157037,0.7685001266757477L8.613361272173737,-0.8831803864543509"></path><circle class="fornac-node" node_type="nucleotide" node_num="21" r="5" style="fill: lightgreen;stroke: red;"><title>s2[3]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:21</title></text></g><g class="gnode" struct_name="empty" transform="translate(121.89239460421746,147.93765743567957)" num="n22" rnum="n2"><path class="fornac-directionArrow" node_num="22" d="M7.087904271284341,-4.973088883290666L3.5362479633045423,-4.0810477015129925L3.9137560589964577,-7.723503965860865"></path><circle class="fornac-node" node_type="nucleotide" node_num="22" r="5" style="fill: lightgreen;"><title>s2[4]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:22</title></text></g><g class="gnode" struct_name="empty" transform="translate(107.5,152.163645788301)" num="n23" rnum="n1"><path class="fornac-directionArrow" node_num="23" d="M8.651379347728781,-0.3516182328775639L5.181262057518286,-1.5213558069437196L7.468102608994776,-4.381488722058453"></path><circle class="fornac-node" node_type="nucleotide" node_num="23" r="5" style="fill: lightgreen;"><title>s2[5]</title></circle><text class="fornac-nodeLabel" label_type="nucleotide">A<title>empty:23</title></text></g><g class="gnode" struct_name="empty" transform="translate(220.66480057130465,96.91950328714711)" num="n-1" rnum="n25"><circle class="fornac-node" r="6" node_type="label" node_num="-1"></circle><text class="fornac-nodeLabel" label_type="label">10</text></g><g class="gnode" struct_name="empty" transform="translate(136.53894035384707,149.89524483448275)" num="n-1" rnum="n25"><circle class="fornac-node" r="6" node_type="label" node_num="-1"></circle><text class="fornac-nodeLabel" label_type="label">2</text></g><g class="gnode" transform="translate(140.20632771455337,130.24511429330835)" num="n-1" rnum="n25"><text class="fornac-nodeLabel" label_type="middle"><title></title></text></g><g class="gnode" transform="translate(107.5,152.163645788301)" num="n-3" rnum="n27"><text class="fornac-nodeLabel" label_type="middle"><title></title></text></g><g class="gnode" transform="translate(100,100)" num="n-2" rnum="n26"><text class="fornac-nodeLabel" label_type="middle"><title></title></text></g><g class="gnode" transform="translate(119.65379019965398,123.79520307119027)" num="n-1" rnum="n25"><text class="fornac-nodeLabel" label_type="middle"><title></title></text></g><g class="gnode" transform="translate(184.9512517155676,136.67846313110894)" num="n-1" rnum="n25"><text class="fornac-nodeLabel" label_type="middle"><title></title></text></g></g></g>
+</svg>
