@@ -17,7 +17,7 @@ creates a visualisation of an intra- and intermolecular structure:
 ~~~
 python3.10 rna_to_svg.py -u="((..))..<<..&...>>.." -e="AAAAAAAAAAAA&AAAAAAA"
 ~~~
-creates a visualisation of a nested intermolecular structure:
+creates a visualisation of a crossing intermolecular structure:
 ~~~
 python3.10 rna_to_svg.py -u="((..<<..))..&...>>.." -e="AAAAAAAAAAAA&AAAAAAA"
 ~~~
