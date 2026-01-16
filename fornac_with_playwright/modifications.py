@@ -37,8 +37,10 @@ def changeBackgroundColor(page, v):
     Returns:
         None
     """
+    for var in ["sequence1", "sequence2"]:
+        assert var in v
     coloring = sequence_coloring(v["sequence1"], v["sequence2"])
-    
+
     # color all circles with the given color in the coloring list
     page.evaluate("""(coloring) => {
             function coloringTheCircles(coloring) {
@@ -71,6 +73,8 @@ def updateIndexing(page, v):
     Returns:
         None
     """
+    for var in ["offset1", "offset2", "sequence1", "sequence2"]:
+        assert var in v
     offset1 = v["offset1"]
     offset2 = v["offset2"]
     length1 = len(v["sequence1"])
@@ -97,24 +101,62 @@ def updateIndexing(page, v):
     
     # adding the 2 empty nodes between the 2 sequences, 
     # because fornac counts them in when constructing index nodes
-    numbering = numbering[:length1] + ["e", "e"] + numbering[length1:]
+    numbering = numbering[:length1] + [("e", 0), ("e", 0)] + numbering[length1:]
 
     # changing the indexing for the marker, showing the index for every 10 nodes
     indexing = []
     # index for the first sequence
     # numbering = [(seq1, 1), ...] 
-    indexing = [str(numbering[i][1]) for i in range(9, len(numbering)+1, 10)]
+    indexing = [str(numbering[i][1]) for i in range(9, len(numbering), 10)]
 
     page.evaluate("""(indexing) => {
             var list_of_text_elements = document.querySelectorAll('[label_type="label"]');
             for (const [index, node] of Object.entries(list_of_text_elements)){
-                node.innerHTML = indexing[index];                            
+                node.innerHTML = indexing[index];   
             }
         }""", indexing)
+    
+    if "0" in indexing:
+        removeWrongMarker(page, indexing.index("0"))
 
+
+def removeWrongMarker(page, index_remove):
+    """Hide an incorrect marker and its corresponding link in the DOM.
+
+    Removes a wrongly generated index marker (here set as 0 index) 
+    by setting the CSS `display` property to `none` for both the marker 
+    node and its associated label link at the given position.
+
+    The function executes JavaScript in the provided `page` context and
+    operates on elements selected via the attributes `[num="n-1"]` (marker
+    nodes) and `[link_type="label_link"]` (marker links).
+
+    Args:
+        page: Playwright page object used to evaluate JavaScript.
+        index_remove (int): Index of the marker/link pair to hide.
+
+    Returns:
+        None
+    """
+    page.evaluate("""(index_remove) => {
+            var list_of_node_elements = document.querySelectorAll('[num="n-1"]');
+            for (const [index, node] of Object.entries(list_of_node_elements)){
+                if (index == index_remove) {
+                    node.setAttribute("style", "display:none");
+                }
+            }
+            var list_of_link_elements = document.querySelectorAll('[link_type="label_link"]');
+            for (const [index, node] of Object.entries(list_of_link_elements)){
+                if (index == index_remove) {
+                    node.setAttribute("style", "display:none");
+                }                
+            }
+        }""", index_remove)
+    
     
 def highlightingRegions(page, v):
-    """Highlight contiguous intermolecular basepair regions for both structures.
+    """
+    Highlight contiguous intermolecular basepair regions for both structures.
 
     Uses `listIntermolPairs` to find intermolecular basepair indices in
     `structure1` and `structure2`, converts the second structure's local
@@ -133,6 +175,8 @@ def highlightingRegions(page, v):
     Returns:
         None
     """
+    for var in ["structure1", "structure2"]:
+        assert var in v
     structure1 = v["structure1"]
     structure2 = v["structure2"]
     
@@ -165,7 +209,8 @@ def highlightingRegions(page, v):
     
 
 def highlightingBasepairs(page, v):
-    """Highlight individual intermolecular basepair circles.
+    """
+    Highlight individual intermolecular basepair circles.
 
     Determines basepairs whose partners lie on different sides of the split
     (split = len(sequence1)) by reading existing basepair link elements in
@@ -178,6 +223,7 @@ def highlightingBasepairs(page, v):
     Returns:
         None
     """
+    assert "sequence1" in v
     # split after sequence 1
     split = len(v["sequence1"])
     # searches for all basepairs. if the bases are on both sides of the split, 
@@ -235,31 +281,28 @@ def listIntermolPairs(struc):
          ^^                ^^
     '''
     inter_basepairs = []
-    smooth_basepairs = []
-    edgy_basepairs = []
-    
+    open_basepairs = {"(": [], "<": [], "[": [], "{": []}
+    basepairs = [("(",")"), ("[","]"), ("{", "}"), ("<",">")]
     for index, char in enumerate(struc):
-        smooth_basepairs += [index] if char == "(" else []
+        for (open, close) in basepairs:
+            # check for open basepair, add to stack
+            if char == open:
+                open_basepairs[open] += [index]
+                break               
+            # check for close basepair, remove from stack
+            # if stack empty, it is an intermolecular basepair
+            if char == close:
+                if open_basepairs[open]:
+                    open_basepairs[open].pop()
+                else:
+                    inter_basepairs += [index]
+                break
 
-        if char == ")":
-            if smooth_basepairs:
-                smooth_basepairs.pop()
-            else:
-                inter_basepairs += [index]
-        
-        edgy_basepairs += [index] if char == "<" else []
-
-        if char == ">":
-            if edgy_basepairs:
-                edgy_basepairs.pop()
-            else:
-                inter_basepairs += [index]
-        
-
-    inter_basepairs += edgy_basepairs + smooth_basepairs
+    # all remaining open basepairs in the stack are intermolecular
+    for pairs in open_basepairs.values():
+        inter_basepairs += pairs
 
     inter_basepairs.sort()
-
     return inter_basepairs
 
 

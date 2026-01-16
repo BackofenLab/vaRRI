@@ -55,6 +55,8 @@ except FileNotFoundError:
 
 
 def buildMolecules(page, v):
+    for var in ["structure", "sequence"]:
+        assert var in v
     # complete structure and sequence with fix
     structure, sequence = v["structure"], v["sequence"]
     page.evaluate("""([structure, sequence]) => {
@@ -67,6 +69,7 @@ def buildMolecules(page, v):
     
 # -----------------------------------------------------------------
 def setupLogging(v: dict):
+    assert "logging" in v
     # setup logging
     logging_option = logging.INFO if v["logging"] else logging.CRITICAL
     logging.basicConfig(level=logging_option,
@@ -78,8 +81,11 @@ def setupLogging(v: dict):
 # FornaContainer. Extract the created svg into a seperated svg file
 def run(v):
     with sync_playwright() as p:
-        file_name, file_type = v["output_name"], v["output_type"]
+        for var in ["molecules", "coloring", "highlighting", 
+                    "output_name", "output_type"]:
+            assert var in v
 
+        file_name, file_type = v["output_name"], v["output_type"]
         # amount of molecules [1, 2]
         molecules = v["molecules"]
         # options [default, distinct]
@@ -184,22 +190,22 @@ if __name__ == '__main__':
     parser.add_argument(
             '-o',
 			'--output',
-			help='give the output picture a name and a file type. ' \
+			help='give the output picture a name and a file type. \n' \
             'Supported are svg and png. Default is svg',
             default='default.svg')
     parser.add_argument(
             '-c',
 			'--coloring',
-			help='how should the nucleotides be colored?' \
-            'default: default coloring fornac' \
+			help='how should the nucleotides be colored? \n' \
+            'default: default coloring fornac \n' \
             'distinct: each sequence gets its own color',
             default='default')
     parser.add_argument(
             '-i',
 			'--highlighting',
-			help='what should be highlighted?' \
-            'nothing: default fornac, no special higlighting' \
-            'basepairs: each intermolecular basepair base, gets a red cricle' \
+			help='what should be highlighted? \n' \
+            'nothing: default fornac, no special higlighting \n' \
+            'basepairs: each intermolecular basepair base, gets a red cricle \n' \
             'regions: every base inside the intermolecular region, ' \
             'starting with the first intermolecular basepair and ending with the last,' \
             'gets a red circle',
@@ -207,15 +213,15 @@ if __name__ == '__main__':
     parser.add_argument(
             '-o1',
 			'--offset1',
-			help='with what offset should the indexing of the first sequence start?' \
-            '0 is no option' \
+			help='with what offset should the indexing of the first sequence start? \n' \
+            '0 is no option \n' \
             'default: 1',
             default="1")
     parser.add_argument(
             '-o2',
 			'--offset2',
-			help='with what offset should the indexing of the second sequence start if there is one?' \
-            '0 is no option' \
+			help='with what offset should the indexing of the second sequence start if there is one? \n' \
+            '0 is no option \n' \
             'default: 1',
             default="1")
     parser.add_argument(
@@ -264,14 +270,5 @@ if __name__ == '__main__':
     except ValueError as e:
         logging.error(e)
         sys.exit(2)
-
-
-    
-    for key in ["structure", "sequence", "molecules",
-                "structure1", "structure2", "sequence1", "sequence2",
-                "output_name", "output_type",
-                "coloring", "highlighting",
-                "offset1", "offset2"]:
-        assert key in validated
 
     run(validated)

@@ -80,6 +80,7 @@ def validateHighlighting(args: dict):
     Raises:
         ValueError: If the highlighting value is not accepted.
     """
+
     input_highlighting = args["highlighting"]
     valid_highlighting = ["nothing", "basepairs", "region"]
     if input_highlighting in valid_highlighting:
@@ -104,6 +105,7 @@ def formatStructure(validated: dict) -> tuple[str, str, str]:
         - second structure
         - corrected full structure
     """
+    assert "structure" in validated
     structure = validated["structure"]
     # basic formating
     first_struc, second_struc = split(structure)
@@ -129,6 +131,7 @@ def formatSequence(validated: dict) -> tuple[str, str, str]:
         - second sequence
         - corrected full sequence
     """
+    assert "sequence" in validated
     sequence = validated["sequence"]
     # basic formating
     first_seq, second_seq = split(sequence)
@@ -150,6 +153,8 @@ def getMolecules(validated: dict) -> str:
     Returns:
         "1" if one molecule is present, otherwise "2".
     """
+    for var in ["sequence2", "structure2"]:
+        assert var in validated
     # returns how many molecules given. either one or two
     if validated["sequence2"] != "" or validated["structure2"] != "":
         assert validated["sequence2"] != ""
@@ -175,6 +180,8 @@ def validateStructureInput(args: dict, validated: dict):
         ValueError: If the structure is invalid or inconsistent with
             the sequence.
     """
+    for var in ["sequence", "offset1", "offset2"]:
+        assert var in validated
     structure = args["structure"]
     sequence = validated["sequence"]
     offset_1 = validated["offset1"]
@@ -203,12 +210,11 @@ def validateStructureInput(args: dict, validated: dict):
         for (index, struc, seq) in [(1, struc_1, seq_1), (2, struc_2, seq_2)]:
             if len(struc) != len(seq):
                 raise ValueError(f"Structure length ({len(struc)}) and Sequence length ({len(seq)}) " +
-                     "of molecule {index} do not match")
-
+                     f"of molecule {index} do not match")
 
     
     
-    if re.fullmatch("([\.()<>]+&)?[\.()<>]+", structure):
+    if re.fullmatch("([\.()<>\[\]{}]+&)?[\.()\[\]<>{}]+", structure):
         # make sure all basepairs work
         checkStructureInputSimple(structure)
         return structure
