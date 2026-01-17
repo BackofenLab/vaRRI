@@ -19,8 +19,7 @@ from input_validation import (validateStructureInput,
                               formatStructure,
                               formatSequence,
                               getMolecules,
-                              validateHighlighting,
-                              validateLogging)
+                              validateHighlighting)
 
 from modifications import (changeBackgroundColor,
                            updateIndexing,
@@ -135,28 +134,31 @@ def run(v):
             complete_path = working_dir / (file_name + "." + file_type)
 
         error = ""
-        
-        try:
-            if file_type == "png":
-                # create a new page with the svg code and take a screenshot
-                svg_page = browser.new_page()
-                url_svg = urllib.parse.quote(final_svg)
-                svg_page.goto(f"data:image/svg+xml,{url_svg}")
-                svg_page.screenshot(path=complete_path)
-                
-                logging.info(f"png File created: {complete_path}")
-            if file_type == "svg":
-                # writing the svg code as a string into a file
-                with open(complete_path, "w") as f:
-                    f.write(final_svg)
-                logging.info(f"svg File created: {complete_path}")
 
-        except PermissionError:
-            error = "Permission Denied for Path: "
-        except ValueError:
-            error = "Pfad ist ungültig: "
-        except FileNotFoundError:
-            error = "Path does not exist: "
+        if file_name == "STDOUT":
+            print(final_svg)
+        else:
+            try:
+                if file_type == "png":
+                    # create a new page with the svg code and take a screenshot
+                    svg_page = browser.new_page()
+                    url_svg = urllib.parse.quote(final_svg)
+                    svg_page.goto(f"data:image/svg+xml,{url_svg}")
+                    svg_page.screenshot(path=complete_path)
+                    
+                    logging.info(f"png File created: {complete_path}")
+                if file_type == "svg":
+                    # writing the svg code as a string into a file
+                    with open(complete_path, "w") as f:
+                        f.write(final_svg)
+                    logging.info(f"svg File created: {complete_path}")
+
+            except PermissionError:
+                error = "Permission Denied for Path: "
+            except ValueError:
+                error = "Pfad ist ungültig: "
+            except FileNotFoundError:
+                error = "Path does not exist: "
 
         if error:
             print("[Error] " + error + str(complete_path))
@@ -192,7 +194,7 @@ if __name__ == '__main__':
 			'--output',
 			help='give the output picture a name and a file type. \n' \
             'Supported are svg and png. Default is svg',
-            default='default.svg')
+            default='STDOUT')
     parser.add_argument(
             '-c',
 			'--coloring',
@@ -225,11 +227,10 @@ if __name__ == '__main__':
             'default: 1',
             default="1")
     parser.add_argument(
-            '-l',
-			'--logging',
-			help='Disable/Enable Logging' \
-            'default: True',
-            default="True")    
+            '-v',
+			'--verbose',
+			help='Enable Logging',
+            action='store_true')    
     #-------------------------------------------------------------------------------
     # input validation
 
@@ -240,7 +241,7 @@ if __name__ == '__main__':
 
     try:
         # setup logging if enabled
-        validated["logging"] = validateLogging(args)
+        validated["logging"] = args["verbose"]
         setupLogging(validated)
 
 

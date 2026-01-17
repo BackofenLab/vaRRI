@@ -415,10 +415,3 @@ def transformHybridDB(hybrid_input: str, sequence: str, offsets: tuple) -> str:
     logging.info(f'structure: {str(structure["1"].replace("|","(") + "&" + structure["2"].replace("|",")"))}')
 
     return structure["1"].replace("|","(") + "&" + structure["2"].replace("|",")")
-
-def validateLogging(args):
-    logging = args["logging"]
-    validInput = ["True", "False"]
-    if logging in validInput:
-        return eval(logging)
-    raise ValueError(f"Invalid Logging input: {logging} allowed only [True, False]")
