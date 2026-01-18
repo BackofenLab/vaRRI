@@ -359,7 +359,7 @@ def checkHybridInput(hybrid, sequence, offsets) -> None:
         "both molecules should have the same number of |")
     
     # make sure the hybrid input is within bounds of the sequences
-    sequences = re.findall("[AGCU]+", sequence)
+    sequences = re.findall("[aAcCgGtTuUrRyYsSwWkKmMbBdDhHvVnN]+", sequence)
     assert len(sequences) == 2
     for seq, struc, offset, start in zip(sequences, structures, offsets, starts):
         if len(seq) + offset < len(struc) + start: 
