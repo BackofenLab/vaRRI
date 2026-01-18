@@ -68,7 +68,7 @@ def buildMolecules(page, v):
 def setupLogging(v: dict):
     assert "logging" in v
     # setup logging
-    logging_option = logging.INFO if v["logging"] else logging.CRITICAL
+    logging_option = logging.INFO if v["logging"] else logging.ERROR
     logging.basicConfig(level=logging_option,
                         format="[{levelname}] {message}",
                         style="{")

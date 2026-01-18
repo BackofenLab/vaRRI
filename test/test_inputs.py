@@ -35,9 +35,11 @@ inputs = [
     # single molecule images
     'SCRIPT --structure="..((((...))))...((...((..(((...))).((.....))))))" --sequence="ACGAUCAGAGAUCAGAGCAUACGACCCCAAAGGGAGCAGAAAAAAAAA" -o=TEST -c=distinct -o1=-2 -o2=2000 -i=basepairs',
     'SCRIPT --structure="..((((...))))...((...((..(((...))).((.....))))))" --sequence="ACGAUCAGAGAUCAGAGCAUACGACCCCAAAGGGAGCAGAAAAAAAAA" -o=TEST -c=distinct -o1=-2 -o2=2000 -i=region',
-    # multiple intermolecular basepairs images
+    # intermolecular basepairs images
     'SCRIPT --structure="(((((...)))..))&..(((((...)))))" --sequence="GGGCGAAACGCCAAA&AACCCGAAACGGGAA" -o=TEST -c=default -o1=-2 -o2=-2 -i=basepairs',
     'SCRIPT --structure="....(((..(((&))..)))..)" --sequence="AUAUGCGAAUUG&CGCAAUUCGA" -o=TEST -c=default -o1=-2 -o2=-2 -i=basepairs',
+    # intermolecular region images
+    'SCRIPT -u=".<<<....>>>.(((.<<<<<....>>>>>.(((..<<..>>..&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=distinct -o=TEST',
 ]
 
 

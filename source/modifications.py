@@ -17,7 +17,7 @@ def sequence_coloring(first_seq, second_seq) -> list:
         ['lightsalmon', 'lightsalmon', 'lightsalmon', 'lightgreen', 'lightgreen']
     """
     color = []
-    color += ["lightsalmon" for _ in first_seq]
+    color += ["lightblue" for _ in first_seq]
     color += ["lightgreen" for _ in second_seq]
 
     return color
