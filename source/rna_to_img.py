@@ -1,9 +1,7 @@
-#!/usr/bin/python3.10
-
+#!/usr/bin/python3
 from pathlib import Path
 import time
 import argparse
-# playwright version: pytest-playwright-0.7.2
 from playwright.sync_api import sync_playwright
 import urllib.parse
 import os

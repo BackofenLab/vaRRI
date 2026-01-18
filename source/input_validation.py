@@ -227,7 +227,7 @@ def validateSequenceInput(args: dict) -> str:
     """
     Validate sequence input.
 
-    Only RNA sequences consisting of A, G, C and U are allowed,
+    Only RNA sequences consisting of  IUPAC code allowed,
     optionally separated by '&'.
 
     Args:
@@ -242,7 +242,8 @@ def validateSequenceInput(args: dict) -> str:
     sequence = args["sequence"]
 
     # making sure the sequnce is in the right format: ([AGUC]+&)?[AGUC]+
-    if re.fullmatch("([AGCU]+&)?[AGCU]+", sequence):
+    if re.fullmatch("([aAcCgGtTuUrRyYsSwWkKmMbBdDhHvVnN]+&)?" \
+    "[aAcCgGtTuUrRyYsSwWkKmMbBdDhHvVnN]+", sequence):
         return sequence
     # check if no sequences was given
     if sequence == "":

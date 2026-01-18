@@ -5,11 +5,15 @@ For any working inter- and intramolecular structure and sequence of one or two m
 # Installation
 install playwright 
 ~~~
-pip install playwright
+python3 -m pip install playwright
 ~~~
 install chromium browser
 ~~~
-playwright install chromium
+python3 -m playwright install chromium
+~~~
+make sure that the playwright version is 1.57.0
+~~~
+python3 -m playwright --version
 ~~~
 
 # examples
