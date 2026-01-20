@@ -1,9 +1,9 @@
 # vaRRI
-For any working inter- and intramolecular structure and sequence of one or two molecules, create a visualsation using the fornac tool
+For any working inter- and intramolecular structure and sequence of one or two molecules, create a visualsation using fornac
 
 2 distinctly colored molecules and their intermolecular region highlighted:
 
-![example.svg](test/verified/test13.svg)
+![example.svg](test/verified/test31.svg)
 ~~~
 ./rna_to_img.py -u=".<<<....>>>.(((.<<<<<....>>>>>.(((..<<..>>..&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=distinct -o=example.svg
 ~~~
@@ -22,23 +22,6 @@ make sure that the playwright version is 1.57.0
 ~~~
 python3 -m playwright --version
 ~~~
-
-# examples
-creates a visualisation of an intramolecular structure:
-~~~
-./rna_to_img.py -u="((...))...." -e="NNNNNNNNNNN" > example.svg
-~~~
-
-creates a visualisation of an intra- and intermolecular structure:
-~~~
-./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" > example.svg
-~~~
-creates a visualisation of a crossing intermolecular structure:
-~~~
-./rna_to_img.py -u="((..<<..))....&...>>.." -e="NNNNNNNNNNNNNN&NNNNNNN" > example.svg
-~~~
-
-// more examples
 
 # Features
 
@@ -59,14 +42,14 @@ Specifies the RNA secondary structure in dot-bracket notation.
 ```bash
 ./rna_to_img.py -u="((...))...." -e="NNNNNNNNNNN"
 ```
-[Image Missing]
+[Image](/test/verified/test1.svg)
 
 
 **Example (intermolecular):**
 ```bash
 ./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN"
 ```
-[Image Missing]
+[Image](/test/verified/test2.svg)
 
 
 <details>
@@ -95,33 +78,38 @@ Where:
 # Each has 3 base pairs and 2 unpaired positions
 ./rna_to_img.py -u="5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN"
 ```
-[Image Missing]
+[Image](/test/verified/test13.svg)
+
 
 **Example (with custom offsets):**
 ```bash
 # Start numbering from position 10 (seq1) and 100 (seq2)
-# Interaction starts at position 15 (seq1) and 105 (seq2)
-./rna_to_img.py -u="15|||..&105|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=10 -o2=100
+# Interaction starts at position 15 (seq1) and 102 (seq2)
+./rna_to_img.py -u="15|||..&102|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=10 -o2=100
 ```
-[Image Missing]
+[Image](/test/verified/test14.svg)
+
 
 **Example (negative positions):**
 ```bash
 # Interaction can start before the sequence offset
-./rna_to_img.py -u="-5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=1 -o2=1
+./rna_to_img.py -u="-5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=-10 -o2=1
 ```
-[Image Missing]
+[Image](/test/verified/test15.svg)
+
 
 **Hybrid vs. Dot-Bracket Comparison:**
 These two commands are equivalent:
 ```bash
 # Hybrid format
-./rna_to_img.py -u="7|||..&3|||" -e="NNNNNNNNNNNNNN&NNNNN"
+./rna_to_img.py -u="5|||..&3|||" -e="NNNNNNNNNNNNNN&NNNNN"
 
 # Equivalent dot-bracket format
-./rna_to_img.py -u="......(((.....&..)))" -e="NNNNNNNNNNNNNN&NNNNN"
+./rna_to_img.py -u="....(((.....&..)))" -e="NNNNNNNNNNNN&NNNNN"
 ```
-[Image Missing]
+[Image](/test/verified/test13.svg) vs [Image](/test/verified/test4.svg)
+
+
 
 
 </details>
@@ -140,8 +128,9 @@ Specifies the RNA sequence using IUPAC nucleotide codes.
 
 Example:
 ```bash
-./rna_to_img.py -u="((...))." -e="ACGUCGA"
+./rna_to_img.py -u="((...))." -e="ACGAGUGA"
 ```
+[Image](/test/verified/test5.svg)
 
 ---
 ## Optional Parameters
@@ -158,13 +147,13 @@ Specifies the output file name and format.
 Examples:
 ```bash
 # Output to stdout
-./rna_to_img.py -u="(...)." -e="ACGUCA" > output.svg
+./rna_to_img.py -u="((...))." -e="ACGAGUGA" > output.svg
 
 # Save as SVG file
-./rna_to_img.py -u="(...)." -e="ACGUCA" -o=structure
+./rna_to_img.py -u="((...))." -e="ACGAGUGA" -o=structure
 
 # Save as PNG file
-./rna_to_img.py -u="(...)." -e="ACGUCA" -o=structure.png
+./rna_to_img.py -u="((...))." -e="ACGAGUGA" -o=structure.png
 ```
 </details>
 
@@ -174,14 +163,15 @@ Defines how nucleotides should be colored.
 
 | Option | Description | Example |
 |--------|-------------|---------|
-| `default` (default) | Standard fornac coloring scheme | ![default coloring](test/verified/test0.svg) |
-| `distinct` | Each molecule receives its own color | ![distinct coloring](test/verified/test14.svg) |
+| `default` (default) | Standard fornac coloring scheme | ![default coloring](test/verified/test27.svg) |
+| `distinct` | Each molecule receives its own color | ![distinct coloring](test/verified/test28.svg) |
 
 Example:
 ```bash
 ./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -c=distinct
 ```
-[Image Missing]
+[Image](/test/verified/test3.svg)
+
 
 </details>
 
@@ -191,23 +181,20 @@ Specifies which elements should be highlighted in intermolecular structures (onl
 
 | Option | Description | Example |
 |--------|-------------|---------|
-| `nothing` | No special highlighting | ![no highlighting](test/verified/test1.svg) |
-| `region` (default) | Highlights entire intermolecular interaction region | ![region highlighting](test/verified/test5.svg) |
-| `basepairs` | Highlights only individual intermolecular base pairs | ![basepairs highlighting](test/verified/test11.svg) |
+| `nothing` | No special highlighting| [![no highlighting](test/verified/test27.svg)](test/verified/test27.svg) |
+| `basepairs` | Highlights only individual intermolecular base pairs: | [![basepairs highlighting](test/verified/test23.svg)](test/verified/test23.svg) |
+| `region` (default) | Highlights entire intermolecular interaction region | [![region highlighting](test/verified/test26.svg) ](test/verified/test26.svg) |
 
-Examples:
-[Image Missing]
-[Image Missing]
-[Image Missing]
+
 ```bash
 # Highlight entire interaction region
-./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -i=region
+./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=region
 
 # Highlight only base pairs
-./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -i=basepairs
+./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=basepairs
 
 # No highlighting
-./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -i=nothing
+./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=nothing
 ```
 </details>
 
@@ -221,10 +208,11 @@ Sets the starting index for the first molecule's nucleotide numbering.
 | Restriction | Cannot be `0` |
 
 **Example (start numbering at 10):**
-[Image Missing]
 ```bash
-./rna_to_img.py -u="((...))." -e="ACGUCGA" -o1=10
+./rna_to_img.py -u="((...))." -e="ACGAGUGA" -o1=10
 ```
+[Image](/test/verified/test11.svg)
+
 </details>
 <details>
 <summary><code><b>-o2</code>/ <code>--offset2</code></b></summary>
@@ -236,19 +224,18 @@ Sets the starting index for the second molecule's nucleotide numbering (only rel
 | Restriction | Cannot be `0` |
 
 Example:
-[Image Missing]
 ```bash
-./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=1 -o2=100
+./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=5 -o2=100
 ```
+[Image](/test/verified/test12.svg)
+
 </details>
 <details>
 <summary><code><b>-v</code>/ <code>--verbose</code></b></summary>
 Enables detailed logging output for debugging and troubleshooting.
 
-Example:
-[Image Missing]
 ```bash
-./rna_to_img.py -u="((...))." -e="ACGUCGA" -v
+./rna_to_img.py -u="((...))." -e="ACGAGUGA" -v
 ```
 </details>
 
@@ -258,34 +245,30 @@ Example:
 
 ### Simple Intramolecular Structure
 Visualization of a single RNA molecule with one hairpin loop:
-[Image Missing]
+
 ```bash
-./rna_to_img.py -u="((...))." -e="ACGUCGA" -o=hairpin.svg
+./rna_to_img.py -u="((...))." -e="ACGAGUGA" > hairpin.svg
 ```
+[Image](/test/verified/test5.svg)
+
 
 ### Intermolecular Interaction with Distinct Coloring
 Two molecules interacting with distinct colors:
-[Image Missing]
+!This Picture has already been an example. show it again?
+
 ```bash
 ./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -c=distinct -o=interaction.svg
 ```
-
-
-### Complex Structure with Pseudoknots
-Two molecules with pseudoknot interactions and base pair highlighting:
-[Image Missing]
-```bash
-./rna_to_img.py -u="<<<..((..>>>&<<<..))..>>>" -e="NNNNNNNNNNN&NNNNNNNNNNNN" -c=distinct -i=basepairs -o=pseudoknot.svg
-```
+[Image](/test/verified/test3.svg)
 
 ### Custom Indexing
 Start numbering from different positions for each molecule:
-[Image Missing]
+!This Picture has already been an example. show it again?
+
 ```bash
 ./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=5 -o2=100 -o=custom_index.svg
 ```
-
-
+[Image](/test/verified/test12.svg)
 
 
 ## Advanced Examples
@@ -293,15 +276,15 @@ Start numbering from different positions for each molecule:
 ### Pseudoknot Structure (Simple)
 A basic pseudoknot involving two interacting molecules:
 ```bash
-./rna_to_img.py -u="<<<..((..>>>&<<<..))..>>>" -e="NNNNNNNNNNN&NNNNNNNNNNNN" -c=distinct -o=pseudoknot_simple.svg -v
+./rna_to_img.py -u="<<<..((..>>>&<<<..))..>>>" -e="NNNNNNNNNNN&NNNNNNNNNNNN" -c=distinct -o=pseudoknot_simple.svg
 ```
+[Image](/test/verified/test29.svg)
 
-![IMAGE MISSING]
 
 ### Pseudoknot Structure (Complex - Kissing Hairpins)
 Two molecules forming a complex kissing hairpin interaction:
 ```bash
 ./rna_to_img.py -u="<<<..(((..>>>...<<<..(((..>>>..&<<<..)))..>>>...<<<..)))..>>>.." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" -c=distinct -o=kissing_hairpins.svg
 ```
+[Image](/test/verified/test30.svg)
 
-![IMAGE MISSING]
