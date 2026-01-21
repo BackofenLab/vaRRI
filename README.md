@@ -1,13 +1,12 @@
 # vaRRI
-For any working inter- and intramolecular structure and sequence of one or two molecules, create a visualsation using fornac
+This Tool creates a visualization for any working inter- and intramolecular structure and sequence involving one or two molecules, using FornaC.
 
-2 distinctly colored molecules and their intermolecular region highlighted:
+Example for two distinctly colored molecules, with their intermolecular region highlighted:
 
 ![example.svg](test/verified/test31.svg)
 ~~~
 ./rna_to_img.py -u=".<<<....>>>.(((.<<<<<....>>>>>.(((..<<..>>..&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=distinct -o=example.svg
 ~~~
-// explain more
 
 # Installation
 install playwright 
