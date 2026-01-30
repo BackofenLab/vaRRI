@@ -310,7 +310,7 @@ def validateOutput(args: dict) -> tuple[str, str]:
     match = re.search(".*\/", output) 
     output_path = match.group() if match else ""
     if output_file_type not in valid_output_file_types:
-        raise ValueError("The sepcified output file type is not accepted." \
+        raise ValueError(f"The sepcified output file type is not accepted: {output_file_type}" \
         " Allowed types are svg and png")
     
     return (output_path + output_file_name, output_file_type)
@@ -332,7 +332,7 @@ def validateColoring(args: dict) -> str:
     coloring = args["coloring"]
     if coloring in ["default", "distinct"]:
         return coloring
-    raise ValueError("The given coloring input is not accepted (only default or distinct)")
+    raise ValueError(f"The given coloring input is not accepted: {coloring} (accept only default or distinct)")
 
 def checkHybridInput(hybrid, sequence, offsets) -> None:
     """
