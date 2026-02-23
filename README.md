@@ -108,8 +108,7 @@ Where:
     Start numbering from position 10 (seq1) and 100 (seq2) <br/>
     Interaction starts at position 15 (seq1) and 102 (seq2)
     <br/><br/>
-<code>
-./rna_to_img.py -u="15|||..&102|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=10 -o2=100
+<code>./rna_to_img.py -u="15|||..&102|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=10 -o2=100
 </code>
 <br/>
     </td>
@@ -125,8 +124,7 @@ Where:
     Interaction can start before the sequence offset
     <br/><br/>
 
-<code>
-./rna_to_img.py -u="-5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=-10 -o2=1
+<code>./rna_to_img.py -u="-5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=-10 -o2=1
 </code>
 <br/>
     </td>
@@ -268,9 +266,8 @@ Specifies which elements should be highlighted in intermolecular structures (onl
     <code>nothing</code>: no sepcial highlighting
     <br/><br/>
 
-<pre>
-./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=nothing
-</pre>
+<code>./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=nothing
+</code>
 <br/>
     </td>
     <td>
@@ -283,9 +280,8 @@ Specifies which elements should be highlighted in intermolecular structures (onl
     <td> 
     <code>basepairs</code>: Highlights only individual intermolecular base pairs
     <br/><br/>
-<pre>
-./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=basepairs
-</pre>
+<code>./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=basepairs
+</code>
 <br/>
     </td>
     <td>
@@ -298,9 +294,8 @@ Specifies which elements should be highlighted in intermolecular structures (onl
     <td> 
     <code>region</code>(default): Highlights entire intermolecular interaction region
     <br/><br/>
-<pre>
-./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=region
-</pre>
+<code>./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=region
+</code>
 <br/>
     </td>
     <td>
@@ -373,7 +368,6 @@ Enables detailed logging output for debugging and troubleshooting.
 ```
 </details>
 
----
 
 ## Usage Examples
 
