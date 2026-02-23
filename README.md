@@ -37,18 +37,34 @@ Specifies the RNA secondary structure in dot-bracket notation.
 | `.` | Unpaired nucleotide |
 | `&` | Separator between two molecules (intermolecular interaction) |
 
-**Example (intramolecular):**
-```bash
-./rna_to_img.py -u="((...))...." -e="NNNNNNNNNNN"
-```
-[Image](/test/verified/test1.svg)
 
 
-**Example (intermolecular):**
-```bash
-./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN"
-```
-[Image](/test/verified/test2.svg)
+<table style="width:100%">
+  <tr>
+    <td> 
+    <b> intramolecular:</b>
+    <br/><br/> 
+    <pre>./rna_to_img.py -u="((...))...." -e="NNNNNNNNNNN" </pre>
+    </td>
+    <td><img src="test/verified/test1.svg" width="200"></td>
+  </tr>
+  <tr>
+    <td style="border:none;">
+    <b>intermolecular:</b> 
+    <br/><br/>
+    <pre>./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" </pre>
+    </td>
+    <td style="border:none;"><img src="test/verified/test2.svg" width="200"></td>
+  </tr>
+</table>
+
+
+
+| Example | Image |
+| :--- | ----: |
+| **intramolecular:** <br/><br/>``` ./rna_to_img.py -u="((...))...." -e="NNNNNNNNNNN" ``` | [<img src="test/verified/test1.svg" width="200">](test/verified/test1.svg) |
+| **intermolecular:** <br/><br/>```./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" ``` | [![Image](test/verified/test2.svg)](test/verified/test2.svg)
+
 
 
 <details>
@@ -162,8 +178,10 @@ Defines how nucleotides should be colored.
 
 | Option | Description | Example |
 |--------|-------------|---------|
-| `default` (default) | Standard fornac coloring scheme | ![default coloring](test/verified/test27.svg) |
-| `distinct` | Each molecule receives its own color | ![distinct coloring](test/verified/test28.svg) |
+| `default` (default) | Standard fornac coloring scheme | [![Image](test/verified/test27.svg)](test/verified/test27.svg) |
+| `distinct` | Each molecule receives its own color | [![Image](test/verified/test28.svg)](test/verified/test28.svg) |
+
+
 
 Example:
 ```bash

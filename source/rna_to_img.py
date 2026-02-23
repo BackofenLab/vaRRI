@@ -242,7 +242,6 @@ if __name__ == '__main__':
         validated["logging"] = args["verbose"]
         setupLogging(validated)
 
-
         validated["offset1"] = validateOffset(args, "offset1")
         validated["offset2"] = validateOffset(args, "offset2")
         validated["sequence"] = validateSequenceInput(args)
