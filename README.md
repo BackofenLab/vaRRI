@@ -271,10 +271,9 @@ Specifies which elements should be highlighted in intermolecular structures (onl
     <code>nothing</code>: no sepcial highlighting
     <br/><br/>
 
-```bash
-# No highlighting
+<pre>
 ./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=nothing
-```
+</pre>
 <br/>
     </td>
     <td>
@@ -287,11 +286,9 @@ Specifies which elements should be highlighted in intermolecular structures (onl
     <td> 
     <code>basepairs</code>: Highlights only individual intermolecular base pairs
     <br/><br/>
-
-```bash
-# Highlight only base pairs
+<pre>
 ./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=basepairs
-```
+</pre>
 <br/>
     </td>
     <td>
@@ -304,11 +301,9 @@ Specifies which elements should be highlighted in intermolecular structures (onl
     <td> 
     <code>region</code>(default): Highlights entire intermolecular interaction region
     <br/><br/>
-
-```bash
-# Highlight entire interaction region
+<pre>
 ./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=region
-```
+</pre>
 <br/>
     </td>
     <td>
@@ -391,10 +386,9 @@ Enables detailed logging output for debugging and troubleshooting.
     <b>Simple Intramolecular Structure</b><br/>
     Visualization of a single RNA molecule with one hairpin loop:
     <br/><br/>
-
-```bash
+<code>
 ./rna_to_img.py -u="((...))." -e="ACGAGUGA" > hairpin.svg
-```
+</code>
 <br/>
     </td>
     <td>
@@ -408,10 +402,10 @@ Enables detailed logging output for debugging and troubleshooting.
     <b>Intermolecular Interaction with Distinct Coloring</b><br/>
 Two molecules interacting with distinct colors:
     <br/><br/>
-
-```bash
+<code>
 ./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -c=distinct -o=interaction.svg
-```
+</code>
+
 <br/>
     </td>
     <td>
@@ -425,10 +419,9 @@ Two molecules interacting with distinct colors:
     <b>Custom Indexing</b><br/>
 Start numbering from different positions for each molecule:
     <br/><br/>
-
-```bash
+<code>
 ./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=5 -o2=100 -o=custom_index.svg
-```
+</code>
 <br/>
     </td>
     <td>
@@ -449,9 +442,10 @@ Start numbering from different positions for each molecule:
 A basic pseudoknot involving two interacting molecules:
     <br/><br/>
 
-```bash
+<code>
 ./rna_to_img.py -u="<<<..((..>>>&<<<..))..>>>" -e="NNNNNNNNNNN&NNNNNNNNNNNN" -c=distinct -o=pseudoknot_simple.svg
-```
+</code>
+
 <br/>
     </td>
     <td>
@@ -466,9 +460,10 @@ A basic pseudoknot involving two interacting molecules:
 Two molecules forming a complex kissing hairpin interaction:
     <br/><br/>
 
-```bash
+<code>
 ./rna_to_img.py -u="<<<..(((..>>>...<<<..(((..>>>..&<<<..)))..>>>...<<<..)))..>>>.." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" -c=distinct -o=kissing_hairpins.svg
-```
+</code>
+
 <br/>
     </td>
     <td>
