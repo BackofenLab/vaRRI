@@ -93,7 +93,7 @@ Where:
     Two sequences with interaction starting at position 5 (seq1) and position 3 (seq2) and each has 3 intermolecular base pairs
     <br/><br/>
 
-<pre><code>./rna_to_img.py -u="5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN"</code></pre>
+<code>./rna_to_img.py -u="5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN"</code>
 <br/>
     </td>
     <td>
@@ -104,12 +104,13 @@ Where:
   </tr>
   <tr>
     <td> 
-    <b>Example (with custom offsets)</b>
+    <b>Example (with custom offsets)</b><br/>
+    Start numbering from position 10 (seq1) and 100 (seq2) <br/>
+    Interaction starts at position 15 (seq1) and 102 (seq2)
     <br/><br/>
-<pre><code># Start numbering from position 10 (seq1) and 100 (seq2)
-# Interaction starts at position 15 (seq1) and 102 (seq2)
+<code>
 ./rna_to_img.py -u="15|||..&102|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=10 -o2=100
-</code></pre>
+</code>
 <br/>
     </td>
     <td>
@@ -120,12 +121,13 @@ Where:
   </tr>
   <tr>
     <td> 
-    <b>negative positions</b>
+    <b>Example (negative positions):</b><br/>
+    Interaction can start before the sequence offset
     <br/><br/>
 
-<pre><code># Interaction can start before the sequence offset
+<code>
 ./rna_to_img.py -u="-5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=-10 -o2=1
-</code></pre>
+</code>
 <br/>
     </td>
     <td>
@@ -135,6 +137,7 @@ Where:
     </td>
   </tr>
 </table>
+<br/>
 
 **Hybrid vs. Dot-Bracket Comparison:**
 These two commands are equivalent:
