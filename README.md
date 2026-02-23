@@ -38,13 +38,14 @@ Specifies the RNA secondary structure in dot-bracket notation.
 | `&` | Separator between two molecules (intermolecular interaction) |
 
 
-
 <table style="width:100%">
   <tr>
     <td> 
     <b> intramolecular:</b>
-    <br/><br/> 
-    <pre>./rna_to_img.py -u="((...))...." -e="NNNNNNNNNNN" </pre>
+    <br/><br/>
+    <code>
+    ./rna_to_img.py -u="((...))...." -e="NNNNNNNNNNN"
+    </code>
     </td>
     <td><img src="test/verified/test1.svg" width="200"></td>
   </tr>
@@ -52,7 +53,9 @@ Specifies the RNA secondary structure in dot-bracket notation.
     <td style="border:none;">
     <b>intermolecular:</b> 
     <br/><br/>
-    <pre>./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" </pre>
+    <code>
+    ./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN"
+   </code>
     </td>
     <td style="border:none;"><img src="test/verified/test2.svg" width="200"></td>
   </tr>
