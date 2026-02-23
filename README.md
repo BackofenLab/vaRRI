@@ -93,7 +93,7 @@ Where:
     Two sequences with interaction starting at position 5 (seq1) and position 3 (seq2) and each has 3 intermolecular base pairs
     <br/><br/>
 
-<code>./rna_to_img.py -u="5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN"</code>
+<pre><code>./rna_to_img.py -u="5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN"</code></pre>
 <br/>
     </td>
     <td>
@@ -123,10 +123,9 @@ Where:
     <b>negative positions</b>
     <br/><br/>
 
-```bash
-# Interaction can start before the sequence offset
+<pre><code># Interaction can start before the sequence offset
 ./rna_to_img.py -u="-5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=-10 -o2=1
-```
+</code></pre>
 <br/>
     </td>
     <td>
