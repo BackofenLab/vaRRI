@@ -177,8 +177,8 @@ These two commands are equivalent:
   </tr>
 </table>
 </details>
-</details>
 <br/>
+</details>
 <details>
 <summary><code><b>-e</code>/ <code>--sequence</code></b></summary>
 Specifies the RNA sequence using IUPAC nucleotide codes.
