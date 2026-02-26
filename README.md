@@ -7,6 +7,18 @@ Example for two distinctly colored molecules, with their intermolecular region h
 ~~~
 ./rna_to_img.py -u=".<<<....>>>.(((.<<<<<....>>>>>.(((..<<..>>..&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=distinct -o=example.svg
 ~~~
+# Overview
+
+- [vaRRI](#varri)
+- [Overview](#overview)
+- [Installation](#installation)
+- [Features](#features)
+  - [Mandatory Parameters](#mandatory-parameters)
+  - [Optional Parameters](#optional-parameters)
+  - [Usage Examples](#usage-examples)
+
+
+
 
 # Installation
 install playwright 
@@ -25,7 +37,8 @@ python3 -m playwright --version
 # Features
 
 ## Mandatory Parameters
-### `-u` / `--structure`
+<details>
+<summary><code><b>-u</code>/ <code>--structure</code></b></summary>
 Specifies the RNA secondary structure in dot-bracket notation.
 
 | Notation | Meaning |
@@ -64,8 +77,6 @@ Specifies the RNA secondary structure in dot-bracket notation.
     </td>
   </tr>
 </table>
-
-
 <details>
 <summary><b>Hybrid Input Format (Advanced)</b></summary>
 
@@ -165,11 +176,11 @@ These two commands are equivalent:
     </td>
   </tr>
 </table>
-
 </details>
-
-
-### `-e` / `--sequence`
+</details>
+<br/>
+<details>
+<summary><code><b>-e</code>/ <code>--sequence</code></b></summary>
 Specifies the RNA sequence using IUPAC nucleotide codes.
 
 | Code | Nucleotide | Code | Nucleotide |
@@ -194,8 +205,8 @@ Specifies the RNA sequence using IUPAC nucleotide codes.
     </td>
   </tr>
 </table>
+</details>
 
----
 ## Optional Parameters
 <details>
 <summary><code><b>-o</code>/ <code>--output</code></b></summary>
@@ -368,7 +379,6 @@ Enables detailed logging output for debugging and troubleshooting.
 ```
 </details>
 
-
 ## Usage Examples
 
 <table style="width:100%">
@@ -415,12 +425,7 @@ Start numbering from different positions for each molecule:
         </a>
     </td>
   </tr>
-</table>
 
-
-## Advanced Examples
-
-<table style="width:100%">
   <tr>
     <td> 
     <b>Pseudoknot Structure (Simple)</b><br/>
