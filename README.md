@@ -25,7 +25,7 @@ Example for two distinctly colored molecules, with their intermolecular region h
 We need to install
 
 - playwright (tested and developed with v1.57.0)
-- chromium browser
+- chromium browser (install via playwright)
 
 ```sh
 # install dependencies
