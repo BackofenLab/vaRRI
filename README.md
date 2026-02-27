@@ -416,7 +416,14 @@ Two molecules interacting with distinct colors:
     <b>Custom Indexing</b><br/>
 Start numbering from different positions for each molecule:
     <br/><br/>
-<code>./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=5 -o2=100 -o=custom_index.svg</code>
+
+```sh
+rna_to_img.py -u="((...))..<<..&...>>.." \
+  -e="NNNNNNNNNNNNN&NNNNNNN" \
+  -o1=5 -o2=100 \
+  -o=custom_index.svg
+```
+
 <br/>
     </td>
     <td>
@@ -432,7 +439,12 @@ Start numbering from different positions for each molecule:
 A basic pseudoknot involving two interacting molecules:
     <br/><br/>
 
-<code>./rna_to_img.py -u="<<<..((..>>>&<<<..))..>>>" -e="NNNNNNNNNNN&NNNNNNNNNNNN" -c=distinct -o=pseudoknot_simple.svg</code>
+```sh
+rna_to_img.py -u="<<<..((..>>>&<<<..))..>>>" \
+  -e="NNNNNNNNNNN&NNNNNNNNNNNN" \
+  -c=distinct \
+  -o=pseudoknot_simple.svg
+```
 
 <br/>
     </td>
