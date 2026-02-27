@@ -21,22 +21,24 @@ Example for two distinctly colored molecules, with their intermolecular region h
 
 
 # Installation
-install playwright 
-~~~
+
+We need to install
+
+- playwright (tested and developed with v1.57.0)
+- chromium browser
+
+```sh
+# install dependencies
 python3 -m pip install playwright==1.57.0
-~~~
-install chromium browser
-~~~
 python3 -m playwright install chromium
-~~~
-make sure that the playwright version is 1.57.0
-~~~
+# check version
 python3 -m playwright --version
-~~~
+```
 
 # Features
 
 ## Mandatory Parameters
+
 <details>
 <summary><code><b>-u</code>/ <code>--structure</code></b></summary>
 Specifies the RNA secondary structure in dot-bracket notation.
