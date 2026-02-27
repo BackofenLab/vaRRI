@@ -21,22 +21,24 @@ Example for two distinctly colored molecules, with their intermolecular region h
 
 
 # Installation
-install playwright 
-~~~
+
+We need to install
+
+- playwright (tested and developed with v1.57.0)
+- chromium browser (install via playwright)
+
+```sh
+# install dependencies
 python3 -m pip install playwright==1.57.0
-~~~
-install chromium browser
-~~~
 python3 -m playwright install chromium
-~~~
-make sure that the playwright version is 1.57.0
-~~~
+# check version
 python3 -m playwright --version
-~~~
+```
 
 # Features
 
 ## Mandatory Parameters
+
 <details>
 <summary><code><b>-u</code>/ <code>--structure</code></b></summary>
 Specifies the RNA secondary structure in dot-bracket notation.
@@ -416,7 +418,14 @@ Two molecules interacting with distinct colors:
     <b>Custom Indexing</b><br/>
 Start numbering from different positions for each molecule:
     <br/><br/>
-<code>./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=5 -o2=100 -o=custom_index.svg</code>
+
+```sh
+rna_to_img.py -u="((...))..<<..&...>>.." \
+  -e="NNNNNNNNNNNNN&NNNNNNN" \
+  -o1=5 -o2=100 \
+  -o=custom_index.svg
+```
+
 <br/>
     </td>
     <td>
@@ -432,7 +441,12 @@ Start numbering from different positions for each molecule:
 A basic pseudoknot involving two interacting molecules:
     <br/><br/>
 
-<code>./rna_to_img.py -u="<<<..((..>>>&<<<..))..>>>" -e="NNNNNNNNNNN&NNNNNNNNNNNN" -c=distinct -o=pseudoknot_simple.svg</code>
+```sh
+rna_to_img.py -u="<<<..((..>>>&<<<..))..>>>" \
+  -e="NNNNNNNNNNN&NNNNNNNNNNNN" \
+  -c=distinct \
+  -o=pseudoknot_simple.svg
+```
 
 <br/>
     </td>
