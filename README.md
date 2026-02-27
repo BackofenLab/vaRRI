@@ -40,8 +40,8 @@ python3 -m playwright --version
 ## Mandatory Parameters
 
 <details>
-<summary><code><b>-u</code>/ <code>--structure</code></b></summary>
-Specifies the RNA secondary structure in dot-bracket notation.
+<summary><code><b>-u</code>/ <code>--structure</code></b> Specifies the RNA secondary structure in dot-bracket notation.</summary>
+
 
 | Notation | Meaning |
 |----------|---------|
@@ -58,8 +58,14 @@ Specifies the RNA secondary structure in dot-bracket notation.
     <td> 
     <b> intramolecular:</b>
     <br/><br/>
-    <code>./rna_to_img.py -u="((...))...." -e="NNNNNNNNNNN"</code>
-    </td>
+
+```sh
+rna_to_img.py \
+  -u="((...))...." \
+  -e="NNNNNNNNNNN"
+```
+
+</td>
     <td>
         <a href="test/verified/test1.svg">
             <img src="test/verified/test1.svg" width="200">
@@ -70,8 +76,14 @@ Specifies the RNA secondary structure in dot-bracket notation.
     <td style="border:none;">
     <b>intermolecular:</b> 
     <br/><br/>
-    <code>./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN"</code>
-    </td>
+
+```sh
+rna_to_img.py \
+  -u="((...))..<<..&...>>.." \
+  -e="NNNNNNNNNNNNN&NNNNNNN"
+```
+
+</td>
     <td style="border:none;">
         <a href="test/verified/test1.svg">
             <img src="test/verified/test2.svg" width="200">
@@ -106,7 +118,12 @@ Where:
     Two sequences with interaction starting at position 5 (seq1) and position 3 (seq2) and each has 3 intermolecular base pairs
     <br/><br/>
 
-<code>./rna_to_img.py -u="5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN"</code>
+```sh
+./rna_to_img.py \
+  -u="5|||..&3|||.." \
+  -e="NNNNNNNNNNNNN&NNNNNNN"
+```
+
 <br/>
     </td>
     <td>
@@ -121,8 +138,15 @@ Where:
     Start numbering from position 10 (seq1) and 100 (seq2) <br/>
     Interaction starts at position 15 (seq1) and 102 (seq2)
     <br/><br/>
-<code>./rna_to_img.py -u="15|||..&102|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=10 -o2=100
-</code>
+
+```sh
+rna_to_img.py \
+  -u="15|||..&102|||.." \
+  -e="NNNNNNNNNNNNN&NNNNNNN" \
+  -o1=10 \
+  -o2=100
+```
+
 <br/>
     </td>
     <td>
@@ -137,8 +161,14 @@ Where:
     Interaction can start before the sequence offset
     <br/><br/>
 
-<code>./rna_to_img.py -u="-5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=-10 -o2=1
-</code>
+```sh
+rna_to_img.py \
+  -u="-5|||..&3|||.." \
+  -e="NNNNNNNNNNNNN&NNNNNNN" \
+  -o1=-10 \
+  -o2=1
+```
+
 <br/>
     </td>
     <td>
@@ -157,8 +187,14 @@ These two commands are equivalent:
     <td> 
     <b>Hybrid format:</b>
     <br/><br/>
-    <code>./rna_to_img.py -u="5|||..&3|||" -e="NNNNNNNNNNNNNN&NNNNN"</code>
-    </td>
+
+```sh
+rna_to_img.py \
+  -u="5|||..&3|||" \
+  -e="NNNNNNNNNNNNNN&NNNNN"
+```
+
+</td>
     <td>
         <a href="test/verified/test13.svg">
             <img src="test/verified/test13.svg" width="200">
@@ -169,11 +205,17 @@ These two commands are equivalent:
     <td style="border:none;">
     <b>Equivalent dot-bracket format:</b> 
     <br/><br/>
-    <code>./rna_to_img.py -u="....(((.....&..)))" -e="NNNNNNNNNNNN&NNNNN"</code>
-    </td>
+
+```sh
+rna_to_img.py \
+  -u="....(((......&..))).." \
+  -e="NNNNNNNNNNNNN&NNNNNNN"
+```
+
+</td>
     <td style="border:none;">
-        <a href="test/verified/test4.svg">
-            <img src="test/verified/test4.svg" width="200">
+        <a href="test/verified/test32.svg">
+            <img src="test/verified/test32.svg" width="200">
         </a>    
     </td>
   </tr>
@@ -182,8 +224,8 @@ These two commands are equivalent:
 <br/> 
 </details>
 <details>
-<summary><code><b>-e</code>/ <code>--sequence</code></b></summary>
-Specifies the RNA sequence using IUPAC nucleotide codes.
+<summary><code><b>-e</code>/ <code>--sequence</code></b> Specifies the RNA sequence using IUPAC nucleotide codes
+</summary>
 
 | Code | Nucleotide | Code | Nucleotide |
 |------|-----------|------|-----------|
@@ -198,8 +240,12 @@ Specifies the RNA sequence using IUPAC nucleotide codes.
     <td> 
     <b>Example:</b>
     <br/><br/>
-    <code>./rna_to_img.py -u="((...))." -e="ACGAGUGA"</code>
-    </td>
+
+```sh
+rna_to_img.py -u="((...))." -e="ACGAGUGA"
+```
+
+</td>
     <td>
         <a href="test/verified/test5.svg">
             <img src="test/verified/test5.svg" width="200">
@@ -211,8 +257,9 @@ Specifies the RNA sequence using IUPAC nucleotide codes.
 
 ## Optional Parameters
 <details>
-<summary><code><b>-o</code>/ <code>--output</code></b></summary>
-Specifies the output file name and format.
+<summary><code><b>-o</code>/ <code>--output</code></b> Specifies the output file name and format
+</summary>
+
 
 | Value | Description |
 |-------|-------------|
@@ -223,19 +270,20 @@ Specifies the output file name and format.
 Examples:
 ```bash
 # Output to stdout
-./rna_to_img.py -u="((...))." -e="ACGAGUGA" > output.svg
+rna_to_img.py -u="((...))." -e="ACGAGUGA" > output.svg
 
 # Save as SVG file
-./rna_to_img.py -u="((...))." -e="ACGAGUGA" -o=structure
+rna_to_img.py -u="((...))." -e="ACGAGUGA" -o=structure
 
 # Save as PNG file
-./rna_to_img.py -u="((...))." -e="ACGAGUGA" -o=structure.png
+rna_to_img.py -u="((...))." -e="ACGAGUGA" -o=structure.png
 ```
 </details>
 
 <details>
-<summary><code><b>-c</code>/ <code>--coloring</code></b></summary>
-Defines how nucleotides should be colored.
+<summary><code><b>-c</code>/ <code>--coloring</code></b> Defines how nucleotides should be colored
+</summary>
+
 
 | Option | Description | Example |
 |--------|-------------|---------|
@@ -247,8 +295,15 @@ Defines how nucleotides should be colored.
     <td> 
     <b>Example:</b>
     <br/><br/>
-    <code>./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -c=distinct</code>
-    </td>
+    
+```sh
+rna_to_img.py \
+  -u="((...))..<<..&...>>.." \
+  -e="NNNNNNNNNNNNN&NNNNNNN" \
+  -c=distinct
+```
+
+</td>
     <td>
         <a href="test/verified/test3.svg">
             <img src="test/verified/test3.svg" width="200">
@@ -262,8 +317,8 @@ Defines how nucleotides should be colored.
 </details>
 
 <details>
-<summary><code><b>-i</code>/ <code>--highlighting</code></b></summary>
-Specifies which elements should be highlighted in intermolecular structures (only applies to 2-molecule systems).
+<summary><code><b>-i</code>/ <code>--highlighting</code></b> Specifies which elements should be highlighted in intermolecular structures </summary>
+
 
 <table style="width:100%">
   <tr>
@@ -279,8 +334,13 @@ Specifies which elements should be highlighted in intermolecular structures (onl
     <code>nothing</code>: no sepcial highlighting
     <br/><br/>
 
-<code>./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=nothing
-</code>
+```sh
+rna_to_img.py \
+  -u="((...))..<<....<<..&..>>...>>.." \
+  -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" \
+  -i=nothing
+```
+
 <br/>
     </td>
     <td>
@@ -293,8 +353,14 @@ Specifies which elements should be highlighted in intermolecular structures (onl
     <td> 
     <code>basepairs</code>: Highlights only individual intermolecular base pairs
     <br/><br/>
-<code>./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=basepairs
-</code>
+
+```sh
+rna_to_img.py \
+  -u="((...))..<<....<<..&..>>...>>.." \
+  -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" \
+  -i=basepairs
+```
+
 <br/>
     </td>
     <td>
@@ -307,8 +373,14 @@ Specifies which elements should be highlighted in intermolecular structures (onl
     <td> 
     <code>region</code>(default): Highlights entire intermolecular interaction region
     <br/><br/>
-<code>./rna_to_img.py -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -i=region
-</code>
+
+```sh
+rna_to_img.py \
+  -u="((...))..<<....<<..&..>>...>>.." \
+  -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" \
+  -i=region
+```
+
 <br/>
     </td>
     <td>
@@ -323,8 +395,8 @@ Specifies which elements should be highlighted in intermolecular structures (onl
 </details>
 
 <details>
-<summary><code><b>-o1</code>/ <code>--offset1</code></b></summary>
-Sets the starting index for the first molecule's nucleotide numbering.
+<summary><code><b>-o1</code>/ <code>--offset1</code></b> Sets the starting index for the first molecule's nucleotide numbering </summary>
+
 
 | Parameter | Constraint |
 |-----------|-----------|
@@ -336,8 +408,15 @@ Sets the starting index for the first molecule's nucleotide numbering.
     <td> 
     <b>Example (start numbering at 10):</b>
     <br/><br/>
-    <code>./rna_to_img.py -u="((...))." -e="ACGAGUGA" -o1=10</code>
-    </td>
+
+```sh
+rna_to_img.py \
+  -u="((...))." \
+  -e="ACGAGUGA" \
+  -o1=10
+```
+
+</td>
     <td>
         <a href="test/verified/test11.svg">
             <img src="test/verified/test11.svg" width="200">
@@ -348,8 +427,8 @@ Sets the starting index for the first molecule's nucleotide numbering.
 
 </details>
 <details>
-<summary><code><b>-o2</code>/ <code>--offset2</code></b></summary>
-Sets the starting index for the second molecule's nucleotide numbering (only relevant for intermolecular structures).
+<summary><code><b>-o2</code>/ <code>--offset2</code></b> Sets the starting index for the second molecule's nucleotide numbering (only relevant for intermolecular structures) </summary>
+
 
 | Parameter | Constraint |
 |-----------|-----------|
@@ -361,8 +440,16 @@ Sets the starting index for the second molecule's nucleotide numbering (only rel
     <td> 
     <b>Example:</b>
     <br/><br/>
-    <code>./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -o1=5 -o2=100</code>
-    </td>
+    
+```sh
+rna_to_img.py \
+  -u="((...))..<<..&...>>.." \
+  -e="NNNNNNNNNNNNN&NNNNNNN" \
+  -o1=5 \
+  -o2=100
+```
+
+</td>
     <td>
         <a href="test/verified/test12.svg">
             <img src="test/verified/test12.svg" width="200">
@@ -373,8 +460,9 @@ Sets the starting index for the second molecule's nucleotide numbering (only rel
 
 </details>
 <details>
-<summary><code><b>-v</code>/ <code>--verbose</code></b></summary>
-Enables detailed logging output for debugging and troubleshooting.
+<summary><code><b>-v</code>/ <code>--verbose</code></b>
+ Enables detailed logging output for debugging and troubleshooting </summary>
+
 
 ```bash
 ./rna_to_img.py -u="((...))." -e="ACGAGUGA" -v
@@ -389,7 +477,12 @@ Enables detailed logging output for debugging and troubleshooting.
     <b>Simple Intramolecular Structure</b><br/>
     Visualization of a single RNA molecule with one hairpin loop:
     <br/><br/>
-<code>./rna_to_img.py -u="((...))." -e="ACGAGUGA" > hairpin.svg</code>
+
+```sh
+rna_to_img.py -u="((...))." -e="ACGAGUGA" > hairpin.svg
+```
+
+
 <br/>
     </td>
     <td>
@@ -403,7 +496,14 @@ Enables detailed logging output for debugging and troubleshooting.
     <b>Intermolecular Interaction with Distinct Coloring</b><br/>
 Two molecules interacting with distinct colors:
     <br/><br/>
-<code>./rna_to_img.py -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -c=distinct -o=interaction.svg</code>
+
+```sh
+rna_to_img.py \
+  -u="((...))..<<..&...>>.." \
+  -e="NNNNNNNNNNNNN&NNNNNNN" \
+  -c=distinct \
+  -o=interaction.svg
+```
 
 <br/>
     </td>
@@ -420,7 +520,8 @@ Start numbering from different positions for each molecule:
     <br/><br/>
 
 ```sh
-rna_to_img.py -u="((...))..<<..&...>>.." \
+rna_to_img.py \
+  -u="((...))..<<..&...>>.." \
   -e="NNNNNNNNNNNNN&NNNNNNN" \
   -o1=5 -o2=100 \
   -o=custom_index.svg
@@ -442,7 +543,8 @@ A basic pseudoknot involving two interacting molecules:
     <br/><br/>
 
 ```sh
-rna_to_img.py -u="<<<..((..>>>&<<<..))..>>>" \
+rna_to_img.py \
+  -u="<<<..((..>>>&<<<..))..>>>" \
   -e="NNNNNNNNNNN&NNNNNNNNNNNN" \
   -c=distinct \
   -o=pseudoknot_simple.svg
@@ -462,7 +564,13 @@ rna_to_img.py -u="<<<..((..>>>&<<<..))..>>>" \
 Two molecules forming a complex kissing hairpin interaction:
     <br/><br/>
 
-<code>./rna_to_img.py -u="<<<..(((..>>>...<<<..(((..>>>..&<<<..)))..>>>...<<<..)))..>>>.." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" -c=distinct -o=kissing_hairpins.svg</code>
+```sh
+rna_to_img.py \
+  -u="<<<..(((..>>>...<<<..(((..>>>..&<<<..)))..>>>...<<<..)))..>>>.." \
+  -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" \ 
+  -c=distinct \ 
+  -o=kissing_hairpins.svg
+```
 
 <br/>
     </td>
@@ -473,4 +581,5 @@ Two molecules forming a complex kissing hairpin interaction:
     </td>
   </tr>
 </table>
+
 

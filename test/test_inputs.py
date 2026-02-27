@@ -61,6 +61,7 @@ inputs = [
     'SCRIPT -u="<<<..(((..>>>...<<<..(((..>>>..&<<<..)))..>>>...<<<..)))..>>>.." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" -c=distinct -o=TEST',
     # complex showcase test [start 31, tests 1]
     'SCRIPT -u=".<<<....>>>.(((.<<<<<....>>>>>.(((..<<..>>..&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=distinct -o=TEST',
+    'SCRIPT -u="....(((......&..))).." -e="NNNNNNNNNNNNN&NNNNNNN" -o=TEST'
     ]
 
 
