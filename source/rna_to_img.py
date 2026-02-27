@@ -201,7 +201,7 @@ if __name__ == '__main__':
             'distinct: each sequence gets its own color',
             default='default')
     parser.add_argument(
-            '-i',
+            '-H',
 			'--highlighting',
 			help='what should be highlighted? \n' \
             'nothing: default fornac, no special higlighting \n' \
@@ -211,16 +211,16 @@ if __name__ == '__main__':
             'gets a red circle',
             default='region')
     parser.add_argument(
-            '-o1',
-			'--offset1',
-			help='with what offset should the indexing of the first sequence start? \n' \
+            '-i1',
+			'--startIndex1',
+			help='with what index should the indexing of the first sequence start? \n' \
             '0 is no option \n' \
             'default: 1',
             default="1")
     parser.add_argument(
-            '-o2',
-			'--offset2',
-			help='with what offset should the indexing of the second sequence start if there is one? \n' \
+            '-i2',
+			'--startIndex2',
+			help='with what index should the indexing of the second sequence start if there is one? \n' \
             '0 is no option \n' \
             'default: 1',
             default="1")
@@ -242,8 +242,8 @@ if __name__ == '__main__':
         validated["logging"] = args["verbose"]
         setupLogging(validated)
 
-        validated["offset1"] = validateOffset(args, "offset1")
-        validated["offset2"] = validateOffset(args, "offset2")
+        validated["offset1"] = validateOffset(args, "startIndex1")
+        validated["offset2"] = validateOffset(args, "startIndex2")
         validated["sequence"] = validateSequenceInput(args)
         validated["structure"] = validateStructureInput(args, validated)
 

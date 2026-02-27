@@ -266,10 +266,10 @@ def validateOffset(args : dict, offset: str) -> int:
         ValueError: If the offset value is not a valid integer.
     """
     if args[offset] == "0":
-        raise ValueError(f"Offset 0 is not valid, use either <=-1 or >=1")
+        raise ValueError(f"Index 0 is not valid, use either <=-1 or >=1")
     if re.fullmatch("-?\d+", args[offset]):
         return int(args[offset])
-    raise ValueError(f"The given offset input is not valid: {args[offset]}")
+    raise ValueError(f"The given index input is not valid: {args[offset]}")
     
 def validateOutput(args: dict) -> tuple[str, str]:
     """
