@@ -108,7 +108,7 @@ Where:
 
 **How it works:**
 - Both molecules must have the **same number** of `|` characters (representing the same number of base pairs)
-- Interaction positions are defined relative to your sequence offset
+- Interaction positions are defined relative to your sequence start Index
 - The tool automatically converts hybrid input to standard dot-bracket notation
 
 <table style="width:100%">
@@ -134,8 +134,8 @@ Where:
   </tr>
   <tr>
     <td> 
-    <b>Example (with custom offsets)</b><br/>
-    Start numbering from position 10 (seq1) and 100 (seq2) <br/>
+    <b>Example (with custom start Index)</b><br/>
+    Start indexing from position 10 (seq1) and 100 (seq2) <br/>
     Interaction starts at position 15 (seq1) and 102 (seq2)
     <br/><br/>
 
@@ -143,8 +143,8 @@ Where:
 rna_to_img.py \
   -u="15|||..&102|||.." \
   -e="NNNNNNNNNNNNN&NNNNNNN" \
-  -o1=10 \
-  -o2=100
+  -i1=10 \
+  -i2=100
 ```
 
 <br/>
@@ -158,15 +158,16 @@ rna_to_img.py \
   <tr>
     <td> 
     <b>Example (negative positions):</b><br/>
-    Interaction can start before the sequence offset
+    start indexing form -10 (seq1) and 1 (seq2) <br/>
+    Interaction starts at position -5 (seq1) and 3 (seq2)
     <br/><br/>
 
 ```sh
 rna_to_img.py \
   -u="-5|||..&3|||.." \
   -e="NNNNNNNNNNNNN&NNNNNNN" \
-  -o1=-10 \
-  -o2=1
+  -i1=-10 \
+  -i2=1
 ```
 
 <br/>
@@ -395,7 +396,7 @@ rna_to_img.py \
 </details>
 
 <details>
-<summary><code><b>-o1</code>/ <code>--offset1</code></b> Sets the starting index for the first molecule's nucleotide numbering </summary>
+<summary><code><b>-i1</code>/ <code>--startIndex1</code></b> Sets the starting index for the first molecule's nucleotide numbering </summary>
 
 
 | Parameter | Constraint |
@@ -413,7 +414,7 @@ rna_to_img.py \
 rna_to_img.py \
   -u="((...))." \
   -e="ACGAGUGA" \
-  -o1=10
+  -i1=10
 ```
 
 </td>
@@ -427,7 +428,7 @@ rna_to_img.py \
 
 </details>
 <details>
-<summary><code><b>-o2</code>/ <code>--offset2</code></b> Sets the starting index for the second molecule's nucleotide numbering (only relevant for intermolecular structures) </summary>
+<summary><code><b>-i2</code>/ <code>--startIndex2</code></b> Sets the starting index for the second molecule's nucleotide numbering (only relevant for intermolecular structures) </summary>
 
 
 | Parameter | Constraint |
@@ -445,8 +446,8 @@ rna_to_img.py \
 rna_to_img.py \
   -u="((...))..<<..&...>>.." \
   -e="NNNNNNNNNNNNN&NNNNNNN" \
-  -o1=5 \
-  -o2=100
+  -i1=5 \
+  -i2=100
 ```
 
 </td>
@@ -523,7 +524,7 @@ Start numbering from different positions for each molecule:
 rna_to_img.py \
   -u="((...))..<<..&...>>.." \
   -e="NNNNNNNNNNNNN&NNNNNNN" \
-  -o1=5 -o2=100 \
+  -i1=5 -i2=100 \
   -o=custom_index.svg
 ```
 
