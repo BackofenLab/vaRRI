@@ -177,7 +177,7 @@ These two commands are equivalent:
   </tr>
 </table>
 </details>
-<br/>
+<br/> 
 </details>
 <details>
 <summary><code><b>-e</code>/ <code>--sequence</code></b></summary>
