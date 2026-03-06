@@ -363,11 +363,11 @@ def checkHybridInput(hybrid, sequence, offsets) -> None:
     assert len(sequences) == 2
     for seq, struc, offset, start in zip(sequences, structures, offsets, starts):
         if len(seq) + offset < len(struc) + start: 
-            raise ValueError("The given hybrid input is not within the bounds of the sequence:" \
-            f"end Sequence: {len(seq) + offset} end interaction {len(struc) + start}")
+            raise ValueError("The given hybrid input is not within the bounds of the sequence: \n" \
+            f"end of Sequence: {len(seq) + offset} \n end of interaction {len(struc) + start}")
         if offset > start: 
-            raise ValueError("The given hybrid input is not within the bounds of the sequence:" \
-            f"start Sequence: {offset} start interaction: {start}")        
+            raise ValueError("The given hybrid input is not within the bounds of the sequence: \n" \
+            f"start of Sequence: {offset}  \n start of interaction: {start}")        
 
 def transformHybridDB(hybrid_input: str, sequence: str, offsets: tuple) -> str:
     """Transform a hybrid representation into a structure string.

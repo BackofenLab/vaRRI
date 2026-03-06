@@ -58,7 +58,7 @@ def buildMolecules(page, v):
     # complete structure and sequence with fix
     structure, sequence, interval = v["structure"], v["sequence"], v["labelInterval"]
     page.evaluate("""([structure, sequence, interval]) => {
-            var container = new fornac.FornaContainer("#rna_ss", {'animation': false, 'labelInterval': interval});
+            var container = new fornac.FornaContainer("#rna_ss", {'animation': false, 'labelInterval': 1});
             var options = {'structure': structure,
                         'sequence': sequence
             };

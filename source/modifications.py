@@ -104,11 +104,26 @@ def updateIndexing(page, v):
     # because fornac counts them in when constructing index nodes
     numbering = numbering[:length1] + [("e", 0), ("e", 0)] + numbering[length1:]
 
-    # changing the indexing for the marker, showing the index for every 10 nodes
-    indexing = []
-    # index for the first sequence
+    # making a new list, indexing, which shall define which Marker should display
+    # an index and which wont. [0: no marker, number: show marker]
+    indexing = [0 for _ in numbering]
+ 
     # numbering = [(seq1, 1), ...] 
-    indexing = [str(numbering[i][1]) for i in range(interval - 1, len(numbering), interval)]
+    # show marker for every 10th index 
+    for index, tuple in enumerate(numbering):
+        seq, number = tuple
+        if number % interval == 0:
+            indexing[index] = number
+    
+    # show marker: [at the beginning of the first sequence,
+    #                at the end of the first sequence,
+    #                at the beginning of the second sequence,
+    #                at the end of the fsecond sequence]
+    for pos in [0, length1-1, length1+2, -1]:
+        if pos < len(indexing):
+            seq, number = numbering[pos]
+            indexing[pos] = number
+
 
     page.evaluate("""(indexing) => {
             var list_of_text_elements = document.querySelectorAll('[label_type="label"]');
@@ -117,8 +132,12 @@ def updateIndexing(page, v):
             }
         }""", indexing)
     
-    if "0" in indexing:
-        removeWrongMarker(page, indexing.index("0"))
+
+    while 0 in indexing:
+        fix_index = indexing.index(0)
+        removeWrongMarker(page, fix_index)
+        indexing[fix_index] = ""
+
 
 
 def removeWrongMarker(page, index_remove):

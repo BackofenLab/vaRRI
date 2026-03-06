@@ -339,7 +339,7 @@ rna_to_img.py \
 rna_to_img.py \
   -u="((...))..<<....<<..&..>>...>>.." \
   -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" \
-  -i=nothing
+  -H=nothing
 ```
 
 <br/>
@@ -359,7 +359,7 @@ rna_to_img.py \
 rna_to_img.py \
   -u="((...))..<<....<<..&..>>...>>.." \
   -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" \
-  -i=basepairs
+  -H=basepairs
 ```
 
 <br/>
@@ -379,7 +379,7 @@ rna_to_img.py \
 rna_to_img.py \
   -u="((...))..<<....<<..&..>>...>>.." \
   -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" \
-  -i=region
+  -H=region
 ```
 
 <br/>
@@ -412,8 +412,8 @@ rna_to_img.py \
 
 ```sh
 rna_to_img.py \
-  -u="((...))." \
-  -e="ACGAGUGA" \
+  -u="..((...))." \
+  -e="AAACGAGUGA" \
   -i1=10
 ```
 
@@ -480,7 +480,7 @@ rna_to_img.py \
     <br/><br/>
 
 ```sh
-rna_to_img.py -u="((...))." -e="ACGAGUGA" > hairpin.svg
+rna_to_img.py -u=".((...))." -e="AACGAGUGA" > hairpin.svg
 ```
 
 
