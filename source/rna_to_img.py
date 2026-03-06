@@ -17,7 +17,8 @@ from input_validation import (validateStructureInput,
                               formatStructure,
                               formatSequence,
                               getMolecules,
-                              validateHighlighting)
+                              validateHighlighting,
+                              validateLabelInterval)
 
 from modifications import (changeBackgroundColor,
                            updateIndexing,
@@ -52,17 +53,17 @@ except FileNotFoundError:
 
 
 def buildMolecules(page, v):
-    for var in ["structure", "sequence"]:
+    for var in ["structure", "sequence", "labelInterval"]:
         assert var in v
     # complete structure and sequence with fix
-    structure, sequence = v["structure"], v["sequence"]
-    page.evaluate("""([structure, sequence]) => {
-            var container = new fornac.FornaContainer("#rna_ss", {'animation': false});
+    structure, sequence, interval = v["structure"], v["sequence"], v["labelInterval"]
+    page.evaluate("""([structure, sequence, interval]) => {
+            var container = new fornac.FornaContainer("#rna_ss", {'animation': false, 'labelInterval': interval});
             var options = {'structure': structure,
                         'sequence': sequence
             };
             container.addRNA(options.structure, options);
-        }""", [structure, sequence])
+        }""", [structure, sequence, interval])
     
 # -----------------------------------------------------------------
 def setupLogging(v: dict):
@@ -225,10 +226,15 @@ if __name__ == '__main__':
             'default: 1',
             default="1")
     parser.add_argument(
+            '-l',
+			'--labelInterval',
+			help='set the Intervall in which a label shows the index, default: 10',
+            default='10')    
+    parser.add_argument(
             '-v',
 			'--verbose',
 			help='Enable Logging',
-            action='store_true')    
+            action='store_true') 
     #-------------------------------------------------------------------------------
     # input validation
 
@@ -263,6 +269,8 @@ if __name__ == '__main__':
         validated["molecules"] = getMolecules(validated)
 
         validated["highlighting"] = validateHighlighting(args)
+
+        validated["labelInterval"] = validateLabelInterval(args)
 
 
     except ValueError as e:

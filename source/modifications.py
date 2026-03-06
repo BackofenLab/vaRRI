@@ -73,12 +73,13 @@ def updateIndexing(page, v):
     Returns:
         None
     """
-    for var in ["offset1", "offset2", "sequence1", "sequence2"]:
+    for var in ["offset1", "offset2", "sequence1", "sequence2", "labelInterval"]:
         assert var in v
     offset1 = v["offset1"]
     offset2 = v["offset2"]
     length1 = len(v["sequence1"])
     length2 = len(v["sequence2"])
+    interval = int(v["labelInterval"])
     numbering = []
 
     for (seq, offset, length) in [("s1", offset1, length1),("s2", offset2, length2)]:
@@ -107,7 +108,7 @@ def updateIndexing(page, v):
     indexing = []
     # index for the first sequence
     # numbering = [(seq1, 1), ...] 
-    indexing = [str(numbering[i][1]) for i in range(9, len(numbering), 10)]
+    indexing = [str(numbering[i][1]) for i in range(interval - 1, len(numbering), interval)]
 
     page.evaluate("""(indexing) => {
             var list_of_text_elements = document.querySelectorAll('[label_type="label"]');

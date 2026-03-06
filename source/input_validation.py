@@ -416,3 +416,24 @@ def transformHybridDB(hybrid_input: str, sequence: str, offsets: tuple) -> str:
     logging.info(f'structure: {str(structure["1"].replace("|","(") + "&" + structure["2"].replace("|",")"))}')
 
     return structure["1"].replace("|","(") + "&" + structure["2"].replace("|",")")
+
+def validateLabelInterval(args: dict) -> str:
+    """
+    Validate the label interval option.
+
+    Args:
+        args: Argument dictionary containing the key 'labelInterval'.
+
+    Returns:
+        The validated label interval value as a string.
+
+    Raises:
+        ValueError: If the label interval is not a positive integer.
+    """
+    interval = args["labelInterval"]
+    if int(interval) <= 1:
+        raise ValueError(f"Label Interval must be 2 or higher and not {interval}")
+    return interval
+
+
+
