@@ -21,47 +21,47 @@ def hashfile(filepath):
 
 inputs = [ 
     # basic test [start 0, tests 6] 
-    'SCRIPT --structure="..((((...))))...((...((...((..&............))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o=TEST',
-    'SCRIPT -u="((...))...." -e="NNNNNNNNNNN" -o=TEST',
-    'SCRIPT -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -o=TEST',
-    'SCRIPT -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -o=TEST -c=distinct',
-    'SCRIPT -u="....(((.....&..)))" -e="NNNNNNNNNNNN&NNNNN" -o=TEST',
-    'SCRIPT -u=".((...))." -e="AACGAGUGA" -o=TEST',
+    'SCRIPT --structure="..((((...))))...((...((...((..&............))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o=TEST -c=string',
+    'SCRIPT -u="((...))...." -e="NNNNNNNNNNN" -o=TEST -c=string',
+    'SCRIPT -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -o=TEST -c=string',
+    'SCRIPT -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -o=TEST -c=string',
+    'SCRIPT -u="....(((.....&..)))" -e="NNNNNNNNNNNN&NNNNN" -o=TEST -c=string',
+    'SCRIPT -u=".((...))." -e="AACGAGUGA" -o=TEST -c=string',
     # startIndex images [start 6, tests 7]
-    'SCRIPT --structure="..((((...))))...((...((...((..&............))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o=TEST --startIndex1=666 --startIndex2=666',
-    'SCRIPT --structure="..((((...))))...((...((...((..&............))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o=TEST --startIndex1=-666 --startIndex2=666 -c=distinct',
-    'SCRIPT --structure="..((((...))))...((...((...((..&............))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAUGAGCAUACGACAGCAG" -o=TEST --startIndex1=-666 --startIndex2=-666 -c=distinct',
-    'SCRIPT --structure="..((((...))))...((...((...((..&............))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o=TEST --startIndex1=666 --startIndex2=-666 -c=distinct',
-    'SCRIPT --structure="..((((...))))...((...((...((..&............))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAUGAGCAUACGACAGCAG" -o=TEST --startIndex1=-666 --startIndex2=-666 -c=distinct',
-    'SCRIPT -u="..((...))." -e="AAACGAGUGA" -i1=10 -o=TEST',
-    'SCRIPT -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -i1=5 -i2=100 -o=TEST',
+    'SCRIPT --structure="..((((...))))...((...((...((..&............))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o=TEST --startIndex1=666 --startIndex2=666 -c=string',
+    'SCRIPT --structure="..((((...))))...((...((...((..&............))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o=TEST --startIndex1=-666 --startIndex2=666 -c=string',
+    'SCRIPT --structure="..((((...))))...((...((...((..&............))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAUGAGCAUACGACAGCAG" -o=TEST --startIndex1=-666 --startIndex2=-666 -c=string',
+    'SCRIPT --structure="..((((...))))...((...((...((..&............))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o=TEST --startIndex1=666 --startIndex2=-666 -c=string',
+    'SCRIPT --structure="..((((...))))...((...((...((..&............))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAUGAGCAUACGACAGCAG" -o=TEST --startIndex1=-666 --startIndex2=-666 -c=string',
+    'SCRIPT -u="..((...))." -e="AAACGAGUGA" -i1=10 -o=TEST -c=string',
+    'SCRIPT -u="((...))..<<..&...>>.." -e="NNNNNNNNNNNNN&NNNNNNN" -i1=5 -i2=100 -o=TEST -c=string',
     # hybrid input images [start 13, tests 6]
-    'SCRIPT -u="5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o=TEST',
-    'SCRIPT -u="15|||..&102|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -i1=10 -i2=100 -o=TEST',
-    'SCRIPT -u="-5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -i1=-10 -i2=1 -o=TEST',
-    'SCRIPT -u="1|||&5|||" --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o=TEST -c=distinct',
-    'SCRIPT -u="100|||&205|||" --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o=TEST -c=distinct -i1=99 -i2=200 -H=basepairs',
-    'SCRIPT --structure="..((((...))))...((...((..(((...))).((.....&...))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACCCCAAAGGGAGCAGAAA&AGAGCAUACGACAGCAG" -o=TEST -c=distinct -i1=-2 -i2=2000 -H=basepairs',
+    'SCRIPT -u="5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -o=TEST -c=string',
+    'SCRIPT -u="15|||..&102|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -i1=10 -i2=100 -o=TEST -c=string',
+    'SCRIPT -u="-5|||..&3|||.." -e="NNNNNNNNNNNNN&NNNNNNN" -i1=-10 -i2=1 -o=TEST -c=string',
+    'SCRIPT -u="1|||&5|||" --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o=TEST -c=string',
+    'SCRIPT -u="100|||&205|||" --sequence="ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG" -o=TEST -c=string -i1=99 -i2=200 -H=basepairs',
+    'SCRIPT --structure="..((((...))))...((...((..(((...))).((.....&...))...))...)).." --sequence="ACGAUCAGAGAUCAGAGCAUACGACCCCAAAGGGAGCAGAAA&AGAGCAUACGACAGCAG" -o=TEST -c=string -i1=-2 -i2=2000 -H=basepairs',
     # single molecule images [start 19, tests 2]
-    'SCRIPT --structure="..((((...))))...((...((..(((...))).((.....))))))" --sequence="ACGAUCAGAGAUCAGAGCAUACGACCCCAAAGGGAGCAGAAAAAAAAA" -o=TEST -c=distinct -i1=-2 -i2=2000 -H=basepairs',
-    'SCRIPT --structure="..((((...))))...((...((..(((...))).((.....))))))" --sequence="ACGAUCAGAGAUCAGAGCAUACGACCCCAAAGGGAGCAGAAAAAAAAA" -o=TEST -c=distinct -i1=-2 -i2=2000 -H=region',
+    'SCRIPT --structure="..((((...))))...((...((..(((...))).((.....))))))" --sequence="ACGAUCAGAGAUCAGAGCAUACGACCCCAAAGGGAGCAGAAAAAAAAA" -o=TEST -c=string -i1=-2 -i2=2000 -H=basepairs',
+    'SCRIPT --structure="..((((...))))...((...((..(((...))).((.....))))))" --sequence="ACGAUCAGAGAUCAGAGCAUACGACCCCAAAGGGAGCAGAAAAAAAAA" -o=TEST -c=string -i1=-2 -i2=2000 -H=region',
     # highlighting of intermolecular basepairs - images [start 21, tests 3]
-    'SCRIPT --structure="(((((...)))..))&..(((((...)))))" --sequence="GGGCGAAACGCCAAA&AACCCGAAACGGGAA" -o=TEST -c=default -i1=-2 -i2=-2 -H=basepairs',
-    'SCRIPT --structure="....(((..(((&))..)))..)" --sequence="AUAUGCGAAUUG&CGCAAUUCGA" -o=TEST -c=default -i1=-2 -i2=-2 -H=basepairs',
-    'SCRIPT -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -H=basepairs -o=TEST',
+    'SCRIPT --structure="(((((...)))..))&..(((((...)))))" --sequence="GGGCGAAACGCCAAA&AACCCGAAACGGGAA" -o=TEST -c=string -i1=-2 -i2=-2 -H=basepairs',
+    'SCRIPT --structure="....(((..(((&))..)))..)" --sequence="AUAUGCGAAUUG&CGCAAUUCGA" -o=TEST -c=string -i1=-2 -i2=-2 -H=basepairs',
+    'SCRIPT -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -H=basepairs -o=TEST -c=string',
     # highlighting of intermolecular region - images [start 24, tests 3]
-    'SCRIPT -u=".<<<<<<....>>>>>>.(((.<<...>>.(((..<<....>>..<<<<<....>>>((...))>>&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=distinct -o=TEST',
-    'SCRIPT -u=".<<<<<<....>>>>>>.(((.<<...>>.(((..<<....>>..<<<<<....>>>((...))>>&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=distinct -H=basepairs -o=TEST',
-    'SCRIPT -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -H=region -o=TEST',
+    'SCRIPT -u=".<<<<<<....>>>>>>.(((.<<...>>.(((..<<....>>..<<<<<....>>>((...))>>&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=string -o=TEST',
+    'SCRIPT -u=".<<<<<<....>>>>>>.(((.<<...>>.(((..<<....>>..<<<<<....>>>((...))>>&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=string -H=basepairs -o=TEST',
+    'SCRIPT -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -H=region -o=TEST -c=string',
     # no higlighting - images [start 27, tests 2]
-    'SCRIPT -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -H=nothing -o=TEST',
-    'SCRIPT -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -H=nothing -c=distinct -o=TEST',
+    'SCRIPT -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -H=nothing -o=TEST -c=loop',
+    'SCRIPT -u="((...))..<<....<<..&..>>...>>.." -e="NNNNNNNNNNNNNNNNNNN&NNNNNNNNNNN" -H=nothing -c=string -o=TEST',
     # pseudoknot test [start 29, tests 2]
-    'SCRIPT -u="<<<..((..>>>&<<<..))..>>>" -e="NNNNNNNNNNNN&NNNNNNNNNNNN" -c=distinct -H=basepairs -o=TEST',
-    'SCRIPT -u="<<<..(((..>>>...<<<..(((..>>>..&<<<..)))..>>>...<<<..)))..>>>.." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" -c=distinct -o=TEST',
+    'SCRIPT -u="<<<..((..>>>&<<<..))..>>>" -e="NNNNNNNNNNNN&NNNNNNNNNNNN" -c=string -H=basepairs -o=TEST',
+    'SCRIPT -u="<<<..(((..>>>...<<<..(((..>>>..&<<<..)))..>>>...<<<..)))..>>>.." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" -c=string -o=TEST',
     # complex showcase test [start 31, tests 1]
-    'SCRIPT -u=".<<<....>>>.(((.<<<<<....>>>>>.(((..<<..>>..&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=distinct -o=TEST',
-    'SCRIPT -u="....(((......&..))).." -e="NNNNNNNNNNNNN&NNNNNNN" -o=TEST'
+    'SCRIPT -u=".<<<....>>>.(((.<<<<<....>>>>>.(((..<<..>>..&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=string -o=TEST',
+    'SCRIPT -u="....(((......&..))).." -e="NNNNNNNNNNNNN&NNNNNNN" -o=TEST -c=string'
     ]
 
 

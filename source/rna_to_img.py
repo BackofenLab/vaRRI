@@ -104,7 +104,7 @@ def run(v):
         # -----------------------------------------------------
         # changing the background color
         # this option colors all nucleotides of one sequence in one color
-        if coloring_type == "distinct":
+        if coloring_type == "string":
             changeBackgroundColor(page, v)
 
         # -----------------------------------------------------
@@ -198,9 +198,9 @@ if __name__ == '__main__':
             '-c',
 			'--coloring',
 			help='how should the nucleotides be colored? \n' \
-            'default: default coloring fornac \n' \
-            'distinct: each sequence gets its own color',
-            default='default')
+            'loop: default coloring fornac \n' \
+            'string: each sequence gets its own color',
+            default='string')
     parser.add_argument(
             '-H',
 			'--highlighting',
