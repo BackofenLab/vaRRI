@@ -330,9 +330,9 @@ def validateColoring(args: dict) -> str:
         ValueError: If the coloring value is invalid.
     """
     coloring = args["coloring"]
-    if coloring in ["loop", "string"]:
+    if coloring in ["loop", "strand"]:
         return coloring
-    raise ValueError(f"The given coloring input is not accepted: {coloring} (accept only loop or string)")
+    raise ValueError(f"The given coloring input is not accepted: {coloring} (accept only loop or strand)")
 
 def checkHybridInput(hybrid, sequence, offsets) -> None:
     """

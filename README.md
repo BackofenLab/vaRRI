@@ -1,11 +1,11 @@
 # vaRRI
 This Tool creates a visualization for any working inter- and intramolecular structure and sequence involving one or two molecules, using FornaC.
 
-Example for two stringly colored molecules, with their intermolecular region highlighted:
+Example for two colored molecules, with their intermolecular region highlighted:
 
 ![example.svg](test/verified/test31.svg)
 ~~~
-./rna_to_img.py -u=".<<<....>>>.(((.<<<<<....>>>>>.(((..<<..>>..&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=string -o=example.svg
+./rna_to_img.py -u=".<<<....>>>.(((.<<<<<....>>>>>.(((..<<..>>..&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=strand -o=example.svg
 ~~~
 # Overview
 
@@ -289,7 +289,7 @@ rna_to_img.py -u="((...))." -e="ACGAGUGA" -o=structure.png
 | Option | Description | Example |
 |--------|-------------|---------|
 | `loop`  | Standard fornac coloring scheme |  <a href="test/verified/test27.svg"><img src="test/verified/test27.svg" width="150">   </a> |
-| `string` (default) | Each molecule receives its own color | <a href="test/verified/test28.svg"><img src="test/verified/test28.svg" width="150">  |
+| `strand` (default) | Each molecule receives its own color | <a href="test/verified/test28.svg"><img src="test/verified/test28.svg" width="150">  |
 
 <table style="width:100%">
   <tr>
@@ -301,7 +301,7 @@ rna_to_img.py -u="((...))." -e="ACGAGUGA" -o=structure.png
 rna_to_img.py \
   -u="((...))..<<..&...>>.." \
   -e="NNNNNNNNNNNNN&NNNNNNN" \
-  -c=string
+  -c=strand
 ```
 
 </td>
@@ -495,15 +495,15 @@ rna_to_img.py -u=".((...))." -e="AACGAGUGA" > hairpin.svg
   </tr>
   <tr>
     <td> 
-    <b>Intermolecular Interaction with string Coloring</b><br/>
-Two molecules interacting with string colors:
+    <b>Intermolecular Interaction with Distinct Coloring</b><br/>
+Two molecules interacting where each molecule has its own color:
     <br/><br/>
 
 ```sh
 rna_to_img.py \
   -u="((...))..<<..&...>>.." \
   -e="NNNNNNNNNNNNN&NNNNNNN" \
-  -c=string \
+  -c=strand \
   -o=interaction.svg
 ```
 
@@ -548,7 +548,7 @@ A basic pseudoknot involving two interacting molecules:
 rna_to_img.py \
   -u="<<<..((..>>>&<<<..))..>>>" \
   -e="NNNNNNNNNNN&NNNNNNNNNNNN" \
-  -c=string \
+  -c=strand \
   -o=pseudoknot_simple.svg
 ```
 
@@ -570,7 +570,7 @@ Two molecules forming a complex kissing hairpin interaction:
 rna_to_img.py \
   -u="<<<..(((..>>>...<<<..(((..>>>..&<<<..)))..>>>...<<<..)))..>>>.." \
   -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" \ 
-  -c=string \ 
+  -c=strand \ 
   -o=kissing_hairpins.svg
 ```
 
