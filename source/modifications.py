@@ -100,6 +100,38 @@ def updateIndexing(page, v):
             }
         }""", [f"{seq}[{str(num)}]" for (seq, num) in numbering])
     
+    setIndexMarkers(page, v, numbering)
+
+def setIndexMarkers(page, v, numbering):
+    """
+    Set index markers for sequence positions with priority-based placement.
+
+    Determines which positions should display index markers based on a
+    three-tier priority system: sequence boundaries (highest priority),
+    basepair region boundaries (medium priority), and regular intervals
+    (lowest priority). Uses `validateMarkerPos` to avoid overlapping markers
+    and executes JavaScript to update the DOM with the computed marker labels.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        v (dict): Dictionary with keys:
+            - "structure1" (str): Dot-bracket notation for first structure.
+            - "structure2" (str): Dot-bracket notation for second structure.
+            - "sequence1" (Sequence): First sequence.
+            - "labelInterval" (int): Interval for regular marker placement.
+        numbering (list[tuple[str, int]]): List of (sequence_id, position) tuples
+            representing the numbering for all positions.
+
+    Returns:
+        None
+    """
+    for var in ["structure1", "structure2", "sequence1", "labelInterval"]:
+        assert var in v
+    length1 = len(v["sequence1"])
+    interval = int(v["labelInterval"])
+    structure1 = v["structure1"]
+    structure2 = v["structure2"]
+
     # adding the 2 empty nodes between the 2 sequences, 
     # because fornac counts them in when constructing index nodes
     numbering = numbering[:length1] + [("e", 0), ("e", 0)] + numbering[length1:]
@@ -108,13 +140,19 @@ def updateIndexing(page, v):
     # an index and which wont. [0: no marker, number: show marker]
     indexing = [0 for _ in numbering]
  
-    # numbering = [(seq1, 1), ...] 
-    # show marker for every 10th index 
-    for index, tuple in enumerate(numbering):
-        seq, number = tuple
-        if number % interval == 0:
-            indexing[index] = number
     
+    # prio:
+    # start and end of sequence
+    # start and end of first basepairs
+    # every 10th index
+
+    # numbering: list of actual indicies[-5, -4, -3, -2, ...] (list of numbers)
+    # indexing : list of indicies and 0 [-5, 0, 0, -2, ...]
+    # psoition: position of the marker in the list (eg number -5 is at position 0)
+    # number: actual indicie at position x
+
+
+    # ----------------- prio 1 -------------------------------
     # show marker: [at the beginning of the first sequence,
     #                at the end of the first sequence,
     #                at the beginning of the second sequence,
@@ -122,7 +160,30 @@ def updateIndexing(page, v):
     for pos in [0, length1-1, length1+2, -1]:
         if pos < len(indexing):
             seq, number = numbering[pos]
-            indexing[pos] = number
+            indexing[pos] = validateMarkerPos(pos, indexing, number)
+
+    # ----------------- prio 2 -------------------------------
+    # get the position of the first and last intermol basepair in both sequences
+    basepair_region = getBasepairRegions(structure1, structure2)
+    # add at the start and end positions a marker with the correct number
+    for region in basepair_region:
+        # fornac starts counting the nodes with 1
+        # region postions also are based on starting position 1
+        # we need to substract 1 to have a starting position of 0
+        start_pos = region[0] - 1
+        end_pos = region[1] - 1
+        seq, start_number = numbering[start_pos]
+        seq, end_number = numbering[end_pos]
+        indexing[start_pos] = validateMarkerPos(start_pos, indexing, start_number)
+        indexing[end_pos] = validateMarkerPos(end_pos, indexing, end_number)
+
+    # ----------------- prio 3 -------------------------------
+    # numbering = [(seq1, 1), ...] 
+    # show marker for every 10th index 
+    for index, tuple in enumerate(numbering):
+        seq, number = tuple
+        if number % interval == 0:
+            indexing[index] = validateMarkerPos(index, indexing, number)    
 
 
     page.evaluate("""(indexing) => {
@@ -138,6 +199,45 @@ def updateIndexing(page, v):
         removeWrongMarker(page, fix_index)
         indexing[fix_index] = ""
 
+
+def validateMarkerPos(pos: int, indexing: list, number: int) -> int:
+    """
+    Validate whether a marker should be placed at the given position.
+
+    Checks if either neighboring position already has a marker set (non-zero value).
+    If a neighbor has a marker, returns 0 to prevent overlapping markers.
+    Otherwise, returns the number to allow marker placement.
+
+    Args:
+        pos (int): Position index in the indexing list to validate.
+        indexing (list[int]): Current indexing list where non-zero values
+            indicate existing markers.
+        number (int): The number to potentially place at this position.
+
+    Returns:
+        int: The number if placement is allowed, 0 if placement should be prevented
+        to avoid overlap with neighboring markers.
+    """
+    neighbors = (pos - 1, pos + 1)
+
+    # special case pos -1 and 0, they are not next to each other
+    if pos == -1:
+        neighbors = [pos-1]
+    if pos == 0:
+        neighbors = [pos+1]
+
+    for neighbor in neighbors:
+        # check if neighbor pos is inside list
+        if neighbor > -len(indexing) and neighbor < len(indexing):
+            # check if neighbor is already displaying a number
+            if indexing[neighbor] != 0:
+                # if thats true, this index Marker should not
+                # display any number
+                return 0
+    
+    # if both neighors do not already display a number
+    # a marker at this position is allowed
+    return number
 
 
 def removeWrongMarker(page, index_remove):
@@ -178,10 +278,9 @@ def highlightingRegions(page, v):
     """
     Highlight contiguous intermolecular basepair regions for both structures.
 
-    Uses `listIntermolPairs` to find intermolecular basepair indices in
-    `structure1` and `structure2`, converts the second structure's local
-    indices to Fornac's global indexing, and sets a red stroke on all circle
-    nodes within those regions.
+    Uses `getBasepairRegions` to identify the ranges of positions involved
+    in intermolecular basepairs for both structures, then executes JavaScript
+    to set a red stroke on all circle nodes within those regions in the DOM.
 
     Args:
         page: Playwright-like page object used to evaluate JavaScript.
@@ -200,8 +299,44 @@ def highlightingRegions(page, v):
     structure1 = v["structure1"]
     structure2 = v["structure2"]
     
-    basepair_region = []
     assert structure2 != ""
+
+    basepair_region = getBasepairRegions(structure1, structure2)
+
+    page.evaluate("""(basepair_region) => {
+            for (const [start, final] of basepair_region){
+                for (let index = start; index <= final; index++) {
+                    node = document.querySelector('circle[node_num="' + index.toString() + '"]'); 
+                    style = node.getAttribute("style");
+                    node.setAttribute("style", style + "stroke: red;");          
+                    }
+            }
+        }""", basepair_region)
+    
+def getBasepairRegions(structure1, structure2):
+    """
+    Determine contiguous intermolecular basepair regions for both structures.
+
+    For each structure, identifies the range of positions involved in
+    intermolecular basepairs using `listIntermolPairs`, converts from
+    0-based to 1-based indexing, and adjusts the second structure's
+    indices to Fornac's global coordinate system by adding an offset
+    equal to the length of the first structure plus 2 (for separator nodes).
+
+    Args:
+        structure1 (str): Dot-bracket notation for the first RNA structure.
+        structure2 (str): Dot-bracket notation for the second RNA structure.
+
+    Returns:
+        list[tuple[int, int]]: List of (start, end) tuples representing
+        the 1-based index ranges of intermolecular basepair regions for
+        both structures, with the second structure's indices adjusted
+        to global Fornac coordinates.
+
+    Raises:
+        AssertionError: If no intermolecular basepairs are found in either structure.
+    """
+    basepair_region = []
 
     for structure in [structure1, structure2]:
         basepair_list = listIntermolPairs(structure)
@@ -217,15 +352,8 @@ def highlightingRegions(page, v):
     offset = len(structure1) + 2
     basepair_region[1] = (local_start + offset, local_end + offset)
 
-    page.evaluate("""(basepair_region) => {
-            for (const [start, final] of basepair_region){
-                for (let index = start; index <= final; index++) {
-                    node = document.querySelector('circle[node_num="' + index.toString() + '"]'); 
-                    style = node.getAttribute("style");
-                    node.setAttribute("style", style + "stroke: red;");          
-                    }
-            }
-        }""", basepair_region) 
+    return basepair_region
+
     
 
 def highlightingBasepairs(page, v):
