@@ -115,7 +115,7 @@ def run(v):
         updateIndexing(page, v)
 
         # ----------------------------------------
-        # clean up the svg: remove the second layer of links
+        # clean up the svg: remove the second layer of intermolecular links
         # now: only links from node1 to node2 where node1 < node2
         if molecules == "2":
             removeSecondLink(page)
@@ -131,7 +131,6 @@ def run(v):
 
         #-----------------------------------------------
         # visualise basepair strenght (G-U )
-        
         visualiseBasepairStength(page, v)
 
         #  extracting the built svg file

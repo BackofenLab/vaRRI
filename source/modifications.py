@@ -457,6 +457,19 @@ def listIntermolPairs(struc):
     return inter_basepairs
 
 def removeSecondLink(page):
+    """
+    Remove duplicate basepair links from the DOM.
+
+    Iterates through all basepair link elements and removes those where
+    the first node ID is greater than the second node ID, effectively
+    eliminating duplicate links that Fornac generates.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+
+    Returns:
+        None
+    """
     page.evaluate("""() => {
         var list_of_basepair_links = document.querySelectorAll('[link_type="basepair"]');
         list_of_basepair_links.forEach(link => {
@@ -471,6 +484,20 @@ def removeSecondLink(page):
 
 
 def visualiseBasepairStength(page, v):
+    """
+    Visualize basepair strength by styling G-U basepairs.
+
+    Creates a sequence array aligned with Fornac's node IDs (including
+    separator nodes) and applies a dashed stroke to basepair links
+    representing G-U pairs, which are weaker than G-C or A-U pairs.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        v (dict): Dictionary containing at least "sequence1" and "sequence2".
+
+    Returns:
+        None
+    """
     for var in ["sequence1", "sequence2"]:
         assert var in v
 
