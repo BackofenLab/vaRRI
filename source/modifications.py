@@ -125,12 +125,13 @@ def setIndexMarkers(page, v, numbering):
     Returns:
         None
     """
-    for var in ["structure1", "structure2", "sequence1", "labelInterval"]:
+    for var in ["structure1", "structure2", "sequence1", "labelInterval", "molecules"]:
         assert var in v
     length1 = len(v["sequence1"])
     interval = int(v["labelInterval"])
     structure1 = v["structure1"]
     structure2 = v["structure2"]
+    molecules = v["molecules"]
 
     # adding the 2 empty nodes between the 2 sequences, 
     # because fornac counts them in when constructing index nodes
@@ -164,18 +165,19 @@ def setIndexMarkers(page, v, numbering):
 
     # ----------------- prio 2 -------------------------------
     # get the position of the first and last intermol basepair in both sequences
-    basepair_region = getBasepairRegions(structure1, structure2)
-    # add at the start and end positions a marker with the correct number
-    for region in basepair_region:
-        # fornac starts counting the nodes with 1
-        # region postions also are based on starting position 1
-        # we need to substract 1 to have a starting position of 0
-        start_pos = region[0] - 1
-        end_pos = region[1] - 1
-        seq, start_number = numbering[start_pos]
-        seq, end_number = numbering[end_pos]
-        indexing[start_pos] = validateMarkerPos(start_pos, indexing, start_number)
-        indexing[end_pos] = validateMarkerPos(end_pos, indexing, end_number)
+    if molecules == "2":
+        basepair_region = getBasepairRegions(structure1, structure2)
+        # add at the start and end positions a marker with the correct number
+        for region in basepair_region:
+            # fornac starts counting the nodes with 1
+            # region postions also are based on starting position 1
+            # we need to substract 1 to have a starting position of 0
+            start_pos = region[0] - 1
+            end_pos = region[1] - 1
+            seq, start_number = numbering[start_pos]
+            seq, end_number = numbering[end_pos]
+            indexing[start_pos] = validateMarkerPos(start_pos, indexing, start_number)
+            indexing[end_pos] = validateMarkerPos(end_pos, indexing, end_number)
 
     # ----------------- prio 3 -------------------------------
     # numbering = [(seq1, 1), ...] 
@@ -340,7 +342,8 @@ def getBasepairRegions(structure1, structure2):
 
     for structure in [structure1, structure2]:
         basepair_list = listIntermolPairs(structure)
-        assert basepair_list
+        if not basepair_list:
+            return []
         # fornac starts counting nodes with 1 -> list index start with 0
         region = (basepair_list[0]+1, basepair_list[-1]+1)
         basepair_region += [region]
@@ -453,4 +456,40 @@ def listIntermolPairs(struc):
     inter_basepairs.sort()
     return inter_basepairs
 
+def removeSecondLink(page):
+    page.evaluate("""() => {
+        var list_of_basepair_links = document.querySelectorAll('[link_type="basepair"]');
+        list_of_basepair_links.forEach(link => {
+            basepairs = link.children[0].textContent.split(":")[1];
+            var [id_node_1, id_node_2] = basepairs.split("-");
 
+            if (Number(id_node_1) > Number(id_node_2)){
+                link.remove();
+            }
+        });
+    }""")
+
+
+def visualiseBasepairStength(page, v):
+    for var in ["sequence1", "sequence2"]:
+        assert var in v
+
+    # building an array that can be accessed using the ids stored in the fornac graph links
+    # eg the ids start with 1
+    # eg the 2 invisible nodes between both mols, also have their own ids
+    sequence = ["."] + list(v["sequence1"]) + [".", "."] + list(v["sequence2"])
+
+    page.evaluate("""(sequence) => {
+        var list_of_basepair_links = document.querySelectorAll('[link_type="basepair"]');
+        list_of_basepair_links.forEach(link => {
+            basepairs = link.children[0].textContent.split(":")[1];
+            var [id_node_1, id_node_2] = basepairs.split("-");
+            // l1 short for nucleotide letter of node 1
+            l1 = sequence[Number(id_node_1)];
+            l2 = sequence[Number(id_node_2)];
+
+            if ((l1 == "G" && l2 == "U") || (l1 == "U" && l2 == "G")) {
+                link.setAttribute("stroke-dasharray","1,1");     
+            }
+        });
+    }""", sequence)

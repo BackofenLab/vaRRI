@@ -24,6 +24,8 @@ from modifications import (changeBackgroundColor,
                            updateIndexing,
                            highlightingRegions,
                            highlightingBasepairs,
+                           visualiseBasepairStength,
+                           removeSecondLink
                            )
 # -----------------------------------------------------------------
 project_dir = Path(__file__).resolve().parent.parent.absolute()
@@ -101,6 +103,7 @@ def run(v):
         # use fornac to generate structure
         buildMolecules(page, v)
 
+
         # -----------------------------------------------------
         # changing the background color
         # this option colors all nucleotides of one sequence in one color
@@ -111,6 +114,12 @@ def run(v):
         # changing the indexing number of each node and the index markers
         updateIndexing(page, v)
 
+        # ----------------------------------------
+        # clean up the svg: remove the second layer of links
+        # now: only links from node1 to node2 where node1 < node2
+        if molecules == "2":
+            removeSecondLink(page)
+
         # -----------------------------------------------------
         # changing the higlighting of different molecules in a intermolecular setting
         # only works when 2 molecules given
@@ -119,6 +128,11 @@ def run(v):
                 highlightingRegions(page, v)
             if highlighting == "basepairs":
                 highlightingBasepairs(page, v)
+
+        #-----------------------------------------------
+        # visualise basepair strenght (G-U )
+        
+        visualiseBasepairStength(page, v)
 
         #  extracting the built svg file
         svg = page.locator("svg").first.inner_html()
