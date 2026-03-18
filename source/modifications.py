@@ -178,6 +178,8 @@ def setIndexMarkers(page, v, numbering):
             seq, end_number = numbering[end_pos]
             indexing[start_pos] = validateMarkerPos(start_pos, indexing, start_number)
             indexing[end_pos] = validateMarkerPos(end_pos, indexing, end_number)
+            colorIndexMarkerRed(page, start_pos)
+            colorIndexMarkerRed(page, end_pos)
 
     # ----------------- prio 3 -------------------------------
     # numbering = [(seq1, 1), ...] 
@@ -200,6 +202,26 @@ def setIndexMarkers(page, v, numbering):
         fix_index = indexing.index(0)
         removeWrongMarker(page, fix_index)
         indexing[fix_index] = ""
+
+def colorIndexMarkerRed(page, target_index):
+    """Hide an incorrect marker and its corresponding link in the DOM.
+
+
+    Args:
+        page: Playwright page object used to evaluate JavaScript.
+        target_index (int): Index of the marker/link pair mark red.
+
+    Returns:
+        None
+    """
+    page.evaluate("""(target_index) => {
+            var list_of_node_elements = document.querySelectorAll('[num="n-1"]');
+            for (const [index, node] of Object.entries(list_of_node_elements)){
+                if (index == target_index) {
+                    node.children[0].setAttribute("style", "stroke: red;stroke-width: 0.8;");
+                }
+            }
+        }""", target_index)
 
 
 def validateMarkerPos(pos: int, indexing: list, number: int) -> int:
@@ -245,7 +267,7 @@ def validateMarkerPos(pos: int, indexing: list, number: int) -> int:
 def removeWrongMarker(page, index_remove):
     """Hide an incorrect marker and its corresponding link in the DOM.
 
-    Removes a wrongly generated index marker (here set as 0 index) 
+    Removes a index marker (here set as 0 index) 
     by setting the CSS `display` property to `none` for both the marker 
     node and its associated label link at the given position.
 
@@ -304,16 +326,80 @@ def highlightingRegions(page, v):
     assert structure2 != ""
 
     basepair_region = getBasepairRegions(structure1, structure2)
+    highlighted_area = []
+    for (start, end) in basepair_region:
+        highlighted_area += [i for i in range(start, end + 1, 1)]
+
+    polyline(page, highlighted_area, "fill:green;opacity:0.2")
+
 
     page.evaluate("""(basepair_region) => {
+            var polygon_corners = [];
             for (const [start, final] of basepair_region){
                 for (let index = start; index <= final; index++) {
                     node = document.querySelector('circle[node_num="' + index.toString() + '"]'); 
                     style = node.getAttribute("style");
-                    node.setAttribute("style", style + "stroke: red;");          
-                    }
+                    node.setAttribute("style", style + "stroke: red;");   
+                }
             }
         }""", basepair_region)
+
+def highlightSubsequence(page, v, seq):
+    key_highlightSubseq = f"highlightSubseq{seq}"
+    key_startIndex = f"offset{seq}"
+
+    for var in [key_highlightSubseq, key_startIndex, "sequence1"]:
+        assert var in v
+
+    # translate start end index to position of nodes in fornac
+    start, end = v[key_highlightSubseq]
+    startIndex = v[key_startIndex]
+
+    # startIndex ------> start --------> end -----> endIndex
+    # [ -----distance1--->|---distance2 -->|-------------->]
+    distance1 = start - startIndex
+    distance2 = end - start
+
+    # We dont use 0, therefore we need to take it out
+    if startIndex < 0 and start > 0:
+        distance1 -= 1
+    if start < 0 and end > 0:
+        distance2 -= 1
+
+    # node id start with 1
+    start_node = distance1 + 1
+    end_node = distance1 + distance2 + 1
+
+    # shift the calculation for the second sequence
+    if seq == "2":
+        gap = 2
+        shift = len(v["sequence1"]) + gap
+        start_node += shift
+        end_node += shift
+
+    indicies = list(range(start_node, end_node + 1))
+    polyline(page, indicies, 
+                     "stroke:green;stroke-width:10;opacity:0.2;fill:None")
+
+
+def polyline(page, indicies, style):  
+    page.evaluate("""([indicies, style]) => {
+            var pos_string = "";
+            for (const index of indicies){
+                node = document.querySelector('g[num="n' + index.toString() + '"]');
+                if (node == null){break;}
+                const transform = node.getAttribute("transform");
+                const match = Array.from(transform.matchAll(/-?\d+(?:\.\d+)?/g));
+                pos_string += match[0] + "," + match[1] + " ";
+            }
+        
+        var poly = document.createElement("polyline");
+        poly.setAttribute("points", pos_string); 
+        poly.setAttribute("style", style); 
+        fornac_plot = document.getElementsByClassName("fornac-plot")[0];
+        fornac_plot.insertBefore(poly, fornac_plot.firstChild);
+        }""", [indicies, style])
+
     
 def getBasepairRegions(structure1, structure2):
     """

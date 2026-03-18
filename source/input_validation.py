@@ -436,4 +436,34 @@ def validateLabelInterval(args: dict) -> str:
     return interval
 
 
+def validateSubsequenceInput(args: dict, v: dict, seq: str) -> tuple:
+    #TODO darf nicht 0 sein!!
+
+    name = "highlightSubseq" + seq
+    offset = "offset" + seq
+    sequence = "sequence" + seq
+    if args[name] == "None":
+        return None
+
+    for var in [offset, sequence]:
+            assert var in v
+
+    startIndex = v[offset]
+    endIndex = startIndex + len(v[sequence])
+    # input=index:index
+    start_end: str = args[name]
+
+    if re.fullmatch("-?\d+:-?\d+", start_end):
+        start, end = [int(i) for i in start_end.split(":")]
+        if start > end:
+            raise ValueError(f"The given {name} Input is invalid. start < end, instead got: {start_end}")
+        if startIndex > start:
+            raise ValueError(f"The given {name} Input is invalid. " +
+                             f"startIndex ({startIndex}) must me smaller than start of subsequence({start})")
+        if endIndex < end:
+            raise ValueError(f"The given {name} Input is invalid. " +
+                             f"endIndex ({endIndex}) must me bigger than end  of subsequence({end})")
+
+        return (start, end)
+    raise ValueError(f"The given index input is not valid: {args[name]}")
 

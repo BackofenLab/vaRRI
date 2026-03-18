@@ -18,14 +18,16 @@ from input_validation import (validateStructureInput,
                               formatSequence,
                               getMolecules,
                               validateHighlighting,
-                              validateLabelInterval)
+                              validateLabelInterval,
+                              validateSubsequenceInput)
 
 from modifications import (changeBackgroundColor,
                            updateIndexing,
                            highlightingRegions,
                            highlightingBasepairs,
                            visualiseBasepairStength,
-                           removeSecondLink
+                           removeSecondLink,
+                           highlightSubsequence
                            )
 # -----------------------------------------------------------------
 project_dir = Path(__file__).resolve().parent.parent.absolute()
@@ -92,6 +94,9 @@ def run(v):
         coloring_type = v["coloring"]
         # options [nothing, pairs, region]
         highlighting = v["highlighting"]
+        # option [(int,int)]
+        subsequence1 =  v["highlightSubseq1"]
+        subsequence2 =  v["highlightSubseq2"]
 
 
         # start browser and load page with fornac script
@@ -132,6 +137,14 @@ def run(v):
         #-----------------------------------------------
         # visualise basepair strenght (G-U )
         visualiseBasepairStength(page, v)
+
+        #------------------------------------------------
+        # highlight subsequence
+        if subsequence1 is not None:
+            highlightSubsequence(page, v, "1")
+        if molecules == "2" and subsequence2 is not None:
+            highlightSubsequence(page, v, "2")
+
 
         #  extracting the built svg file
         svg = page.locator("svg").first.inner_html()
@@ -242,7 +255,25 @@ if __name__ == '__main__':
             '-l',
 			'--labelInterval',
 			help='set the Intervall in which a label shows the index, default: 10',
-            default='10')    
+            default='10')
+    parser.add_argument(
+            '-c1',
+			'--crop1',
+			help='crop the first molecule to a specified length around the intermolecular region',
+            default='10')   
+    parser.add_argument(
+            '-c2',
+			'--crop2',
+			help='crop the first molecule to a specified length around the intermolecular region',
+            default='10')
+    parser.add_argument(
+			'--highlightSubseq1',
+			help='highlight a subsequence of the first sequence',
+            default='None')
+    parser.add_argument(
+			'--highlightSubseq2',
+			help='highlight a subsequence of the second sequnec',
+            default='None')    
     parser.add_argument(
             '-v',
 			'--verbose',
@@ -284,6 +315,11 @@ if __name__ == '__main__':
         validated["highlighting"] = validateHighlighting(args)
 
         validated["labelInterval"] = validateLabelInterval(args)
+
+        validated["highlightSubseq1"] = validateSubsequenceInput(args, validated, "1")
+
+        validated["highlightSubseq2"] = validateSubsequenceInput(args, validated, "2")
+
 
 
     except ValueError as e:
