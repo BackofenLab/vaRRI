@@ -345,6 +345,23 @@ def highlightingRegions(page, v):
         }""", basepair_region)
 
 def highlightSubsequence(page, v, seq):
+    """Highlight a subsequence of nodes in the Fornac plot.
+
+    Calculates the node range corresponding to the requested subsequence (using
+    the provided start/end positions and sequence offsets), converts them to
+    Fornac node IDs, and draws a translucent green polyline around those nodes.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        v (dict): Dictionary containing keys:
+            - "highlightSubseq1" / "highlightSubseq2" (tuple[int, int]): Start and end indices to highlight.
+            - "offset1" / "offset2" (int): Offset used to map sequence positions to Fornac node indices.
+            - "sequence1" (Sequence): First sequence (used to compute the shift for the second sequence).
+        seq (str): Sequence identifier, "1" or "2", used to choose which highlight keys to read.
+
+    Returns:
+        None
+    """
     key_highlightSubseq = f"highlightSubseq{seq}"
     key_startIndex = f"offset{seq}"
 
@@ -383,6 +400,20 @@ def highlightSubsequence(page, v, seq):
 
 
 def polyline(page, indicies, style):  
+    """Draw a styled polyline connecting a set of node positions in the Fornac plot.
+
+    Calculates the x/y positions of each node identified by `indicies` by
+    reading their SVG transform attributes, then creates an SVG `polyline`
+    element with the supplied style and inserts it at the top of the plot.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        indicies (Sequence[int]): Fornac node IDs to connect in order.
+        style (str): CSS style string applied to the created polyline element.
+
+    Returns:
+        None
+    """
     page.evaluate("""([indicies, style]) => {
             var pos_string = "";
             for (const index of indicies){
