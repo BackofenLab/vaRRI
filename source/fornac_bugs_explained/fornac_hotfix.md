@@ -27,3 +27,15 @@ This marker does not account for the 2 invisible nodes. If a marker overlaps wit
 |![bug2_without_fix](fornac_bug2_example_without_fix.png)|![bug2_without_fix](fornac_bug2_example_with_fix.png)|
 
 To fix this issue the script makes the marker invisible if it overlaps with the invisible Nodes.
+
+## Hotfix 3
+
+when one intermolecular basepair at the last position in the first sequence and in the first
+position in the second sequence form, and this basepair has index labels, fornac does
+not calculate the position of the index Labels  correctly.
+
+| forna | fixed|
+| --- | --- |
+|[bug3_without_fix](fornac_bug3_example_without_fix.png)|[bug3_with_fix](fornac_bug3_example_with_fix.png)|
+
+To fix this issue vaRRI adds another dummy node between the 2 sequnces, and delteting it in a post processing step

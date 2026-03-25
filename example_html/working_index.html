@@ -7,10 +7,10 @@
     <script type='text/javascript' src='../fornac/d3.js'></script>
     <script type='text/javascript' src='../fornac/fornac.js'></script>
     <script type='text/javascript'>
-        var container = new fornac.FornaContainer("#rna_ss", {'animation': false});
+        var container = new fornac.FornaContainer("#rna_ss", {'animation': true, 'circularizeExternal': false, 'zoomable': false, 'initialSize':[500,300]});
 
-        var options = {'structure': '((..((....)).(((....))).))',
-                        'sequence': 'CGCUUCAUAUAAUCCUAAUGACCUAU'
+        var options = {'structure': '.<<<<<.&...>>>>>..<<<.&...>>>.<<<<<.&...>>>>>..<<<.&...>>>..',
+                        'sequence': 'ABBBBBA&AAABBBBBAABBBA&AAABBBACCCCC.&AAABBBBBAABBBA&AAABBBAA'
         };
 
         container.addRNA(options.structure, options);

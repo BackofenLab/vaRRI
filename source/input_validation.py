@@ -112,7 +112,8 @@ def formatStructure(validated: dict) -> tuple[str, str, str]:
 
     # fix fornac Error: incorrectly cutting of the first 2 nodes in the second sequence
     # HACK gegebenenfalls fixen wenn fornac updated
-    structure = structure.replace("&", "&..")
+    structure = structure.replace("&", "&...")
+#    structure = structure.replace("&", "&..")
     return first_struc, second_struc, structure
 
 def formatSequence(validated: dict) -> tuple[str, str, str]:
@@ -138,7 +139,8 @@ def formatSequence(validated: dict) -> tuple[str, str, str]:
 
     # fix fornac Error: incorrectly cutting of the first 2 nodes in the second sequence
     # HACK gegebenenfalls fixen wenn fornac updated
-    sequence = sequence.replace("&", "&..")
+#    sequence = sequence.replace("&", "&..")
+    sequence = sequence.replace("&", "&...")
     return first_seq, second_seq, sequence
 
 def getMolecules(validated: dict) -> str:

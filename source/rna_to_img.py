@@ -27,7 +27,8 @@ from modifications import (changeBackgroundColor,
                            highlightingBasepairs,
                            visualiseBasepairStength,
                            removeSecondLink,
-                           highlightSubsequence
+                           highlightSubsequence,
+                           removeDummyNodes,
                            )
 # -----------------------------------------------------------------
 project_dir = Path(__file__).resolve().parent.parent.absolute()
@@ -84,7 +85,7 @@ def setupLogging(v: dict):
 def run(v):
     with sync_playwright() as p:
         for var in ["molecules", "coloring", "highlighting", 
-                    "output_name", "output_type"]:
+                    "output_name", "output_type", "sequence"]:
             assert var in v
 
         file_name, file_type = v["output_name"], v["output_type"]
@@ -98,6 +99,10 @@ def run(v):
         subsequence1 =  v["highlightSubseq1"]
         subsequence2 =  v["highlightSubseq2"]
 
+        seq = v["sequence"]
+
+        
+
 
         # start browser and load page with fornac script
         browser = p.chromium.launch(headless=True)
@@ -107,6 +112,11 @@ def run(v):
         
         # use fornac to generate structure
         buildMolecules(page, v)
+
+        # remove dummy nodes that make up the seperating space
+        # between the 2 molecules
+        removeDummyNodes(page, seq)
+
 
 
         # -----------------------------------------------------
@@ -257,15 +267,17 @@ if __name__ == '__main__':
 			help='set the Intervall in which a label shows the index, default: 10',
             default='10')
     parser.add_argument(
-            '-c1',
-			'--crop1',
-			help='crop the first molecule to a specified length around the intermolecular region',
-            default='10')   
+			'--cropHead',
+			help='crop both molecules on one side: ' \
+                'visualising nt nodes ' \
+                'before the start of the intermolecular Region  ',
+            default='None')   
     parser.add_argument(
-            '-c2',
-			'--crop2',
-			help='crop the first molecule to a specified length around the intermolecular region',
-            default='10')
+			'--cropFood',
+			help='crop both molecules on one side: ' \
+                'visualising nt nodes ' \
+                'after the end of the intermolecular Region  ',
+            default='None')
     parser.add_argument(
 			'--highlightSubseq1',
 			help='highlight a subsequence of the first sequence',
@@ -274,6 +286,10 @@ if __name__ == '__main__':
 			'--highlightSubseq2',
 			help='highlight a subsequence of the second sequnec',
             default='None')    
+    parser.add_argument(
+			'--guBasepairs',
+			help='visualise all G-U basepairs with a dashed line [True, False]',
+            default='True')    
     parser.add_argument(
             '-v',
 			'--verbose',
@@ -319,6 +335,10 @@ if __name__ == '__main__':
         validated["highlightSubseq1"] = validateSubsequenceInput(args, validated, "1")
 
         validated["highlightSubseq2"] = validateSubsequenceInput(args, validated, "2")
+
+        # validate cropping:
+        # valdiate: nt 1 und nt2
+        # validated[""]
 
 
 

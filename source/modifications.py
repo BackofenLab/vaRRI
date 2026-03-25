@@ -135,7 +135,8 @@ def setIndexMarkers(page, v, numbering):
 
     # adding the 2 empty nodes between the 2 sequences, 
     # because fornac counts them in when constructing index nodes
-    numbering = numbering[:length1] + [("e", 0), ("e", 0)] + numbering[length1:]
+#    numbering = numbering[:length1] + [("e", 0), ("e", 0)] + numbering[length1:]
+    numbering = numbering[:length1] + [("e", 0), ("e", 0), ("e", 0)] + numbering[length1:]
 
     # making a new list, indexing, which shall define which Marker should display
     # an index and which wont. [0: no marker, number: show marker]
@@ -290,9 +291,9 @@ def removeWrongMarker(page, index_remove):
                 }
             }
             var list_of_link_elements = document.querySelectorAll('[link_type="label_link"]');
-            for (const [index, node] of Object.entries(list_of_link_elements)){
+            for (const [index, link] of Object.entries(list_of_link_elements)){
                 if (index == index_remove) {
-                    node.setAttribute("style", "display:none");
+                    link.setAttribute("style", "display:none");
                 }                
             }
         }""", index_remove)
@@ -330,7 +331,7 @@ def highlightingRegions(page, v):
     for (start, end) in basepair_region:
         highlighted_area += [i for i in range(start, end + 1, 1)]
 
-    polyline(page, highlighted_area, "fill:green;opacity:0.2")
+    polyline(page, highlighted_area, "fill:red;opacity:0.2")
 
 
     page.evaluate("""(basepair_region) => {
@@ -469,7 +470,7 @@ def getBasepairRegions(structure1, structure2):
     local_start, local_end = basepair_region[1]
     # offset the start and end by the length of the first molecule 
 	# and 2 nodes that make up the separation of the 2 molecules
-    offset = len(structure1) + 2
+    offset = len(structure1) + 3
     basepair_region[1] = (local_start + offset, local_end + offset)
 
     return basepair_region
@@ -493,7 +494,7 @@ def highlightingBasepairs(page, v):
     """
     assert "sequence1" in v
     # split after sequence 1
-    split = len(v["sequence1"])
+    split = len(v["sequence1"]) + 1
     # searches for all basepairs. if the bases are on both sides of the split, 
     # it is a intermolecular basepair. higlight those bases with a red circle
 
@@ -598,6 +599,88 @@ def removeSecondLink(page):
             }
         });
     }""")
+
+
+def removeNode(page, id):
+    """Remove a node from the DOM by its ID.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        id: The ID of the node to remove.
+
+    Returns:
+        None
+    """
+    page.evaluate("""(id) => {
+        var list_of_nodes = document.querySelectorAll('[num="n' + id.toString() + '"]');
+        list_of_nodes.forEach(node => {
+            node.remove();
+        }); 
+    }""", id)
+
+def removeArrow(page, id):
+    """Remove the arrow element from a node by its ID.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        id: The ID of the node from which to remove the arrow.
+
+    Returns:
+        None
+    """
+    page.evaluate("""(id) => {
+        var list_of_nodes = document.querySelectorAll('[num="n' + id.toString() + '"]');
+        list_of_nodes.forEach(node => {
+            node.firstChild.remove();
+        }); 
+    }""", id)
+
+def removeLink(page, start_id, end_id):
+    """Remove a backbone link between two nodes.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        start_id: The ID of the starting node of the link.
+        end_id: The ID of the ending node of the link.
+
+    Returns:
+        None
+    """
+    page.evaluate("""([start_id, end_id]) => {
+        var list_of_links = document.querySelectorAll('[link_type="backbone"]');
+        list_of_links.forEach(link => {
+            tag = link.firstChild.textContent;
+            target_link = "backbone:" + start_id + "-" + end_id;
+            if (tag == target_link) {
+                link.remove();
+            }  
+        }); 
+    }""", [start_id, end_id])    
+
+def removeDummyNodes(page, sequence: list):
+    """Remove dummy nodes from the DOM based on sequence positions.
+
+    Iterates through the provided sequence and removes nodes, arrows, and links
+    for positions where the nucleotide is "." (dummy nodes), adjusting for
+    Fornac's 1-based indexing.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        sequence (list): Sequence list where "." indicates dummy nodes to remove.
+
+    Returns:
+        None
+    """
+    # fornac nodex start indexing with 1
+    # enumerate starts with 0
+    # beacuse the sequence also has a &
+    # all indicies afterwards are shifted
+    # the indexing is still correct
+    for index, n in enumerate(sequence):
+        if n == ".":
+            removeLink(page, index, index + 1)
+            removeArrow(page, index + 1)
+            removeNode(page, index)
 
 
 def visualiseBasepairStength(page, v):
