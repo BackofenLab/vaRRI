@@ -29,6 +29,9 @@ from modifications import (changeBackgroundColor,
                            removeSecondLink,
                            highlightSubsequence,
                            removeDummyNodes,
+                           resetLinks,
+                           updateLinkTooltips,
+                           resetLabels
                            )
 # -----------------------------------------------------------------
 project_dir = Path(__file__).resolve().parent.parent.absolute()
@@ -115,7 +118,11 @@ def run(v):
 
         # remove dummy nodes that make up the seperating space
         # between the 2 molecules
+        resetLinks(page)
+        resetLabels(page)
         removeDummyNodes(page, seq)
+
+        updateLinkTooltips(page, v)
 
 
 

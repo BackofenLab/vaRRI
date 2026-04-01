@@ -451,24 +451,29 @@ def validateSubsequenceInput(args: dict, v: dict, seq: str) -> tuple:
 
     startIndex = v[offset]
     endIndex = startIndex + len(v[sequence])
-    # input=index:index
-    start_end: str = args[name]
-
-    if re.fullmatch("-?\d+:-?\d+", start_end):
-        start, end = [int(i) for i in start_end.split(":")]
-        if 0 in [start, end]:
-            raise ValueError(f"The given {name} Input is invalid. " +
-                             f"Allowed indicies i are [i<-1, 1<i]. Instead got {start_end}")
-        if start > end:
-            raise ValueError(f"The given {name} Input is invalid. " +
-                             "Allowed start:end must follow rule [start<end], instead got: {start_end}")
-        if startIndex > start:
-            raise ValueError(f"The given {name} Input is invalid. " +
-                             f"startIndex ({startIndex}) must me smaller than start of subsequence ({start})")
-        if endIndex < end:
-            raise ValueError(f"The given {name} Input is invalid. " +
-                             f"endIndex ({endIndex}) must me bigger than end of subsequence ({end})")
-
-        return (start, end)
-    raise ValueError(f"The given index input is not valid: {start_end}")
+    # -----------------
+    # highlightSubseq=index:index,index:index,....
+    input_string = args[name]
+    if re.fullmatch("(-?\d+:-?\d+,)*-?\d+:-?\d+", input_string):
+        validated_subsequences = []
+        for subsequence in input_string.split(","):
+            start, end = [int(i) for i in subsequence.split(":")]
+            if 0 in [start, end]:
+                raise ValueError(f"The given {name} input has an invalid subsequene: " +
+                                f"Allowed indicies i are [i<-1, 1<i]. Instead got {subsequence}")
+            if start > end:
+                raise ValueError(f"The given {name} input has an invalid subsequene: " +
+                                f"Allowed start:end must follow rule [start<end], instead got: {subsequence}")
+            if startIndex > start:
+                raise ValueError(f"The given {name} input has an invalid subsequene: " +
+                                f"startIndex of Molecule{seq} ({startIndex}) must me " +
+                                f"smaller than start of subsequence ({start})")
+            if endIndex < end:
+                raise ValueError(f"The given {name} input has an invalid subsequene: " +
+                                f"endIndex of Molecule{seq} ({endIndex}) must me " + 
+                                f"bigger than end of subsequence ({end})")
+            validated_subsequences += [(start, end)]
+        return validated_subsequences
+    
+    raise ValueError(f"The given {name} input is invalid: {input_string}")
 

@@ -1,3 +1,6 @@
+# invisible Nodes between 2 molecules, seperating them
+GAP = 3
+
 def sequence_coloring(first_seq, second_seq) -> list:
     """Generate a color list for two sequences.
 
@@ -40,17 +43,16 @@ def changeBackgroundColor(page, v):
     for var in ["sequence1", "sequence2"]:
         assert var in v
     coloring = sequence_coloring(v["sequence1"], v["sequence2"])
+    assert coloring != []
+    # TODO check coloring.length == 0 cant happen
 
     # color all circles with the given color in the coloring list
     page.evaluate("""(coloring) => {
-            function coloringTheCircles(coloring) {
-                if (coloring.length == 0) {return;}
-                var list_of_nodes = document.querySelectorAll('[r="5"]');
-                for (const [index, node] of Object.entries(list_of_nodes)){            
-                    node.setAttribute("style", "fill: " + coloring[index] + ";");
-                }
+            if (coloring.length == 0) {return;}
+            var list_of_nodes = document.querySelectorAll('[r="5"]');
+            for (const [index, node] of Object.entries(list_of_nodes)){            
+                node.setAttribute("style", "fill: " + coloring[index] + ";");
             }
-            coloringTheCircles(coloring)
         }""", coloring)
     
 def updateIndexing(page, v):
@@ -58,7 +60,7 @@ def updateIndexing(page, v):
 
     Builds a numbering for sequence positions using provided offsets (handles
     RNA-style counting that omits zero), updates node title elements with
-    the computed labels, inserts two separator entries between sequences to
+    the computed labels, inserts 3 separator entries between sequences to
     match Fornac's indexing, and sets visible marker labels for every 10th
     node.
 
@@ -73,34 +75,54 @@ def updateIndexing(page, v):
     Returns:
         None
     """
-    for var in ["offset1", "offset2", "sequence1", "sequence2", "labelInterval"]:
+    numbering = {str(i): v for i, v in getIndexDictionary(v).items()}
+
+    page.evaluate("""(numbering) => {
+            for (const [key, value] of Object.entries(numbering)) {
+                var [seq, num] = value;
+                document.querySelectorAll('circle[node_num="'+ key + '"]').forEach((node) => {
+                    node.firstChild.innerHTML = `${seq}[${num}]`;
+              });
+          }
+        }""", numbering)
+
+
+    setIndexMarkers(page, v, numbering)
+
+def getSequenceIndicies(seq, offset, length):
+    numbering = []
+    numbering += [(seq, i) for i in range(offset, length+offset, 1)]
+    # with rna counting works like: -2, -1, 1, 2, 3, ... 
+    if (seq, 0) in numbering:
+        # range added a 0, we remove it
+        numbering.remove((seq, 0))
+        # we removed one index, so we need to add one again at the end
+        sequence, number = numbering[-1]
+        numbering += [(sequence, number + 1)]
+    return numbering
+
+def getIndexDictionary(v):
+    for var in ["offset1", "offset2", "sequence1", "sequence2"]:
         assert var in v
+
     offset1 = v["offset1"]
     offset2 = v["offset2"]
     length1 = len(v["sequence1"])
     length2 = len(v["sequence2"])
-    interval = int(v["labelInterval"])
     numbering = []
 
-    for (seq, offset, length) in [("s1", offset1, length1),("s2", offset2, length2)]:
-        numbering += [(seq, i) for i in range(offset, length+offset, 1)]
-        # with rna counting works like: -2, -1, 1, 2, 3, ... 
-        if (seq, 0) in numbering:
-            # range added a 0, we remove it
-            numbering.remove((seq, 0))
-            # we removed one index, so we need to add one again at the end
-            sequence, number = numbering[-1]
-            numbering += [(sequence, number + 1)]
+    # adding the 2 empty nodes between the 2 sequences, 
+    # because fornac counts them in when constructing index nodes
+    gap_list = [("e", 0)] * GAP
+    # [("e", 0), ("e", 0), ("e", 0)]
+    numbering = getSequenceIndicies("s1", offset1, length1) + gap_list + getSequenceIndicies("s2", offset2, length2)
 
-    page.evaluate("""(numbering) => {
-            var list_of_nodes = document.querySelectorAll('[r="5"]');
-            for (const [index, node] of Object.entries(list_of_nodes)){
-                title_element = node.children[0];
-                title_element.innerHTML = numbering[index];
-            }
-        }""", [f"{seq}[{str(num)}]" for (seq, num) in numbering])
-    
-    setIndexMarkers(page, v, numbering)
+    numbering = {i: [seq, num] for i, (seq, num) in enumerate(numbering, 1)}
+
+    return numbering
+        
+
+        
 
 def setIndexMarkers(page, v, numbering):
     """
@@ -109,7 +131,7 @@ def setIndexMarkers(page, v, numbering):
     Determines which positions should display index markers based on a
     three-tier priority system: sequence boundaries (highest priority),
     basepair region boundaries (medium priority), and regular intervals
-    (lowest priority). Uses `validateMarkerPos` to avoid overlapping markers
+    (lowest priority). Uses `validateLabelPos` to avoid overlapping markers
     and executes JavaScript to update the DOM with the computed marker labels.
 
     Args:
@@ -125,22 +147,21 @@ def setIndexMarkers(page, v, numbering):
     Returns:
         None
     """
-    for var in ["structure1", "structure2", "sequence1", "labelInterval", "molecules"]:
+    for var in ["structure1", "structure2", "sequence1", "labelInterval", "molecules", "sequence"]:
         assert var in v
     length1 = len(v["sequence1"])
+    length_total = len(v["sequence"])
     interval = int(v["labelInterval"])
     structure1 = v["structure1"]
     structure2 = v["structure2"]
     molecules = v["molecules"]
 
-    # adding the 2 empty nodes between the 2 sequences, 
-    # because fornac counts them in when constructing index nodes
-#    numbering = numbering[:length1] + [("e", 0), ("e", 0)] + numbering[length1:]
-    numbering = numbering[:length1] + [("e", 0), ("e", 0), ("e", 0)] + numbering[length1:]
+    numbering: dict = getIndexDictionary(v)
 
-    # making a new list, indexing, which shall define which Marker should display
-    # an index and which wont. [0: no marker, number: show marker]
-    indexing = [0 for _ in numbering]
+
+    # making a new dict, which shall define which Label should display
+    # an index and which wont. [0: no label, number: show label]
+    index_labels: dict = {i: 0 for i in numbering.keys()}
  
     
     # prio:
@@ -148,64 +169,51 @@ def setIndexMarkers(page, v, numbering):
     # start and end of first basepairs
     # every 10th index
 
-    # numbering: list of actual indicies[-5, -4, -3, -2, ...] (list of numbers)
-    # indexing : list of indicies and 0 [-5, 0, 0, -2, ...]
-    # psoition: position of the marker in the list (eg number -5 is at position 0)
-    # number: actual indicie at position x
-
+    # numbering: dict of actual indicies {1:-5, 2:-4, 3:-3, 4:-2, ...} 
+    # indexing : list of indicies and 0  {1:-5, 2:0,  3:0,  4:-2, ...}
+    # pos: position of the label
 
     # ----------------- prio 1 -------------------------------
     # show marker: [at the beginning of the first sequence,
     #                at the end of the first sequence,
     #                at the beginning of the second sequence,
     #                at the end of the fsecond sequence]
-    for pos in [0, length1-1, length1+2, -1]:
-        if pos < len(indexing):
-            seq, number = numbering[pos]
-            indexing[pos] = validateMarkerPos(pos, indexing, number)
+    for pos in [1  , length1, length1+GAP+1, length_total-1]:
+        _, number = numbering[pos]
+        index_labels[pos] = validateLabelPos(pos, index_labels, number)
 
     # ----------------- prio 2 -------------------------------
     # get the position of the first and last intermol basepair in both sequences
     if molecules == "2":
         basepair_region = getBasepairRegions(structure1, structure2)
-        # add at the start and end positions a marker with the correct number
+        # add at the start and end positions a label with the correct number
         for region in basepair_region:
-            # fornac starts counting the nodes with 1
-            # region postions also are based on starting position 1
-            # we need to substract 1 to have a starting position of 0
-            start_pos = region[0] - 1
-            end_pos = region[1] - 1
-            seq, start_number = numbering[start_pos]
-            seq, end_number = numbering[end_pos]
-            indexing[start_pos] = validateMarkerPos(start_pos, indexing, start_number)
-            indexing[end_pos] = validateMarkerPos(end_pos, indexing, end_number)
-            colorIndexMarkerRed(page, start_pos)
-            colorIndexMarkerRed(page, end_pos)
+            for pos in region:
+                _, number = numbering[pos]
+                index_labels[pos] = validateLabelPos(pos, index_labels, number)
+                colorLabelRed(page, pos)
 
     # ----------------- prio 3 -------------------------------
     # numbering = [(seq1, 1), ...] 
     # show marker for every 10th index 
-    for index, tuple in enumerate(numbering):
-        seq, number = tuple
-        if number % interval == 0:
-            indexing[index] = validateMarkerPos(index, indexing, number)    
-
-
-    page.evaluate("""(indexing) => {
-            var list_of_text_elements = document.querySelectorAll('[label_type="label"]');
-            for (const [index, node] of Object.entries(list_of_text_elements)){
-                node.innerHTML = indexing[index];   
-            }
-        }""", indexing)
+    for pos, (_, number) in numbering.items():
+        if number % interval == 0 or number == 1:
+            index_labels[pos] = validateLabelPos(pos, index_labels, number)    
     
+    page.evaluate("""(indexing) => {
+            document.querySelectorAll('[label_type="label"]').forEach((label,index)=>{
+                        label.innerHTML = indexing[index];   
+                  });   
+        }""", list(index_labels.values()))
 
-    while 0 in indexing:
-        fix_index = indexing.index(0)
-        removeWrongMarker(page, fix_index)
-        indexing[fix_index] = ""
+    
+    for pos, value in index_labels.items():
+        if value == 0:
+            removeLabel(page, pos)
+            removeLabellink(page,pos)
 
-def colorIndexMarkerRed(page, target_index):
-    """Hide an incorrect marker and its corresponding link in the DOM.
+def colorLabelRed(page, target_index):
+    """
 
 
     Args:
@@ -216,16 +224,12 @@ def colorIndexMarkerRed(page, target_index):
         None
     """
     page.evaluate("""(target_index) => {
-            var list_of_node_elements = document.querySelectorAll('[num="n-1"]');
-            for (const [index, node] of Object.entries(list_of_node_elements)){
-                if (index == target_index) {
-                    node.children[0].setAttribute("style", "stroke: red;stroke-width: 0.8;");
-                }
-            }
-        }""", target_index)
+            document.querySelectorAll(`[label_num="${target_index}"]`).forEach((label) => {
+                  label.setAttribute("style", "stroke: red;stroke-width: 0.8;");
+                  });
+        }""", str(target_index))
 
-
-def validateMarkerPos(pos: int, indexing: list, number: int) -> int:
+def validateLabelPos(pos: int, indexing: dict, number: int) -> int:
     """
     Validate whether a marker should be placed at the given position.
 
@@ -245,59 +249,41 @@ def validateMarkerPos(pos: int, indexing: list, number: int) -> int:
     """
     neighbors = (pos - 1, pos + 1)
 
-    # special case pos -1 and 0, they are not next to each other
-    if pos == -1:
-        neighbors = [pos-1]
-    if pos == 0:
-        neighbors = [pos+1]
-
     for neighbor in neighbors:
-        # check if neighbor pos is inside list
-        if neighbor > -len(indexing) and neighbor < len(indexing):
+        # check if neighbor pos is inside dict
+        if neighbor in indexing:
             # check if neighbor is already displaying a number
             if indexing[neighbor] != 0:
-                # if thats true, this index Marker should not
+                # if thats true, this Label should not
                 # display any number
                 return 0
     
     # if both neighors do not already display a number
-    # a marker at this position is allowed
+    # a Label at this position is allowed
     return number
 
 
-def removeWrongMarker(page, index_remove):
-    """Hide an incorrect marker and its corresponding link in the DOM.
-
-    Removes a index marker (here set as 0 index) 
-    by setting the CSS `display` property to `none` for both the marker 
-    node and its associated label link at the given position.
-
-    The function executes JavaScript in the provided `page` context and
-    operates on elements selected via the attributes `[num="n-1"]` (marker
-    nodes) and `[link_type="label_link"]` (marker links).
-
-    Args:
-        page: Playwright page object used to evaluate JavaScript.
-        index_remove (int): Index of the marker/link pair to hide.
-
-    Returns:
-        None
+def removeLabel(page, index):
     """
-    page.evaluate("""(index_remove) => {
-            var list_of_node_elements = document.querySelectorAll('[num="n-1"]');
-            for (const [index, node] of Object.entries(list_of_node_elements)){
-                if (index == index_remove) {
-                    node.setAttribute("style", "display:none");
-                }
-            }
-            var list_of_link_elements = document.querySelectorAll('[link_type="label_link"]');
-            for (const [index, link] of Object.entries(list_of_link_elements)){
-                if (index == index_remove) {
-                    link.setAttribute("style", "display:none");
-                }                
-            }
-        }""", index_remove)
-    
+    """
+    page.evaluate("""(index) => {            
+            document.querySelectorAll('[label_gnum="'+ index +'"]').forEach((node) => {
+                    node.remove();                  
+                  });
+        }""", index)
+
+def removeLabellink(page, index):
+    """
+    """
+    page.evaluate("""(index) => {            
+            document.querySelectorAll('line[start="'+ index +'"]').forEach((line)=>{
+                if (line.getAttribute("link_type") == "label_link") {
+                        line.remove();
+                    }  
+                });
+ 
+        }""", index)
+
     
 def highlightingRegions(page, v):
     """
@@ -325,7 +311,7 @@ def highlightingRegions(page, v):
     structure2 = v["structure2"]
     
     assert structure2 != ""
-
+    # [(start, end), (start, end)]
     basepair_region = getBasepairRegions(structure1, structure2)
     highlighted_area = []
     for (start, end) in basepair_region:
@@ -333,9 +319,10 @@ def highlightingRegions(page, v):
 
     polyline(page, highlighted_area, "fill:red;opacity:0.2")
 
+    # TODO compute basepair region indicies completly evaluate a list of indicies
+
 
     page.evaluate("""(basepair_region) => {
-            var polygon_corners = [];
             for (const [start, final] of basepair_region){
                 for (let index = start; index <= final; index++) {
                     node = document.querySelector('circle[node_num="' + index.toString() + '"]'); 
@@ -369,35 +356,36 @@ def highlightSubsequence(page, v, seq):
     for var in [key_highlightSubseq, key_startIndex, "sequence1"]:
         assert var in v
 
-    # translate start end index to position of nodes in fornac
-    start, end = v[key_highlightSubseq]
-    startIndex = v[key_startIndex]
+    # iterate through all subsequences
+    for subsequence in v[key_highlightSubseq]:
+        # translate start end index to position of nodes in fornac
+        start, end = subsequence
+        startIndex = v[key_startIndex]
 
-    # startIndex ------> start --------> end -----> endIndex
-    # [ -----distance1--->|---distance2 -->|-------------->]
-    distance1 = start - startIndex
-    distance2 = end - start
+        # startIndex ------> start --------> end -----> endIndex
+        # [ -----distance1--->|---distance2 -->|-------------->]
+        distance1 = start - startIndex
+        distance2 = end - start
 
-    # We dont use 0, therefore we need to take it out
-    if startIndex < 0 and start > 0:
-        distance1 -= 1
-    if start < 0 and end > 0:
-        distance2 -= 1
+        # We dont use 0, therefore we need to take it out
+        if startIndex < 0 and start > 0:
+            distance1 -= 1
+        if start < 0 and end > 0:
+            distance2 -= 1
 
-    # node id start with 1
-    start_node = distance1 + 1
-    end_node = distance1 + distance2 + 1
+        # node id start with 1
+        start_node = distance1 + 1
+        end_node = distance1 + distance2 + 1
 
-    # shift the calculation for the second sequence
-    if seq == "2":
-        gap = 2
-        shift = len(v["sequence1"]) + gap
-        start_node += shift
-        end_node += shift
+        # shift the calculation for the second sequence
+        if seq == "2":
+            shift = len(v["sequence1"]) + GAP
+            start_node += shift
+            end_node += shift
 
-    indicies = list(range(start_node, end_node + 1))
-    polyline(page, indicies, 
-                     "stroke:green;stroke-width:10;opacity:0.2;fill:None")
+        indicies = list(range(start_node, end_node + 1))
+        polyline(page, indicies, 
+                        "stroke:purple;stroke-width:10;opacity:0.3;fill:None")
 
 
 def polyline(page, indicies, style):  
@@ -441,7 +429,7 @@ def getBasepairRegions(structure1, structure2):
     intermolecular basepairs using `listIntermolPairs`, converts from
     0-based to 1-based indexing, and adjusts the second structure's
     indices to Fornac's global coordinate system by adding an offset
-    equal to the length of the first structure plus 2 (for separator nodes).
+    equal to the length of the first structure plus 3 (for separator nodes).
 
     Args:
         structure1 (str): Dot-bracket notation for the first RNA structure.
@@ -469,8 +457,8 @@ def getBasepairRegions(structure1, structure2):
     # transform from local indexing to fornac indexing
     local_start, local_end = basepair_region[1]
     # offset the start and end by the length of the first molecule 
-	# and 2 nodes that make up the separation of the 2 molecules
-    offset = len(structure1) + 3
+	# and the GAP (3 nodes that make up the separation of the 2 molecules)
+    offset = len(structure1) + GAP
     basepair_region[1] = (local_start + offset, local_end + offset)
 
     return basepair_region
@@ -498,25 +486,19 @@ def highlightingBasepairs(page, v):
     # searches for all basepairs. if the bases are on both sides of the split, 
     # it is a intermolecular basepair. higlight those bases with a red circle
 
-    page.evaluate("""(split) => {
-        var list_of_basepair_links = document.querySelectorAll('[link_type="basepair"]');
-        var basepair_indicies = [];
-        for (const [index, node] of Object.entries(list_of_basepair_links)){
-            text = node.children[0].innerHTML;
-            basepairs = text.split(":")[1];
-            basepair_node_1 = basepairs.split("-")[0];
-            basepair_node_2 = basepairs.split("-")[1];
-            if (basepair_node_1 < split && basepair_node_2 > split) {                          
-                basepair_indicies.push(basepair_node_1);
-                basepair_indicies.push(basepair_node_2);
-            }
-        }
 
-        for (const index of basepair_indicies){
-            node = document.querySelector('circle[node_num="' + index.toString() + '"]'); 
-            style = node.getAttribute("style");
-            node.setAttribute("style", style + "stroke: red;");
-        }
+    page.evaluate("""(split) => {
+        document.querySelectorAll('[link_type="basepair"]').forEach((link) => {
+            var nodes = [link.getAttribute("start"), link.getAttribute("end")];
+            // if not intermolecular basepair, ignore
+            if (!(nodes[0] < split && nodes[1] > split)) {return;}
+            // color basepair border red
+            nodes.forEach((node_num) => {
+                node = document.querySelector('circle[node_num="' + node_num + '"]');
+                node.setAttribute("style", node.getAttribute("style") + "stroke: red;");
+                });
+            
+        });
     }""", split)  
 
 def listIntermolPairs(struc):
@@ -589,14 +571,12 @@ def removeSecondLink(page):
         None
     """
     page.evaluate("""() => {
-        var list_of_basepair_links = document.querySelectorAll('[link_type="basepair"]');
-        list_of_basepair_links.forEach(link => {
-            basepairs = link.children[0].textContent.split(":")[1];
-            var [id_node_1, id_node_2] = basepairs.split("-");
-
-            if (Number(id_node_1) > Number(id_node_2)){
+        document.querySelectorAll('[link_type="basepair"]').forEach((link) => {
+            var nodes = [link.getAttribute("start"), link.getAttribute("end")];
+            // only allow inter basepairs form seq1 to seq2
+            if (Number(nodes[0]) > Number(nodes[1])){
                 link.remove();
-            }
+            } 
         });
     }""")
 
@@ -646,16 +626,14 @@ def removeLink(page, start_id, end_id):
     Returns:
         None
     """
-    page.evaluate("""([start_id, end_id]) => {
-        var list_of_links = document.querySelectorAll('[link_type="backbone"]');
-        list_of_links.forEach(link => {
-            tag = link.firstChild.textContent;
-            target_link = "backbone:" + start_id + "-" + end_id;
-            if (tag == target_link) {
+    page.evaluate("""(link_ids) => {
+        document.querySelectorAll('[link_type="backbone"]').forEach((link) => {
+            var nodes = link.getAttribute("start") + "," + link.getAttribute("end");
+            if (nodes==link_ids){
                 link.remove();
-            }  
-        }); 
-    }""", [start_id, end_id])    
+            } 
+        });
+    }""", f"{start_id},{end_id}")    
 
 def removeDummyNodes(page, sequence: list):
     """Remove dummy nodes from the DOM based on sequence positions.
@@ -704,19 +682,73 @@ def visualiseBasepairStength(page, v):
     # building an array that can be accessed using the ids stored in the fornac graph links
     # eg the ids start with 1
     # eg the 2 invisible nodes between both mols, also have their own ids
-    sequence = ["."] + list(v["sequence1"]) + [".", "."] + list(v["sequence2"])
+    gap_list = ["."] * GAP
+    sequence = ["."] + list(v["sequence1"]) + gap_list + list(v["sequence2"])
 
     page.evaluate("""(sequence) => {
-        var list_of_basepair_links = document.querySelectorAll('[link_type="basepair"]');
-        list_of_basepair_links.forEach(link => {
-            basepairs = link.children[0].textContent.split(":")[1];
-            var [id_node_1, id_node_2] = basepairs.split("-");
-            // l1 short for nucleotide letter of node 1
-            l1 = sequence[Number(id_node_1)];
-            l2 = sequence[Number(id_node_2)];
-
+        document.querySelectorAll('[link_type="basepair"]').forEach((link) => {
+            l1 = sequence[Number(link.getAttribute("start"))];
+            l2 = sequence[Number(link.getAttribute("end"))];
             if ((l1 == "G" && l2 == "U") || (l1 == "U" && l2 == "G")) {
                 link.setAttribute("stroke-dasharray","1,1");     
             }
         });
     }""", sequence)
+
+# 1. option alles mit python.
+# liste an nucleotides
+# 1. list [. ,. ,(3, 10), (4, 9), ., ., ., ., (10, 3), (9, 4), ...]
+# wir gehen die liste durch und setzt start und endpunkt des basepairs
+
+# ----------------
+# 1. option
+# liste mit allen basepairs wie sie in fornac stehen [(1,10), (2,9), ...]
+# setzte Attribute für jeden basepair link
+
+# 2. Option
+# iterieren durch alle links, nehmen den Text, setzten neue Attribute anhand Text, löschen Text
+
+# aber wie setzen wir neuen Text?
+# liste aller Nodes mit richtigen Index, also seq[3] = -10, easy!!!
+
+
+def resetLinks(page):
+    page.evaluate("""() => {
+        var list_of_lines = document.querySelectorAll('line');
+        list_of_lines.forEach(line => {
+            // get the start and end node
+            link = line.children[0].textContent.split(":")[1];
+            var [start, end] = link.split("-").filter(Number);
+            line.setAttribute("start", start.toString());
+            line.setAttribute("end", end.toString());
+                  
+        }); 
+    }""")
+
+def resetLabels(page):
+    page.evaluate("""() => {
+        var list_of_labels = document.querySelectorAll('g[num="n-1"]');
+        list_of_labels.forEach((label, index) => {
+            label.setAttribute("label_gnum", (index+1).toString());
+            label.firstChild.setAttribute("label_num", (index+1).toString());
+        }); 
+    }""")
+
+def updateLinkTooltips(page, v):
+
+    updated_indicies = {str(key): str(index) for (key, (_, index)) in getIndexDictionary(v).items()}
+
+    page.evaluate("""(updated_indicies) => {
+        var list_of_lines = document.querySelectorAll('line');
+        list_of_lines.forEach(line => {
+            // get the start and end node
+            var start = line.getAttribute("start");
+            var end = line.getAttribute("end");
+
+            if (line.getAttribute("link_type") == "label_link") {
+                line.firstChild.textContent = updated_indicies[start];   
+            } else {
+                line.firstChild.textContent = updated_indicies[start] + "-" + updated_indicies[end];      
+            }
+        }); 
+    }""", updated_indicies)
