@@ -55,7 +55,7 @@ def changeBackgroundColor(page, v):
             }
         }""", coloring)
     
-def updateIndexing(page, v):
+def updateNodeToolTips(page, v):
     """Compute and set node labels and marker indices for both sequences.
 
     Builds a numbering for sequence positions using provided offsets (handles
@@ -75,31 +75,29 @@ def updateIndexing(page, v):
     Returns:
         None
     """
-    numbering = {str(i): v for i, v in getIndexDictionary(v).items()}
+    index_dict = {str(i): v for i, v in getIndexDictionary(v).items()}
 
-    page.evaluate("""(numbering) => {
-            for (const [key, value] of Object.entries(numbering)) {
+    # TODO ?
+    page.evaluate("""(index_dict) => {
+            for (const [key, value] of Object.entries(index_dict)) {
                 var [seq, num] = value;
                 document.querySelectorAll('circle[node_num="'+ key + '"]').forEach((node) => {
                     node.firstChild.innerHTML = `${seq}[${num}]`;
               });
           }
-        }""", numbering)
+        }""", index_dict)
 
-
-    setIndexMarkers(page, v, numbering)
 
 def getSequenceIndicies(seq, offset, length):
-    numbering = []
-    numbering += [(seq, i) for i in range(offset, length+offset, 1)]
+    indicies = [(seq, i) for i in range(offset, length+offset, 1)]
     # with rna counting works like: -2, -1, 1, 2, 3, ... 
-    if (seq, 0) in numbering:
+    if (seq, 0) in indicies:
         # range added a 0, we remove it
-        numbering.remove((seq, 0))
+        indicies.remove((seq, 0))
         # we removed one index, so we need to add one again at the end
-        sequence, number = numbering[-1]
-        numbering += [(sequence, number + 1)]
-    return numbering
+        sequence, number = indicies[-1]
+        indicies += [(sequence, number + 1)]
+    return indicies
 
 def getIndexDictionary(v):
     for var in ["offset1", "offset2", "sequence1", "sequence2"]:
@@ -109,22 +107,20 @@ def getIndexDictionary(v):
     offset2 = v["offset2"]
     length1 = len(v["sequence1"])
     length2 = len(v["sequence2"])
-    numbering = []
 
     # adding the 2 empty nodes between the 2 sequences, 
     # because fornac counts them in when constructing index nodes
     gap_list = [("e", 0)] * GAP
     # [("e", 0), ("e", 0), ("e", 0)]
-    numbering = getSequenceIndicies("s1", offset1, length1) + gap_list + getSequenceIndicies("s2", offset2, length2)
+    indicies = getSequenceIndicies("s1", offset1, length1) + gap_list + getSequenceIndicies("s2", offset2, length2)
 
-    numbering = {i: [seq, num] for i, (seq, num) in enumerate(numbering, 1)}
-
-    return numbering
-        
+    return {i: [seq, num] for i, (seq, num) in enumerate(indicies, 1)}
 
         
 
-def setIndexMarkers(page, v, numbering):
+        
+
+def setIndexLabels(page, v):
     """
     Set index markers for sequence positions with priority-based placement.
 
@@ -156,12 +152,12 @@ def setIndexMarkers(page, v, numbering):
     structure2 = v["structure2"]
     molecules = v["molecules"]
 
-    numbering: dict = getIndexDictionary(v)
+    index_dict: dict = getIndexDictionary(v)
 
 
     # making a new dict, which shall define which Label should display
     # an index and which wont. [0: no label, number: show label]
-    index_labels: dict = {i: 0 for i in numbering.keys()}
+    index_labels: dict = {i: 0 for i in index_dict.keys()}
  
     
     # prio:
@@ -179,7 +175,7 @@ def setIndexMarkers(page, v, numbering):
     #                at the beginning of the second sequence,
     #                at the end of the fsecond sequence]
     for pos in [1  , length1, length1+GAP+1, length_total-1]:
-        _, number = numbering[pos]
+        _, number = index_dict[pos]
         index_labels[pos] = validateLabelPos(pos, index_labels, number)
 
     # ----------------- prio 2 -------------------------------
@@ -189,14 +185,14 @@ def setIndexMarkers(page, v, numbering):
         # add at the start and end positions a label with the correct number
         for region in basepair_region:
             for pos in region:
-                _, number = numbering[pos]
+                _, number = index_dict[pos]
                 index_labels[pos] = validateLabelPos(pos, index_labels, number)
                 colorLabelRed(page, pos)
 
     # ----------------- prio 3 -------------------------------
     # numbering = [(seq1, 1), ...] 
     # show marker for every 10th index 
-    for pos, (_, number) in numbering.items():
+    for pos, (_, number) in index_dict.items():
         if number % interval == 0 or number == 1:
             index_labels[pos] = validateLabelPos(pos, index_labels, number)    
     
@@ -313,24 +309,23 @@ def highlightingRegions(page, v):
     assert structure2 != ""
     # [(start, end), (start, end)]
     basepair_region = getBasepairRegions(structure1, structure2)
-    highlighted_area = []
+
+    intermol_nodes = []
     for (start, end) in basepair_region:
-        highlighted_area += [i for i in range(start, end + 1, 1)]
+        intermol_nodes += [i for i in range(start, end + 1, 1)]
 
-    polyline(page, highlighted_area, "fill:red;opacity:0.2")
+    setNodeStrokeRed(page, intermol_nodes)
+    polyline(page, intermol_nodes, "fill:red;opacity:0.2")
 
-    # TODO compute basepair region indicies completly evaluate a list of indicies
 
-
-    page.evaluate("""(basepair_region) => {
-            for (const [start, final] of basepair_region){
-                for (let index = start; index <= final; index++) {
-                    node = document.querySelector('circle[node_num="' + index.toString() + '"]'); 
-                    style = node.getAttribute("style");
-                    node.setAttribute("style", style + "stroke: red;");   
-                }
-            }
-        }""", basepair_region)
+def setNodeStrokeRed(page, node_ids):
+    page.evaluate("""(node_ids) => {
+            node_ids.forEach((node_id)=>{
+                  document.querySelectorAll(`circle[node_num="${node_id}"]`).forEach((node)=>{
+                        node.setAttribute("style", node.getAttribute("style") + "stroke: red;");
+                     });
+                  });
+        }""", node_ids)
 
 def highlightSubsequence(page, v, seq):
     """Highlight a subsequence of nodes in the Fornac plot.
@@ -403,15 +398,16 @@ def polyline(page, indicies, style):
     Returns:
         None
     """
+
     page.evaluate("""([indicies, style]) => {
             var pos_string = "";
-            for (const index of indicies){
-                node = document.querySelector('g[num="n' + index.toString() + '"]');
-                if (node == null){break;}
-                const transform = node.getAttribute("transform");
-                const match = Array.from(transform.matchAll(/-?\d+(?:\.\d+)?/g));
-                pos_string += match[0] + "," + match[1] + " ";
-            }
+            indicies.forEach((index)=>{
+                  document.querySelectorAll(`g[num="n${index}"]`).forEach((node)=>{
+                    const transform = node.getAttribute("transform");
+                    const match = Array.from(transform.matchAll(/-?\d+(?:\.\d+)?/g));
+                    pos_string += `${match[0]},${match[1]} `;
+                    });
+                  });
         
         var poly = document.createElement("polyline");
         poly.setAttribute("points", pos_string); 
@@ -676,43 +672,26 @@ def visualiseBasepairStength(page, v):
     Returns:
         None
     """
-    for var in ["sequence1", "sequence2"]:
+    for var in ["sequence"]:
         assert var in v
 
     # building an array that can be accessed using the ids stored in the fornac graph links
     # eg the ids start with 1
     # eg the 2 invisible nodes between both mols, also have their own ids
-    gap_list = ["."] * GAP
-    sequence = ["."] + list(v["sequence1"]) + gap_list + list(v["sequence2"])
+    sequence_dict = {str(i) : nucleo for i, nucleo in enumerate(list(v["sequence"]), 1)}
 
-    page.evaluate("""(sequence) => {
+    page.evaluate("""(sequence_dict) => {
         document.querySelectorAll('[link_type="basepair"]').forEach((link) => {
-            l1 = sequence[Number(link.getAttribute("start"))];
-            l2 = sequence[Number(link.getAttribute("end"))];
+            l1 = sequence_dict[link.getAttribute("start")];
+            l2 = sequence_dict[link.getAttribute("end")];
             if ((l1 == "G" && l2 == "U") || (l1 == "U" && l2 == "G")) {
                 link.setAttribute("stroke-dasharray","1,1");     
             }
         });
-    }""", sequence)
-
-# 1. option alles mit python.
-# liste an nucleotides
-# 1. list [. ,. ,(3, 10), (4, 9), ., ., ., ., (10, 3), (9, 4), ...]
-# wir gehen die liste durch und setzt start und endpunkt des basepairs
-
-# ----------------
-# 1. option
-# liste mit allen basepairs wie sie in fornac stehen [(1,10), (2,9), ...]
-# setzte Attribute für jeden basepair link
-
-# 2. Option
-# iterieren durch alle links, nehmen den Text, setzten neue Attribute anhand Text, löschen Text
-
-# aber wie setzen wir neuen Text?
-# liste aller Nodes mit richtigen Index, also seq[3] = -10, easy!!!
+    }""", sequence_dict)
 
 
-def resetLinks(page):
+def setLinksId(page):
     page.evaluate("""() => {
         var list_of_lines = document.querySelectorAll('line');
         list_of_lines.forEach(line => {
@@ -725,7 +704,7 @@ def resetLinks(page):
         }); 
     }""")
 
-def resetLabels(page):
+def setLabelsId(page):
     page.evaluate("""() => {
         var list_of_labels = document.querySelectorAll('g[num="n-1"]');
         list_of_labels.forEach((label, index) => {
@@ -737,7 +716,7 @@ def resetLabels(page):
 def updateLinkTooltips(page, v):
 
     updated_indicies = {str(key): str(index) for (key, (_, index)) in getIndexDictionary(v).items()}
-
+    # TODO
     page.evaluate("""(updated_indicies) => {
         var list_of_lines = document.querySelectorAll('line');
         list_of_lines.forEach(line => {

@@ -22,16 +22,17 @@ from input_validation import (validateStructureInput,
                               validateSubsequenceInput)
 
 from modifications import (changeBackgroundColor,
-                           updateIndexing,
                            highlightingRegions,
                            highlightingBasepairs,
                            visualiseBasepairStength,
                            removeSecondLink,
                            highlightSubsequence,
                            removeDummyNodes,
-                           resetLinks,
+                           setLinksId,
                            updateLinkTooltips,
-                           resetLabels
+                           setLabelsId,
+                           updateNodeToolTips,
+                           setIndexLabels
                            )
 # -----------------------------------------------------------------
 project_dir = Path(__file__).resolve().parent.parent.absolute()
@@ -118,8 +119,8 @@ def run(v):
 
         # remove dummy nodes that make up the seperating space
         # between the 2 molecules
-        resetLinks(page)
-        resetLabels(page)
+        setLinksId(page)
+        setLabelsId(page)
         removeDummyNodes(page, seq)
 
         updateLinkTooltips(page, v)
@@ -133,8 +134,12 @@ def run(v):
             changeBackgroundColor(page, v)
 
         # -----------------------------------------------------
-        # changing the indexing number of each node and the index markers
-        updateIndexing(page, v)
+        # changing the tooltip number of each node 
+        updateNodeToolTips(page, v)
+        # and set the correct index labels
+        setIndexLabels(page, v)
+
+
 
         # ----------------------------------------
         # clean up the svg: remove the second layer of intermolecular links
