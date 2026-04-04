@@ -143,10 +143,10 @@ def setIndexLabels(page, v):
     Returns:
         None
     """
-    for var in ["structure1", "structure2", "sequence1", "labelInterval", "molecules", "sequence"]:
+    for var in ["structure1", "structure2", "sequence1", "labelInterval", "molecules", "sequence_dict"]:
         assert var in v
     length1 = len(v["sequence1"])
-    length_total = len(v["sequence"])
+    length_total = len(v["sequence_dict"])
     interval = int(v["labelInterval"])
     structure1 = v["structure1"]
     structure2 = v["structure2"]
@@ -174,14 +174,14 @@ def setIndexLabels(page, v):
     #                at the end of the first sequence,
     #                at the beginning of the second sequence,
     #                at the end of the fsecond sequence]
-    for pos in [1  , length1, length1+GAP+1, length_total-1]:
+    for pos in [1  , length1, length1+GAP+1, length_total]:
         _, number = index_dict[pos]
         index_labels[pos] = validateLabelPos(pos, index_labels, number)
 
     # ----------------- prio 2 -------------------------------
     # get the position of the first and last intermol basepair in both sequences
     if molecules == "2":
-        basepair_region = getBasepairRegions(structure1, structure2)
+        basepair_region = getIntermolBasepairRegion(structure1, structure2)
         # add at the start and end positions a label with the correct number
         for region in basepair_region:
             for pos in region:
@@ -224,6 +224,7 @@ def colorLabelRed(page, target_index):
                   label.setAttribute("style", "stroke: red;stroke-width: 0.8;");
                   });
         }""", str(target_index))
+
 
 def validateLabelPos(pos: int, indexing: dict, number: int) -> int:
     """
@@ -281,11 +282,11 @@ def removeLabellink(page, index):
         }""", index)
 
     
-def highlightingRegions(page, v):
+def highlightingRegion(page, v):
     """
     Highlight contiguous intermolecular basepair regions for both structures.
 
-    Uses `getBasepairRegions` to identify the ranges of positions involved
+    Uses `getIntermolBasepairRegion` to identify the ranges of positions involved
     in intermolecular basepairs for both structures, then executes JavaScript
     to set a red stroke on all circle nodes within those regions in the DOM.
 
@@ -308,14 +309,14 @@ def highlightingRegions(page, v):
     
     assert structure2 != ""
     # [(start, end), (start, end)]
-    basepair_region = getBasepairRegions(structure1, structure2)
+    basepair_region = getIntermolBasepairRegion(structure1, structure2)
 
     intermol_nodes = []
     for (start, end) in basepair_region:
         intermol_nodes += [i for i in range(start, end + 1, 1)]
 
     setNodeStrokeRed(page, intermol_nodes)
-    polyline(page, intermol_nodes, "fill:red;opacity:0.2")
+
 
 
 def setNodeStrokeRed(page, node_ids):
@@ -380,7 +381,8 @@ def highlightSubsequence(page, v, seq):
 
         indicies = list(range(start_node, end_node + 1))
         polyline(page, indicies, 
-                        "stroke:purple;stroke-width:10;opacity:0.3;fill:None")
+                        "stroke:purple;stroke-width:10;opacity:0.3;fill:None;" \
+                        "stroke-linejoin: miter;stroke-miterlimit: 0.1;")
 
 
 def polyline(page, indicies, style):  
@@ -417,12 +419,12 @@ def polyline(page, indicies, style):
         }""", [indicies, style])
 
     
-def getBasepairRegions(structure1, structure2):
+def getIntermolBasepairRegion(structure1, structure2):
     """
     Determine contiguous intermolecular basepair regions for both structures.
 
     For each structure, identifies the range of positions involved in
-    intermolecular basepairs using `listIntermolPairs`, converts from
+    intermolecular basepairs using `listIntermolNodes`, converts from
     0-based to 1-based indexing, and adjusts the second structure's
     indices to Fornac's global coordinate system by adding an offset
     equal to the length of the first structure plus 3 (for separator nodes).
@@ -441,21 +443,16 @@ def getBasepairRegions(structure1, structure2):
         AssertionError: If no intermolecular basepairs are found in either structure.
     """
     basepair_region = []
+    offset = len(structure1) + GAP
 
-    for structure in [structure1, structure2]:
-        basepair_list = listIntermolPairs(structure)
+    for structure,shift in [(structure1, 0), (structure2, offset)]:
+        basepair_list = [index for (index,_) in listIntermolNodes(structure, shift)]
         if not basepair_list:
             return []
         # fornac starts counting nodes with 1 -> list index start with 0
-        region = (basepair_list[0]+1, basepair_list[-1]+1)
+        region = (basepair_list[0], basepair_list[-1])
         basepair_region += [region]
 
-    # transform from local indexing to fornac indexing
-    local_start, local_end = basepair_region[1]
-    # offset the start and end by the length of the first molecule 
-	# and the GAP (3 nodes that make up the separation of the 2 molecules)
-    offset = len(structure1) + GAP
-    basepair_region[1] = (local_start + offset, local_end + offset)
 
     return basepair_region
 
@@ -497,7 +494,7 @@ def highlightingBasepairs(page, v):
         });
     }""", split)  
 
-def listIntermolPairs(struc):
+def listIntermolNodes(struc, shift=0):
     '''
     Return sorted indices of intermolecular basepairs in dot-bracket notation.
 
@@ -514,7 +511,7 @@ def listIntermolPairs(struc):
         list[int]: Sorted indices (0-based) of positions that are part of intermolecular basepairs.
 
     Example:
-        >>> listIntermolPairs("((..))..))")
+        >>> listIntermolNodes("((..))..))")
         [8, 9]
 
     For the following example Structures, the intermolecular basepairs are indicated with carets (^):s
@@ -530,11 +527,11 @@ def listIntermolPairs(struc):
     inter_basepairs = []
     open_basepairs = {"(": [], "<": [], "[": [], "{": []}
     basepairs = [("(",")"), ("[","]"), ("{", "}"), ("<",">")]
-    for index, char in enumerate(struc):
+    for index, char in enumerate(struc, 1):
         for (open, close) in basepairs:
             # check for open basepair, add to stack
             if char == open:
-                open_basepairs[open] += [index]
+                open_basepairs[open] += [(index+shift, char)]
                 break               
             # check for close basepair, remove from stack
             # if stack empty, it is an intermolecular basepair
@@ -542,7 +539,7 @@ def listIntermolPairs(struc):
                 if open_basepairs[open]:
                     open_basepairs[open].pop()
                 else:
-                    inter_basepairs += [index]
+                    inter_basepairs += [(index+shift, char)]
                 break
 
     # all remaining open basepairs in the stack are intermolecular
@@ -672,13 +669,8 @@ def visualiseBasepairStength(page, v):
     Returns:
         None
     """
-    for var in ["sequence"]:
-        assert var in v
-
-    # building an array that can be accessed using the ids stored in the fornac graph links
-    # eg the ids start with 1
-    # eg the 2 invisible nodes between both mols, also have their own ids
-    sequence_dict = {str(i) : nucleo for i, nucleo in enumerate(list(v["sequence"]), 1)}
+    assert "sequence_dict" in v
+    sequence_dict = v["sequence_dict"]
 
     page.evaluate("""(sequence_dict) => {
         document.querySelectorAll('[link_type="basepair"]').forEach((link) => {
@@ -731,3 +723,80 @@ def updateLinkTooltips(page, v):
             }
         }); 
     }""", updated_indicies)
+
+
+def backgroundhighlightingBasepairs(page, v):
+
+    intermol_pairs = listIntermolPairs(v)
+    stack = [(0,0)]
+    highlightbackground = []
+    for open, close in intermol_pairs:
+        # check if stack, add on stack
+        if (open-1, close+1) == stack[-1]:
+            stack += [(open, close)]
+            continue
+        # if not, make new stack and safe the old one
+        highlightbackground += [sorted([x for t in stack for x in t])]
+        stack = [(open, close)]
+
+    highlightbackground += [sorted([x for t in stack for x in t])]
+    
+    for stack in highlightbackground:
+        polyline(page, stack, "fill:red;opacity:0.2;")
+
+def backgroundhighlightingRegion(page, v):
+    """
+    """
+    for var in ["structure1", "structure2"]:
+        assert var in v
+    structure1 = v["structure1"]
+    structure2 = v["structure2"]
+    
+    assert structure2 != ""
+    # [(start, end), (start, end)]
+    basepair_region = getIntermolBasepairRegion(structure1, structure2)
+
+    intermol_nodes = []
+    for (start, end) in basepair_region:
+        intermol_nodes += [i for i in range(start, end + 1, 1)]
+
+    polyline(page, intermol_nodes, "fill:red;opacity:0.2;")
+
+
+
+def listIntermolPairs(v):
+    for var in ["structure_dict", "structure1", "structure2"]:
+        assert var in v
+    struc = v["structure_dict"]
+    struc1 = v["structure1"]
+    struc2 = v["structure2"]
+    shift = len(struc1) + GAP
+
+    intermol = {i: "." for i, _  in struc.items()}
+    for index, bracket in listIntermolNodes(struc1) + listIntermolNodes(struc2, shift):
+        intermol[index] = bracket
+    
+    return listBasepairs(intermol)
+
+
+def listBasepairs(struc: dict):
+    '''
+    '''
+    basepairs = []
+    open_basepairs = {"(": [], "<": [], "[": [], "{": []}
+    brackets = [("(",")"), ("[","]"), ("{", "}"), ("<",">")]
+    for index, char in struc.items():
+        for (open, close) in brackets:
+            # check for open basepair, add to stack
+            if char == open:
+                open_basepairs[open] += [index]
+                break               
+            # check for close basepair, remove from stack
+            # if stack empty, it is an intermolecular basepair
+            if char == close:
+                if open_basepairs[open]:
+                    basepairs += [(open_basepairs[open].pop(), index)]
+                break
+
+    basepairs.sort()
+    return basepairs

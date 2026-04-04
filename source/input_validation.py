@@ -89,6 +89,27 @@ def validateHighlighting(args: dict):
                           "is not accepted [nothing, basepairs, region]") 
 
 
+def validateBackgroundhighlighting(args: dict):
+    """
+    Validate the backgroundhighlighting option.
+
+    Args:
+        args: Argument dictionary containing the key 'backgroundhighlighting'.
+
+    Returns:
+        The validated backgroundhighlighting value.
+
+    Raises:
+        ValueError: If the backgroundhighlighting value is not accepted.
+    """
+
+    input_backgroundhighlighting = args["backgroundhighlighting"]
+    valid_backgroundhighlighting = ["nothing", "basepairs", "region"]
+    if input_backgroundhighlighting in valid_backgroundhighlighting:
+        return input_backgroundhighlighting
+    raise ValueError(f"The given backgroundhighlighting input ({input_backgroundhighlighting}) " +
+                          "is not accepted [nothing, basepairs, region]") 
+
 def formatStructure(validated: dict) -> tuple[str, str, str]:
     """
     Format the structure for further processing.

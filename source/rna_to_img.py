@@ -19,10 +19,11 @@ from input_validation import (validateStructureInput,
                               getMolecules,
                               validateHighlighting,
                               validateLabelInterval,
-                              validateSubsequenceInput)
+                              validateSubsequenceInput,
+                              validateBackgroundhighlighting)
 
 from modifications import (changeBackgroundColor,
-                           highlightingRegions,
+                           highlightingRegion,
                            highlightingBasepairs,
                            visualiseBasepairStength,
                            removeSecondLink,
@@ -32,7 +33,9 @@ from modifications import (changeBackgroundColor,
                            updateLinkTooltips,
                            setLabelsId,
                            updateNodeToolTips,
-                           setIndexLabels
+                           setIndexLabels,
+                           backgroundhighlightingBasepairs,
+                           backgroundhighlightingRegion
                            )
 # -----------------------------------------------------------------
 project_dir = Path(__file__).resolve().parent.parent.absolute()
@@ -89,7 +92,8 @@ def setupLogging(v: dict):
 def run(v):
     with sync_playwright() as p:
         for var in ["molecules", "coloring", "highlighting", 
-                    "output_name", "output_type", "sequence"]:
+                    "output_name", "output_type", "sequence",
+                    "backgroundhighlighting"]:
             assert var in v
 
         file_name, file_type = v["output_name"], v["output_type"]
@@ -105,6 +109,8 @@ def run(v):
 
         seq = v["sequence"]
 
+        backgroundhighlighting = v["backgroundhighlighting"]
+
         
 
 
@@ -117,14 +123,19 @@ def run(v):
         # use fornac to generate structure
         buildMolecules(page, v)
 
-        # remove dummy nodes that make up the seperating space
-        # between the 2 molecules
+    
+        # -------------------------------------------------------------
+        # preparing the svg for modification:
+        # set Id for Links and labels for direct access
         setLinksId(page)
         setLabelsId(page)
+        # remove dummy nodes that make up the seperating space
+        # between the 2 molecules
         removeDummyNodes(page, seq)
-
-        updateLinkTooltips(page, v)
-
+        # remove the second layer of intermolecular links
+        # now: only links from node1 to node2 where node1 < node2
+        if molecules == "2":
+            removeSecondLink(page)
 
 
         # -----------------------------------------------------
@@ -134,27 +145,34 @@ def run(v):
             changeBackgroundColor(page, v)
 
         # -----------------------------------------------------
+        # displaying the correct Numbers:
+
         # changing the tooltip number of each node 
         updateNodeToolTips(page, v)
+        # changing the tooltip for each link
+        updateLinkTooltips(page, v)
         # and set the correct index labels
         setIndexLabels(page, v)
 
-
-
-        # ----------------------------------------
-        # clean up the svg: remove the second layer of intermolecular links
-        # now: only links from node1 to node2 where node1 < node2
-        if molecules == "2":
-            removeSecondLink(page)
-
         # -----------------------------------------------------
-        # changing the higlighting of different molecules in a intermolecular setting
+        # changing the higlighting of nodes to show
+        # intermolecular setting
         # only works when 2 molecules given
         if molecules == "2":
             if highlighting == "region":
-                highlightingRegions(page, v)
+                highlightingRegion(page, v)
             if highlighting == "basepairs":
                 highlightingBasepairs(page, v)
+        
+        # -----------------------------------------------------
+        # changing the backgroundhighlighting of nodes to show
+        # intermolecular setting
+        # only works when 2 molecules given
+        if molecules == "2":
+            if backgroundhighlighting == "region":
+                backgroundhighlightingRegion(page, v)
+            if backgroundhighlighting == "basepairs":
+                backgroundhighlightingBasepairs(page, v)        
 
         #-----------------------------------------------
         # visualise basepair strenght (G-U )
@@ -303,6 +321,15 @@ if __name__ == '__main__':
 			help='visualise all G-U basepairs with a dashed line [True, False]',
             default='True')    
     parser.add_argument(
+            '-bH',
+			'--backgroundhighlighting',
+			help='what should have a backgroundhighlight? \n' \
+            'nothing: default fornac, no special backgroundhighlighting \n' \
+            'basepairs: each intermolecular basepair stacking, gets a red background (default) \n' \
+            'regions: the whole intermolecular region gets a red background, ' \
+            'starting with the first intermolecular basepair and ending with the last,',
+            default='basepairs')
+    parser.add_argument(
             '-v',
 			'--verbose',
 			help='Enable Logging',
@@ -333,6 +360,12 @@ if __name__ == '__main__':
         validated["structure1"], validated["structure2"], validated["structure"] = formatStructure(validated)
         # "sequence1" and "sequence2" are data only as well
         validated["sequence1"], validated["sequence2"], validated["sequence"] = formatSequence(validated)
+        
+        # for covenience: fornac indexed sequences and structure dictiionay
+        only_sequence = validated["sequence"].replace("&", "")
+        validated["sequence_dict"] = {str(index): char for index, char in enumerate(only_sequence, 1)}
+        only_structure = validated["structure"].replace("&", "")
+        validated["structure_dict"] = {str(index): char for index, char in enumerate(only_structure, 1)}
 
         validated["output_name"], validated["output_type"] = validateOutput(args)
 
@@ -341,6 +374,8 @@ if __name__ == '__main__':
         validated["molecules"] = getMolecules(validated)
 
         validated["highlighting"] = validateHighlighting(args)
+    
+        validated["backgroundhighlighting"] = validateBackgroundhighlighting(args)
 
         validated["labelInterval"] = validateLabelInterval(args)
 
