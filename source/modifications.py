@@ -165,16 +165,17 @@ def setIndexLabels(page, v):
     # start and end of first basepairs
     # every 10th index
 
-    # numbering: dict of actual indicies {1:-5, 2:-4, 3:-3, 4:-2, ...} 
-    # indexing : list of indicies and 0  {1:-5, 2:0,  3:0,  4:-2, ...}
+    # index_dict: dict of actual indicies {1:-5, 2:-4, 3:-3, 4:-2, ...} 
+    # index_labels : dict of indicies and 0  {1:-5, 2:0,  3:0,  4:-2, ...}
     # pos: position of the label
 
     # ----------------- prio 1 -------------------------------
     # show marker: [at the beginning of the first sequence,
     #                at the end of the first sequence,
     #                at the beginning of the second sequence,
-    #                at the end of the fsecond sequence]
+    #                at the end of the second sequence]
     for pos in [1  , length1, length1+GAP+1, length_total]:
+        if pos not in index_dict: break
         _, number = index_dict[pos]
         index_labels[pos] = validateLabelPos(pos, index_labels, number)
 
@@ -499,7 +500,7 @@ def listIntermolNodes(struc, shift=0):
     Return sorted indices of intermolecular basepairs in dot-bracket notation.
 
     Analyzes a secondary structure string (dot-bracket notation, no pseudoknots)
-    and returns a sorted list of 0-based indices that belong to intermolecular
+    and returns a sorted list of 1-based indices that belong to intermolecular
     basepairs. Opening/closing parentheses "()" and angle brackets "<>" are
     handled independently: unmatched opens at the end or unmatched closes are
     considered intermolecular.
@@ -736,6 +737,27 @@ def backgroundhighlightingBasepairs(page, v):
             stack += [(open, close)]
             continue
         # if not, make new stack and safe the old one
+        area = sorted([x for t in stack for x in t])
+        highlightbackground += [area + [area[0]]]
+        stack = [(open, close)]
+
+    area = sorted([x for t in stack for x in t])
+    highlightbackground += [area + [area[0]]]
+    
+    for stack in highlightbackground:
+        polyline(page, stack, "fill:red;opacity:0.2;stroke:red;stroke-width:7")
+
+
+def backgroundhighlightingBasepairs2(page, v):
+    intermol_pairs = listIntermolPairs(v)
+    stack = [(0,0)]
+    highlightbackground = []
+    for open, close in intermol_pairs:
+        # check if stack, add on stack
+        if (open-1, close+1) == stack[-1]:
+            stack += [(open, close)]
+            continue
+        # if not, make new stack and safe the old one
         highlightbackground += [sorted([x for t in stack for x in t])]
         stack = [(open, close)]
 
@@ -743,6 +765,7 @@ def backgroundhighlightingBasepairs(page, v):
     
     for stack in highlightbackground:
         polyline(page, stack, "fill:red;opacity:0.2;")
+
 
 def backgroundhighlightingRegion(page, v):
     """
@@ -759,8 +782,11 @@ def backgroundhighlightingRegion(page, v):
     intermol_nodes = []
     for (start, end) in basepair_region:
         intermol_nodes += [i for i in range(start, end + 1, 1)]
+        # add the start again to complete the ployline
+        intermol_nodes += [start]
 
-    polyline(page, intermol_nodes, "fill:red;opacity:0.2;")
+
+    polyline(page, intermol_nodes, "fill:red;opacity:0.2")
 
 
 

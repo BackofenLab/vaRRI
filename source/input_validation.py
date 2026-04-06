@@ -1,5 +1,6 @@
 import re
 import logging
+from modifications import listIntermolNodes
 
 def checkStructureInputSimple(structure: str) -> None:
     """
@@ -131,11 +132,14 @@ def formatStructure(validated: dict) -> tuple[str, str, str]:
     # basic formating
     first_struc, second_struc = split(structure)
 
+    structure_dict = {str(index): char for index, char in enumerate(structure, 1)}
+
     # fix fornac Error: incorrectly cutting of the first 2 nodes in the second sequence
     # HACK gegebenenfalls fixen wenn fornac updated
     structure = structure.replace("&", "&...")
-#    structure = structure.replace("&", "&..")
-    return first_struc, second_struc, structure
+
+    return {"structure1": first_struc, "structure2": second_struc, 
+            "structure": structure, "structure_dict": structure_dict}
 
 def formatSequence(validated: dict) -> tuple[str, str, str]:
     """
@@ -158,11 +162,13 @@ def formatSequence(validated: dict) -> tuple[str, str, str]:
     # basic formating
     first_seq, second_seq = split(sequence)
 
+    sequence_dict = {str(index): char for index, char in enumerate(sequence, 1)}
+
     # fix fornac Error: incorrectly cutting of the first 2 nodes in the second sequence
     # HACK gegebenenfalls fixen wenn fornac updated
-#    sequence = sequence.replace("&", "&..")
     sequence = sequence.replace("&", "&...")
-    return first_seq, second_seq, sequence
+    return {"sequence1": first_seq, "sequence2": second_seq, 
+            "sequence" :sequence, "sequence_dict": sequence_dict}
 
 def getMolecules(validated: dict) -> str:
     """
@@ -497,4 +503,132 @@ def validateSubsequenceInput(args: dict, v: dict, seq: str) -> tuple:
         return validated_subsequences
     
     raise ValueError(f"The given {name} input is invalid: {input_string}")
+
+def validateCropping(args, mol):
+    crop = args[f"crop{mol}"]
+    if crop is None: return None
+    if re.fullmatch("\d+", crop):
+        return int(crop)
+    return ValueError    
+
+
+def croppingInput(v, args):
+    for var in ["molecules", "structure1", "structure2", "sequence1", "sequence2",
+              "crop1", "crop2", "offset1", "offset2", 
+              "highlightSubseq1", "highlightSubseq2"]:
+        assert var in v
+
+    # only makes sense in an intermolecular setting
+    if v["molecules"] == 2:
+        return v
+    
+    # all variables that may change
+    structure ={1: v["structure1"], 2: v["structure2"]}
+    sequence ={1: v["sequence1"], 2: v["sequence2"]}
+    crop = {1: v["crop1"], 2: v["crop2"]}
+    startIndex = {1: v["offset1"], 2: v["offset2"]}
+    endIndex = {1: 0, 2: 0}
+    subsequence = {1: v["highlightSubseq1"], 2: v["highlightSubseq2"]}
+
+    # if no cropping is needed, return without changing anything
+    if crop[1] is None and crop[2] is None:
+        return {}
+
+    # get the intermolecular region indicies
+    region = []
+    for mol, struc in structure.items():
+        intermol = [i for i,_ in listIntermolNodes(struc)]
+        if intermol:
+            # if there are intermolecular basepairs
+            region += [(intermol[0], intermol[-1])]
+        else:
+            # if not, let it skip
+            region+= [(0,0)]
+            crop[mol] = None
+
+    # ---------------------------------------------------------------
+    # NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+    # remove ->|<-crop--|intermol-region|--crop->|<- remove
+    # iterate through the 2 molecules
+    for mol, (start, end) in enumerate(region, 1):
+        # if no copping set, change nothing for this molecule 
+        if crop[mol] is None:
+            continue
+        print(start)
+        print(structure[mol])
+    
+        # after cropping, the new submolecule is between start_crop and end_crop
+        start_crop = start - crop[mol] if start - crop[mol] > 1 else 1
+        end_crop = end + crop[mol] if end + crop[mol] < len(structure[mol]) else len(structure[mol])
+        structure[mol]= structure[mol][start_crop-1:end_crop]
+        sequence[mol]= sequence[mol][start_crop-1:end_crop]
+        print(start_crop)
+        print(structure[mol])
+        # start Index 3 : . . . . :(6) . . | | |startcrop
+        # start Index -1 : . . . . :(6) . . | | |startcrop
+        if startIndex[mol] < 0 and startIndex[mol] + start_crop - 1 >= 0:
+            startIndex[mol] += start_crop 
+        else:
+            startIndex[mol] += start_crop - 1
+        endIndex[mol] = startIndex[mol] + len(structure[mol])
+        subsequence[mol] = []
+        for (start_sub, end_sub) in v[f"highlightSubseq{mol}"]:
+            if start_sub > endIndex[mol]: continue
+            if end_sub < startIndex[mol]: continue            
+            new_start_sub = start_sub if startIndex[mol] < start_sub else startIndex[mol]
+            new_end_sub = end_sub if endIndex[mol] > end_sub else endIndex[mol]
+            subsequence[mol] += [(new_start_sub, new_end_sub)]
+
+
+    args["startIndex1"] = str(startIndex[1])
+    args["startIndex2"] = str(startIndex[2])
+    args["sequence"] = "".join(sequence[1]) + "&" + "".join(sequence[2])
+    args["structure"] = "".join(structure[1]) + "&" + "".join(structure[2]) 
+    args["highlightSubseq1"] = ",".join([f"{s}:{e}" for (s,e) in subsequence[1]]) 
+    args["highlightSubseq2"] = ",".join([f"{s}:{e}" for (s,e) in subsequence[2]])
+
+    return validate(args)
+
+
+
+def validate(args):
+    validated = {}
+
+    validated["offset1"] = validateOffset(args, "startIndex1")
+    validated["offset2"] = validateOffset(args, "startIndex2")
+    validated["sequence"] = validateSequenceInput(args)
+    validated["structure"] = validateStructureInput(args, validated)
+
+    # if an interaction between 2 Molecules is given, fornac does not display 
+    # the first 2 nucelotides of the second molecule. 
+    # in the variables "structure" and "sequence" a fix has been added
+
+    # but "structure1" and "structure2" are data only and do not have the fix
+    # update: {"structure1", "structure2", "structure", "structure_dict"}
+    validated.update(formatStructure(validated))
+    # "sequence1" and "sequence2" are data only as well
+    # update: {"sequence1", "sequence2", "sequence", "sequence_dict"}
+    validated.update(formatSequence(validated))        
+
+    validated["output_name"], validated["output_type"] = validateOutput(args)
+
+    validated["coloring"] = validateColoring(args)
+
+    validated["molecules"] = getMolecules(validated)
+
+    validated["highlighting"] = validateHighlighting(args)
+
+    validated["backgroundhighlighting"] = validateBackgroundhighlighting(args)
+
+    validated["labelInterval"] = validateLabelInterval(args)
+
+    for i in ("1","2"):
+        validated[f"highlightSubseq{i}"] = validateSubsequenceInput(args, validated, i)
+        validated[f"crop{i}"] = validateCropping(args, i)
+    return validated
+
+
+
+
+
 

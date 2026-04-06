@@ -20,7 +20,10 @@ from input_validation import (validateStructureInput,
                               validateHighlighting,
                               validateLabelInterval,
                               validateSubsequenceInput,
-                              validateBackgroundhighlighting)
+                              validateBackgroundhighlighting,
+                              croppingInput,
+                              validateCropping,
+                              validate)
 
 from modifications import (changeBackgroundColor,
                            highlightingRegion,
@@ -35,7 +38,8 @@ from modifications import (changeBackgroundColor,
                            updateNodeToolTips,
                            setIndexLabels,
                            backgroundhighlightingBasepairs,
-                           backgroundhighlightingRegion
+                           backgroundhighlightingRegion,
+                           backgroundhighlightingBasepairs2
                            )
 # -----------------------------------------------------------------
 project_dir = Path(__file__).resolve().parent.parent.absolute()
@@ -172,7 +176,8 @@ def run(v):
             if backgroundhighlighting == "region":
                 backgroundhighlightingRegion(page, v)
             if backgroundhighlighting == "basepairs":
-                backgroundhighlightingBasepairs(page, v)        
+                backgroundhighlightingBasepairs2(page, v)
+                # backgroundhighlightingBasepairs2(page, v)     
 
         #-----------------------------------------------
         # visualise basepair strenght (G-U )
@@ -297,16 +302,16 @@ if __name__ == '__main__':
 			help='set the Intervall in which a label shows the index, default: 10',
             default='10')
     parser.add_argument(
-			'--cropHead',
-			help='crop both molecules on one side: ' \
+			'--crop1',
+			help='crop firts molecules on both sides: ' \
                 'visualising nt nodes ' \
-                'before the start of the intermolecular Region  ',
+                'before the start and after the end of the intermolecular Region  ',
             default='None')   
     parser.add_argument(
-			'--cropFood',
-			help='crop both molecules on one side: ' \
+			'--crop2',
+			help='crop second molecules on both sides: ' \
                 'visualising nt nodes ' \
-                'after the end of the intermolecular Region  ',
+                'before the start and after the end of the intermolecular Region  ',
             default='None')
     parser.add_argument(
 			'--highlightSubseq1',
@@ -347,41 +352,12 @@ if __name__ == '__main__':
         validated["logging"] = args["verbose"]
         setupLogging(validated)
 
-        validated["offset1"] = validateOffset(args, "startIndex1")
-        validated["offset2"] = validateOffset(args, "startIndex2")
-        validated["sequence"] = validateSequenceInput(args)
-        validated["structure"] = validateStructureInput(args, validated)
+        validated.update(validate(args))
 
-        # if an interaction between 2 Molecules is given, fornac does not display 
-        # the first 2 nucelotides of the second molecule. 
-        # in the variables "structure" and "sequence" a fix has been added
 
-        # but "structure1" and "structure2" are data only and do not have the fix
-        validated["structure1"], validated["structure2"], validated["structure"] = formatStructure(validated)
-        # "sequence1" and "sequence2" are data only as well
-        validated["sequence1"], validated["sequence2"], validated["sequence"] = formatSequence(validated)
+        validated.update(croppingInput(validated, args))
+
         
-        # for covenience: fornac indexed sequences and structure dictiionay
-        only_sequence = validated["sequence"].replace("&", "")
-        validated["sequence_dict"] = {str(index): char for index, char in enumerate(only_sequence, 1)}
-        only_structure = validated["structure"].replace("&", "")
-        validated["structure_dict"] = {str(index): char for index, char in enumerate(only_structure, 1)}
-
-        validated["output_name"], validated["output_type"] = validateOutput(args)
-
-        validated["coloring"] = validateColoring(args)
-
-        validated["molecules"] = getMolecules(validated)
-
-        validated["highlighting"] = validateHighlighting(args)
-    
-        validated["backgroundhighlighting"] = validateBackgroundhighlighting(args)
-
-        validated["labelInterval"] = validateLabelInterval(args)
-
-        validated["highlightSubseq1"] = validateSubsequenceInput(args, validated, "1")
-
-        validated["highlightSubseq2"] = validateSubsequenceInput(args, validated, "2")
 
         # validate cropping:
         # valdiate: nt 1 und nt2
