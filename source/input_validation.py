@@ -554,29 +554,36 @@ def croppingInput(v, args):
         # if no copping set, change nothing for this molecule 
         if crop[mol] is None:
             continue
-        print(start)
-        print(structure[mol])
+
+        end_structure = len(structure[mol])
+        # start and end based 1 -> based 0
+        start, end = start-1, end-1
     
         # after cropping, the new submolecule is between start_crop and end_crop
-        start_crop = start - crop[mol] if start - crop[mol] > 1 else 1
-        end_crop = end + crop[mol] if end + crop[mol] < len(structure[mol]) else len(structure[mol])
-        structure[mol]= structure[mol][start_crop-1:end_crop]
-        sequence[mol]= sequence[mol][start_crop-1:end_crop]
-        print(start_crop)
-        print(structure[mol])
-        # start Index 3 : . . . . :(6) . . | | |startcrop
-        # start Index -1 : . . . . :(6) . . | | |startcrop
-        if startIndex[mol] < 0 and startIndex[mol] + start_crop - 1 >= 0:
-            startIndex[mol] += start_crop 
-        else:
-            startIndex[mol] += start_crop - 1
+        bigger_than_0 = start - crop[mol] > 0 
+        smaller_than_end = end + crop[mol] < end_structure
+        start_crop = start - crop[mol] if bigger_than_0 else 0 
+        end_crop = end + crop[mol] if smaller_than_end else end_structure
+
+        # crop substring: [start index : end Index + 1]
+        structure[mol]= structure[mol][start_crop:end_crop+1] 
+        sequence[mol]= sequence[mol][start_crop:end_crop+1]
+
+        # start crop is based 0
+        # we dont count with 0
+        crosses_zero = startIndex[mol] < 0 and startIndex[mol] + start_crop >= 0
+        startIndex[mol] += start_crop + 1 if crosses_zero else start_crop
         endIndex[mol] = startIndex[mol] + len(structure[mol])
+
+        # crop the subsequences 
         subsequence[mol] = []
         for (start_sub, end_sub) in v[f"highlightSubseq{mol}"]:
             if start_sub > endIndex[mol]: continue
-            if end_sub < startIndex[mol]: continue            
-            new_start_sub = start_sub if startIndex[mol] < start_sub else startIndex[mol]
-            new_end_sub = end_sub if endIndex[mol] > end_sub else endIndex[mol]
+            if end_sub < startIndex[mol]: continue
+            bigger_than_start = startIndex[mol] < start_sub
+            smaller_than_end = endIndex[mol] > end_sub
+            new_start_sub = start_sub if bigger_than_start else startIndex[mol]
+            new_end_sub = end_sub if smaller_than_end  else endIndex[mol]
             subsequence[mol] += [(new_start_sub, new_end_sub)]
 
 
@@ -588,7 +595,6 @@ def croppingInput(v, args):
     args["highlightSubseq2"] = ",".join([f"{s}:{e}" for (s,e) in subsequence[2]])
 
     return validate(args)
-
 
 
 def validate(args):

@@ -354,15 +354,7 @@ if __name__ == '__main__':
 
         validated.update(validate(args))
 
-
         validated.update(croppingInput(validated, args))
-
-        
-
-        # validate cropping:
-        # valdiate: nt 1 und nt2
-        # validated[""]
-
 
 
     except ValueError as e:
