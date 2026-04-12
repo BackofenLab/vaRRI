@@ -608,7 +608,10 @@ def validate(args):
     validated["offset1"] = validateOffset(args, "startIndex1")
     validated["offset2"] = validateOffset(args, "startIndex2")
 
-    if args["sequence"] == "" and args["structure"] == "":
+    if args["fastafile"] != "None":
+        if args["sequence"] != "" or args["structure"] != "":
+            raise ValueError("Invalid Input Options: Fasta File as well as --structure/--sequence Strings given.\n" \
+            "Either Fasta File, or --structure/--sequence Strings")
         args["sequence"], args["structure"] = validateInputFile(args)
 
     validated["sequence"] = validateSequenceInput(args)
@@ -644,9 +647,9 @@ def validate(args):
 
 
 def validateInputFile(args):
-    inputFile = args["input"]
+    inputFile = args["fastafile"]
 
-    if not inputFile.suffix == ".fasta":
+    if not inputFile.endswith(".fasta"):
         raise ValueError(f"The given Input File is not a .fasta file path: {inputFile}")
     
     if not Path(inputFile).exists():
@@ -678,7 +681,7 @@ def validateInputFile(args):
     except FileNotFoundError:
         logging.error(f"{inputFile} not found")
 
-    raise ValueError(f"The given Input File is invalid: {inputFile}")
+    raise ValueError(f"The given Fasta File is invalid: {inputFile}")
 
 
 

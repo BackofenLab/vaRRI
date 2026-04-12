@@ -322,9 +322,9 @@ if __name__ == '__main__':
             'starting with the first intermolecular basepair and ending with the last,',
             default='basepairs')
     parser.add_argument(
-			'--input',
+			'--fastafile',
 			help='path to FASTA file, containing first: sequence second: structure data',
-            default=example_fasta)    
+            default="None")    
     parser.add_argument(
             '-v',
 			'--verbose',
