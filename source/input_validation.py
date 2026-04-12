@@ -1,6 +1,8 @@
 import re
 import logging
 from modifications import listIntermolNodes
+from pathlib import Path
+
 
 def checkStructureInputSimple(structure: str) -> None:
     """
@@ -132,11 +134,12 @@ def formatStructure(validated: dict) -> tuple[str, str, str]:
     # basic formating
     first_struc, second_struc = split(structure)
 
-    structure_dict = {str(index): char for index, char in enumerate(structure, 1)}
-
     # fix fornac Error: incorrectly cutting of the first 2 nodes in the second sequence
     # HACK gegebenenfalls fixen wenn fornac updated
     structure = structure.replace("&", "&...")
+    bare_structure = structure.replace("&", "")
+
+    structure_dict = {str(index): char for index, char in enumerate(bare_structure, 1)}
 
     return {"structure1": first_struc, "structure2": second_struc, 
             "structure": structure, "structure_dict": structure_dict}
@@ -162,11 +165,12 @@ def formatSequence(validated: dict) -> tuple[str, str, str]:
     # basic formating
     first_seq, second_seq = split(sequence)
 
-    sequence_dict = {str(index): char for index, char in enumerate(sequence, 1)}
-
     # fix fornac Error: incorrectly cutting of the first 2 nodes in the second sequence
     # HACK gegebenenfalls fixen wenn fornac updated
     sequence = sequence.replace("&", "&...")
+    bare_sequence = sequence.replace("&", "")
+    sequence_dict = {str(index): char for index, char in enumerate(bare_sequence, 1)}
+
     return {"sequence1": first_seq, "sequence2": second_seq, 
             "sequence" :sequence, "sequence_dict": sequence_dict}
 
@@ -221,6 +225,8 @@ def validateStructureInput(args: dict, validated: dict):
         # make sure both have the same structure 
         # and both structures are within the sequences bounds
         # depends on valid: sequence, structure and offset input
+
+        # TODO why did this input get accepted? -u="...||||||...&3.|||....|||"
 
         checkHybridInput(structure, sequence, (offset_1, offset_2))
 
@@ -506,7 +512,7 @@ def validateSubsequenceInput(args: dict, v: dict, seq: str) -> tuple:
 
 def validateCropping(args, mol):
     crop = args[f"crop{mol}"]
-    if crop is None: return None
+    if crop == "None": return None
     if re.fullmatch("\d+", crop):
         return int(crop)
     return ValueError    
@@ -558,7 +564,6 @@ def croppingInput(v, args):
         end_structure = len(structure[mol])
         # start and end based 1 -> based 0
         start, end = start-1, end-1
-    
         # after cropping, the new submolecule is between start_crop and end_crop
         bigger_than_0 = start - crop[mol] > 0 
         smaller_than_end = end + crop[mol] < end_structure
@@ -602,6 +607,10 @@ def validate(args):
 
     validated["offset1"] = validateOffset(args, "startIndex1")
     validated["offset2"] = validateOffset(args, "startIndex2")
+
+    if args["sequence"] == "" and args["structure"] == "":
+        args["sequence"], args["structure"] = validateInputFile(args)
+
     validated["sequence"] = validateSequenceInput(args)
     validated["structure"] = validateStructureInput(args, validated)
 
@@ -632,6 +641,45 @@ def validate(args):
         validated[f"highlightSubseq{i}"] = validateSubsequenceInput(args, validated, i)
         validated[f"crop{i}"] = validateCropping(args, i)
     return validated
+
+
+def validateInputFile(args):
+    inputFile = args["input"]
+
+    if not inputFile.suffix == ".fasta":
+        raise ValueError(f"The given Input File is not a .fasta file path: {inputFile}")
+    
+    if not Path(inputFile).exists():
+        raise ValueError(f"The given Input File could not be found: {inputFile}")
+
+
+    try:
+        with open(inputFile, "r") as f:
+            return_tuple = []
+            # input Fasta File
+            fasta_input = f.read()
+            if not re.fullmatch("^>[^>]+\n(?:[^>].+\n?)*", fasta_input):
+                raise ValueError(f"the given fasta File data has not a valid fasta format")
+
+            # each input should hav its owhn fasta entry            
+            for fasta_string in re.findall("^>[^>]+\n(?:[^>].+\n?)*", fasta_input, re.MULTILINE):
+                # the first line is the name, afterwards data
+                for string in re.findall("(?:\n.+)+", fasta_string):
+                    string = string.replace("\n", "")
+                    return_tuple += [string]
+                    break
+            
+            
+            if len(return_tuple) != 2:
+                raise ValueError(f"The Fasta File input needs to have 2 entries:\n \
+                first entry: sequence, second entry: structure\n \
+                instead got {len(return_tuple)} entries")
+            return return_tuple
+    except FileNotFoundError:
+        logging.error(f"{inputFile} not found")
+
+    raise ValueError(f"The given Input File is invalid: {inputFile}")
+
 
 
 

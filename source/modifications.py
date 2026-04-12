@@ -672,7 +672,6 @@ def visualiseBasepairStength(page, v):
     """
     assert "sequence_dict" in v
     sequence_dict = v["sequence_dict"]
-
     page.evaluate("""(sequence_dict) => {
         document.querySelectorAll('[link_type="basepair"]').forEach((link) => {
             l1 = sequence_dict[link.getAttribute("start")];
@@ -746,25 +745,6 @@ def backgroundhighlightingBasepairs(page, v):
     
     for stack in highlightbackground:
         polyline(page, stack, "fill:red;opacity:0.2;stroke:red;stroke-width:7")
-
-
-def backgroundhighlightingBasepairs2(page, v):
-    intermol_pairs = listIntermolPairs(v)
-    stack = [(0,0)]
-    highlightbackground = []
-    for open, close in intermol_pairs:
-        # check if stack, add on stack
-        if (open-1, close+1) == stack[-1]:
-            stack += [(open, close)]
-            continue
-        # if not, make new stack and safe the old one
-        highlightbackground += [sorted([x for t in stack for x in t])]
-        stack = [(open, close)]
-
-    highlightbackground += [sorted([x for t in stack for x in t])]
-    
-    for stack in highlightbackground:
-        polyline(page, stack, "fill:red;opacity:0.2;")
 
 
 def backgroundhighlightingRegion(page, v):

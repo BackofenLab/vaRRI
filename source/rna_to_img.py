@@ -9,19 +9,7 @@ import sys
 import logging
 
 # import input validation functions:
-from input_validation import (validateStructureInput, 
-                              validateSequenceInput, 
-                              validateOffset, 
-                              validateOutput, 
-                              validateColoring, 
-                              formatStructure,
-                              formatSequence,
-                              getMolecules,
-                              validateHighlighting,
-                              validateLabelInterval,
-                              validateSubsequenceInput,
-                              validateBackgroundhighlighting,
-                              croppingInput,
+from input_validation import (croppingInput,
                               validateCropping,
                               validate)
 
@@ -39,7 +27,6 @@ from modifications import (changeBackgroundColor,
                            setIndexLabels,
                            backgroundhighlightingBasepairs,
                            backgroundhighlightingRegion,
-                           backgroundhighlightingBasepairs2
                            )
 # -----------------------------------------------------------------
 project_dir = Path(__file__).resolve().parent.parent.absolute()
@@ -47,6 +34,7 @@ working_dir = Path(os.getcwd())
 # get the path to fornac.css and template_barebone.html
 fornac_css = project_dir / "fornac" / "fornac.css"
 template_barebone_html = project_dir / "example_html" / "template_barebone.html"
+example_fasta = project_dir / "test" / "example.fasta"
 # set the path and create the name of the new file without the file type
 path_rna_timestamp = working_dir / ("rna_" + str(time.time()))
 
@@ -176,8 +164,7 @@ def run(v):
             if backgroundhighlighting == "region":
                 backgroundhighlightingRegion(page, v)
             if backgroundhighlighting == "basepairs":
-                backgroundhighlightingBasepairs2(page, v)
-                # backgroundhighlightingBasepairs2(page, v)     
+                backgroundhighlightingBasepairs(page, v)
 
         #-----------------------------------------------
         # visualise basepair strenght (G-U )
@@ -334,6 +321,10 @@ if __name__ == '__main__':
             'regions: the whole intermolecular region gets a red background, ' \
             'starting with the first intermolecular basepair and ending with the last,',
             default='basepairs')
+    parser.add_argument(
+			'--input',
+			help='path to FASTA file, containing first: sequence second: structure data',
+            default=example_fasta)    
     parser.add_argument(
             '-v',
 			'--verbose',
