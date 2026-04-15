@@ -711,10 +711,7 @@ def backgroundhighlightingRegion(page, v):
     intermol_nodes = []
     for (start, end) in basepair_region:
         intermol_nodes += [i for i in range(start, end + 1, 1)]
-        # add the start again to complete the ployline
-        intermol_nodes += [start]
-
-
+    
     polyline(page, intermol_nodes, "fill:red;opacity:0.2")
 
 

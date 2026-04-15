@@ -36,7 +36,7 @@ def checkStructureInputSimple(structure: str) -> None:
             raise ValueError("The number of brackets dont line up: Too many closing > brackets")
 
     if smooth_basepairs > 0:
-        raise ValueError("The number of brackets dont line up: Too many opening ) brackets")
+        raise ValueError("The number of brackets dont line up: Too many opening ( brackets")
     if edgy_basepairs > 0:
         raise ValueError("The number of brackets dont line up: Too many opening > brackets")
 
@@ -469,18 +469,18 @@ def validateSubsequenceInput(args: dict, v: dict, seq: str) -> tuple:
         for subsequence in input_string.split(","):
             start, end = [int(i) for i in subsequence.split(":")]
             if 0 in [start, end]:
-                raise ValueError(f"The given {name} input has an invalid subsequene: " +
+                raise ValueError(f"The given {name} input has an invalid subsequence: " +
                                 f"Allowed indicies i are [i<-1, 1<i]. Instead got {subsequence}")
             if start > end:
-                raise ValueError(f"The given {name} input has an invalid subsequene: " +
+                raise ValueError(f"The given {name} input has an invalid subsequence: " +
                                 f"Allowed start:end must follow rule [start<end], instead got: {subsequence}")
             if startIndex > start:
-                raise ValueError(f"The given {name} input has an invalid subsequene: " +
-                                f"startIndex of Molecule{seq} ({startIndex}) must me " +
+                raise ValueError(f"The given {name} input has an invalid subsequence: " +
+                                f"startIndex of Molecule{seq} ({startIndex}) must be " +
                                 f"smaller than start of subsequence ({start})")
             if endIndex < end:
-                raise ValueError(f"The given {name} input has an invalid subsequene: " +
-                                f"endIndex of Molecule{seq} ({endIndex}) must me " + 
+                raise ValueError(f"The given {name} input has an invalid subsequence: " +
+                                f"endIndex of Molecule{seq} ({endIndex}) must be " + 
                                 f"bigger than end of subsequence ({end})")
             validated_subsequences += [(start, end)]
         return validated_subsequences
@@ -575,6 +575,8 @@ def croppingInput(v, args):
     args["structure"] = "".join(structure[1]) + "&" + "".join(structure[2]) 
     args["highlightSubseq1"] = ",".join([f"{s}:{e}" for (s,e) in subsequence[1]]) 
     args["highlightSubseq2"] = ",".join([f"{s}:{e}" for (s,e) in subsequence[2]])
+    args["fastafile"] = "None"
+    args["structurePrediction"] = "False"
 
     return validate(args)
 
@@ -808,7 +810,7 @@ def predict2MolStructure(v):
             continue
         predicted_structure += "."
 
-    return predicted_structure        
+    return predicted_structure    
 
 
 
@@ -824,7 +826,7 @@ def getUnpairedRegions(intra_structure):
 
             end = i
             if start != end:
-                regions += [f"{start}-{end}"]
+                regions += [f"{start}-{end-1}"]
             start = i+1
 
     # add the last region if there is one
