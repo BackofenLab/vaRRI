@@ -761,6 +761,7 @@ def showAccessibility(v, path, page):
     sequence2 = v["sequence2"]
     offset1= 0
     offset2 = len(sequence1) + GAP
+    RNAfold_parameters = v["RNAfold"]
 
     struc = v["structure_dict"]
 
@@ -768,8 +769,10 @@ def showAccessibility(v, path, page):
     probabillity = {i: 0 for i, _  in struc.items()}
 
 
+
+
     for sequence, offset in [(sequence1, offset1), (sequence2, offset2)]:
-        new_probabillity = calculateProbabilities(sequence, offset, path)
+        new_probabillity = calculateProbabilities(sequence, offset, path, RNAfold_parameters)
         probabillity.update(new_probabillity)
     
     
@@ -777,8 +780,9 @@ def showAccessibility(v, path, page):
         style = f"opacity: {1 - probabillity / 2}"
         addStyleToNodes(page, [index], style)
 
-def calculateProbabilities(sequence, offset, path):
-    runCommand(f"echo {sequence} | RNAfold -p --noPS", "(.)")
+def calculateProbabilities(sequence, offset, path, RNAfold_parameters):
+
+    runCommand(f"echo {sequence} | RNAfold -p --noPS {RNAfold_parameters}", "(.)")
 
     probabillity = {}
 

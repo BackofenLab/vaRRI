@@ -771,10 +771,13 @@ def predict1MolStructure(v):
 
 
 def predict2MolStructure(v):
-    RNAfoldcall = "echo SEQ | RNAfold --noPS"
+    RNAfold_parameter = v["RNAfold"]
+    IntaRNA_parameter = v["IntaRNA"]
+
+    RNAfoldcall = "echo SEQ | RNAfold --noPS " + RNAfold_parameter
     IntaRNAcall = "IntaRNA --target=TARGET --query=QUERY " \
                     "--tRegion=TREGION --qRegion=QREGION" \
-                    " --outMode=C --outCsvCols=hybridDPfull"
+                    " --outMode=C --outCsvCols=hybridDPfull " + IntaRNA_parameter
 
     # prepare and make intramolecular prediction using RNAfold
     sequences = {1: v["sequence1"], 2: v["sequence2"]}
