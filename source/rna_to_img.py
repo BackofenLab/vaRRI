@@ -100,10 +100,12 @@ def run(v):
         # option [(int,int)]
         subsequence1 =  v["highlightSubseq1"]
         subsequence2 =  v["highlightSubseq2"]
-
+        # seq1&...seq2
         seq = v["sequence"]
-
+        # options [nothing, pairs, region]
         backgroundhighlighting = v["backgroundhighlighting"]
+        # options [True, False]
+        showAccessibilityBool = v["showAccessibility"]
 
         
 
@@ -179,9 +181,9 @@ def run(v):
         if molecules == "2" and subsequence2 is not None:
             highlightSubsequence(page, v, "2")
 
-
+        #------------------------------------------------
         # show accessibility of Nucleotides  
-        if molecules == "2":
+        if molecules == "2" and showAccessibilityBool == "True":
             showAccessibility(v, dot_ps, page)
 
         #  extracting the built svg file
@@ -296,7 +298,7 @@ if __name__ == '__main__':
             default='10')
     parser.add_argument(
 			'--crop1',
-			help='crop firts molecules on both sides: ' \
+			help='crop first molecules on both sides: ' \
                 'visualising nt nodes ' \
                 'before the start and after the end of the intermolecular Region  ',
             default='None')   
@@ -334,7 +336,25 @@ if __name__ == '__main__':
     parser.add_argument(
 			'--structurePrediction',
 			help='enable structure prediction if only a sequence is given. Either True or False. Default False',
-            default="False")    
+            default="False")
+    parser.add_argument(
+			'--showAccessibility',
+			help='Changes Node opacity according an Accessibility prediction. Either True or False. Default False',
+            default="False")
+    parser.add_argument(
+			'--RNAfold',
+			help='add parameters to RNAfold call. Default ""\n' \
+            'example RNAfold call:\n' \
+            'RNAfold --noPS --noDP',
+            default="")
+    parser.add_argument(
+			'--IntaRNA',
+			help='add parameters to IntaRNA call. Default ""\n' \
+            'IntaRNA call:\n' \
+            'IntaRNA --target=TARGET --query=QUERY " \
+                    "--tRegion=TREGION --qRegion=QREGION" \
+                    " --outMode=C --outCsvCols=hybridDPfull"',
+            default="")    
     parser.add_argument(
             '-v',
 			'--verbose',

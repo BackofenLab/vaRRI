@@ -645,6 +645,13 @@ def validate(args):
 
     validated["labelInterval"] = validateLabelInterval(args)
 
+    validated["showAccessibility"] = validateShowAccessibilityInput(args)
+
+    # no validation possible
+    validated["RNAfold"] = args["RNAfold"]
+
+    validated["IntaRNA"] = args["IntaRNA"]
+
     for i in ("1","2"):
         validated[f"highlightSubseq{i}"] = validateSubsequenceInput(args, validated, i)
         validated[f"crop{i}"] = validateCropping(args, i)
@@ -680,6 +687,12 @@ def validateStructurePredictionInput(args):
     raise ValueError("The given structurePrediction Input is invalid, " \
     f'only True or False allowed. Instead received: {args["structurePrediction"]}')
 
+def validateShowAccessibilityInput(args):
+    assert "showAccessibility" in args
+    if args["showAccessibility"] in ["True", "False"]:
+        return args["showAccessibility"]
+    raise ValueError("The given showAccessibility Input is invalid, " \
+    f'only True or False allowed. Instead received: {args["showAccessibility"]}')
 
 def predictStructure(args, v):
 
@@ -752,7 +765,7 @@ def predict1MolStructure(v):
 
 
 def predict2MolStructure(v):
-    RNAfoldcall = "echo SEQ | RNAfold"
+    RNAfoldcall = "echo SEQ | RNAfold --noPS"
     IntaRNAcall = "IntaRNA --target=TARGET --query=QUERY " \
                     "--tRegion=TREGION --qRegion=QREGION" \
                     " --outMode=C --outCsvCols=hybridDPfull"
