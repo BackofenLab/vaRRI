@@ -1,8 +1,7 @@
 import re
 import logging
-from modifications import listIntermolNodes
+from utils import (listIntermolNodes, runCommand)
 from pathlib import Path
-
 
 def checkStructureInputSimple(structure: str) -> None:
     """
@@ -178,7 +177,7 @@ def getMolecules(validated: dict) -> str:
     """
     Determine the number of molecules.
 
-    Checks whether a second sequence or structure is present.
+    Checks whether a second sequence is present.
 
     Args:
         validated: Validated input dictionary.
@@ -186,12 +185,9 @@ def getMolecules(validated: dict) -> str:
     Returns:
         "1" if one molecule is present, otherwise "2".
     """
-    for var in ["sequence2", "structure2"]:
-        assert var in validated
-    # returns how many molecules given. either one or two
-    if validated["sequence2"] != "" or validated["structure2"] != "":
-        assert validated["sequence2"] != ""
-        assert validated["structure2"] != ""
+    assert "sequence2" in validated
+    # returns how many molecules given. either 1 or 2
+    if validated["sequence2"] != "":
         return "2"
     return "1"
 
@@ -213,30 +209,11 @@ def validateStructureInput(args: dict, validated: dict):
         ValueError: If the structure is invalid or inconsistent with
             the sequence.
     """
-    for var in ["sequence", "offset1", "offset2"]:
+    for var in ["sequence1", "sequence2", "offset1", "offset2"]:
         assert var in validated
     structure = args["structure"]
-    sequence = validated["sequence"]
-    offset_1 = validated["offset1"]
-    offset_2 = validated["offset2"]
-    
-    if re.fullmatch("(-?\d+[|\.]+)&(-?\d+[|\.]+)", structure):
-        # identifyed hybrid input, only works if there are 2 sequences
-        # make sure both have the same structure 
-        # and both structures are within the sequences bounds
-        # depends on valid: sequence, structure and offset input
+    sequence = args["sequence"]
 
-        # TODO why did this input get accepted? -u="...||||||...&3.|||....|||"
-
-        checkHybridInput(structure, sequence, (offset_1, offset_2))
-
-        # transform hybrid input to valid stracture input
-        structure = transformHybridDB(structure, sequence, (offset_1, offset_2))
-
-    if not sameLength((structure, sequence)):
-        # if the sequence and the structure do not have the same length
-        # raise Error
-        raise ValueError(f"Structure length ({len(structure)}) and Sequence length ({len(sequence)}) do not match")
     
     if "&" in structure:
         # make sure that for both molecules, structure and sequence have the same length
@@ -608,31 +585,59 @@ def validate(args):
     validated["offset1"] = validateOffset(args, "startIndex1")
     validated["offset2"] = validateOffset(args, "startIndex2")
 
+    # --------------------------------------------------------------
+    # sequence and structure input
     if args["fastafile"] != "None":
-        if args["sequence"] != "" or args["structure"] != "":
-            raise ValueError("Invalid Input Options: Fasta File as well as --structure/--sequence Strings given.\n" \
-            "Either Fasta File, or --structure/--sequence Strings")
-        args["sequence"], args["structure"] = validateInputFile(args)
+        for key, string in validateInputFile(args).items():
+            if args[key] != "":
+                raise ValueError("Invalid combination of Inputs: \n" \
+                f"{key} input either through fasta file or through --{key} String. not both")
+            args[key] = string
 
+
+    # -------------------------------------------------------------
+    # validate and format sequence Input
     validated["sequence"] = validateSequenceInput(args)
+
+    # "sequence1" and "sequence2" are data only
+    # update: {"sequence1", "sequence2", "sequence", "sequence_dict"}
+    validated.update(formatSequence(validated))
+
+    # --------------------------------------------------------------
+    # if enabled, use structure prediction
+    validated["molecules"] = getMolecules(validated)
+    validated["structurePrediction"] = validateStructurePredictionInput(args)
+
+    if validated["structurePrediction"] == "True":
+        args["structure"] = predictStructure(args, validated)
+
+    # -----------------------------------------------------------------
+    # check if hyrbidInput was used, 
+    # transform Hyrbid input into dot-bracket input
+    args["structure"] = checkforHybridInput(args, validated)
+    # structure and sequence wont change anymore. check if they have the same length
+    checkSameLength(args)
+    
+
+    # --------------------------------------------------------------
+    # validate and format structure input
+    # make sure sequence and structure input have the same length
+
     validated["structure"] = validateStructureInput(args, validated)
 
     # if an interaction between 2 Molecules is given, fornac does not display 
     # the first 2 nucelotides of the second molecule. 
     # in the variables "structure" and "sequence" a fix has been added
-
     # but "structure1" and "structure2" are data only and do not have the fix
     # update: {"structure1", "structure2", "structure", "structure_dict"}
     validated.update(formatStructure(validated))
-    # "sequence1" and "sequence2" are data only as well
-    # update: {"sequence1", "sequence2", "sequence", "sequence_dict"}
-    validated.update(formatSequence(validated))        
+
+    # --------------------------------------------------------------
+    # rest
 
     validated["output_name"], validated["output_type"] = validateOutput(args)
 
     validated["coloring"] = validateColoring(args)
-
-    validated["molecules"] = getMolecules(validated)
 
     validated["highlighting"] = validateHighlighting(args)
 
@@ -643,7 +648,59 @@ def validate(args):
     for i in ("1","2"):
         validated[f"highlightSubseq{i}"] = validateSubsequenceInput(args, validated, i)
         validated[f"crop{i}"] = validateCropping(args, i)
+
     return validated
+
+def checkforHybridInput(args, v):
+    offset_1 = v["offset1"]
+    offset_2 = v["offset2"]
+    structure = args["structure"]
+    sequence = args["sequence"]
+    
+    if re.fullmatch("(-?\d+[|\.]+)&(-?\d+[|\.]+)", structure):
+        # identifyed hybrid input, only works if there are 2 sequences
+        # make sure both have the same structure 
+        # and both structures are within the sequences bounds
+        # depends on valid: sequence, structure and offset input
+
+        # TODO why did this input get accepted? -u="...||||||...&3.|||....|||"
+
+        checkHybridInput(structure, sequence, (offset_1, offset_2))
+
+        # transform hybrid input to valid stracture input
+        structure = transformHybridDB(structure, sequence, (offset_1, offset_2))
+    
+    return structure
+
+
+def validateStructurePredictionInput(args):
+    assert "structurePrediction" in args
+    if args["structurePrediction"] in ["True", "False"]:
+        return args["structurePrediction"]
+    raise ValueError("The given structurePrediction Input is invalid, " \
+    f'only True or False allowed. Instead received: {args["structurePrediction"]}')
+
+
+def predictStructure(args, v):
+
+    if args["structure"] != "":
+        raise ValueError("Invalid combination of Inputs: \n" \
+                f"input structure either through parameter, or aktivate structure prediction. not both")
+    if v["molecules"] == "1":
+        return predict1MolStructure(v)
+    if v["molecules"] == "2":
+        return predict2MolStructure(v)
+    return ""
+
+
+def checkSameLength(args):
+    for parameter in ["structure", "sequence"]:
+        assert parameter in args
+    structure, sequence = args["structure"], args["sequence"]
+    if not sameLength((structure, sequence)):
+        # if the sequence and the structure do not have the same length
+        # raise Error
+        raise ValueError(f"Structure length ({len(structure)}) and Sequence length ({len(sequence)}) do not match")
 
 
 def validateInputFile(args):
@@ -658,34 +715,108 @@ def validateInputFile(args):
 
     try:
         with open(inputFile, "r") as f:
-            return_tuple = []
+            valid_names = ["structure", "sequence"]
+            return_dict = {}
             # input Fasta File
             fasta_input = f.read()
             if not re.fullmatch("^>[^>]+\n(?:[^>].+\n?)*", fasta_input):
-                raise ValueError(f"the given fasta File data has not a valid fasta format")
+                raise ValueError(f"the given fasta File data has not a valid fasta format:\n {fasta_input}")
 
             # each input should hav its owhn fasta entry            
             for fasta_string in re.findall("^>[^>]+\n(?:[^>].+\n?)*", fasta_input, re.MULTILINE):
                 # the first line is the name, afterwards data
-                for string in re.findall("(?:\n.+)+", fasta_string):
-                    string = string.replace("\n", "")
-                    return_tuple += [string]
+                input_name = ""
+                for name_string in re.findall("^>.+", fasta_string):
+                    input_name = name_string[1:]
+                    if input_name not in valid_names:
+                        raise ValueError("The given Fasta Input needs an identifyable name.\n"\
+                        "structure / sequence allowed")
+                    break
+                for data_string in re.findall("(?:\n.+)+", fasta_string):
+                    data_string = data_string.replace("\n", "")
+                    return_dict[input_name] = data_string
                     break
             
-            
-            if len(return_tuple) != 2:
-                raise ValueError(f"The Fasta File input needs to have 2 entries:\n \
-                first entry: sequence, second entry: structure\n \
-                instead got {len(return_tuple)} entries")
-            return return_tuple
+        
+            return return_dict
     except FileNotFoundError:
         logging.error(f"{inputFile} not found")
 
     raise ValueError(f"The given Fasta File is invalid: {inputFile}")
 
 
+def predict1MolStructure(v):
+    assert "sequence1" in v
+    seq = v["sequence1"]
+    return runCommand(f"echo {seq} | RNAfold", "([\.()]+)")
+
+
+def predict2MolStructure(v):
+    RNAfoldcall = "echo SEQ | RNAfold"
+    IntaRNAcall = "IntaRNA --target=TARGET --query=QUERY " \
+                    "--tRegion=TREGION --qRegion=QREGION" \
+                    " --outMode=C --outCsvCols=hybridDPfull"
+
+    # prepare and make intramolecular prediction using RNAfold
+    sequences = {1: v["sequence1"], 2: v["sequence2"]}
+    intra_structures = {1: "", 2: ""}
+    IntaRNA_restrictions = {1: "", 2:""}
+
+    for key, seq in sequences.items():
+        call = RNAfoldcall.replace("SEQ", seq)
+        intra_structures[key] = runCommand(call, "([\.()]+)")
+        # list of unpaired subsequences:
+        unpairedRegions = getUnpairedRegions(intra_structures[key])
+        # format them for IntaRNA call use
+        IntaRNA_restrictions[key] = ",".join(unpairedRegions)
+
+    # prepare and make intermolecular prediction using IntaRNA
+    for placeholder, data in [("TARGET", sequences[1]), ("QUERY", sequences[2]),
+                              ("TREGION", IntaRNA_restrictions[1]), ("QREGION", IntaRNA_restrictions[2])]:
+        IntaRNAcall = IntaRNAcall.replace(placeholder, data)
+
+    inter_structure = runCommand(IntaRNAcall, "hybridDPfull\n?([\.()]+&[\.()]+)?")
+
+    # if no intermolecular structure predicted, just use the inramolecular strucutres
+    if inter_structure is None:
+        inter_structure = f"{intra_structures[1]}&{intra_structures[2]}"
+    
+    # combine intra and intermolecular structure
+    intra_structure = f"{intra_structures[1]}&{intra_structures[2]}"
+    intra_structure = intra_structure.replace("(", "<").replace(")", ">")
+
+    predicted_structure = ""
+    for intra, inter  in zip(intra_structure, inter_structure):
+        if intra != ".":
+            predicted_structure += intra
+            continue
+        if inter != ".":
+            predicted_structure += inter
+            continue
+        predicted_structure += "."
+
+    return predicted_structure        
 
 
 
+def getUnpairedRegions(intra_structure):
+    # get start and end points of unpaired nucleos
+    start = 1
+    end = 1
+    regions = []
+    for i, char in enumerate(intra_structure, 1):
+        if char == ".":
+            continue
+        if char != ".":
 
+            end = i
+            if start != end:
+                regions += [f"{start}-{end}"]
+            start = i+1
+
+    # add the last region if there is one
+    len_intra = len(intra_structure)
+    last = [f"{start}-{len_intra}"] if start<len_intra else []
+
+    return regions + last
 

@@ -27,6 +27,7 @@ from modifications import (changeBackgroundColor,
                            setIndexLabels,
                            backgroundhighlightingBasepairs,
                            backgroundhighlightingRegion,
+                           showAccessibility
                            )
 # -----------------------------------------------------------------
 project_dir = Path(__file__).resolve().parent.parent.absolute()
@@ -35,6 +36,7 @@ working_dir = Path(os.getcwd())
 fornac_css = project_dir / "fornac" / "fornac.css"
 template_barebone_html = project_dir / "example_html" / "template_barebone.html"
 example_fasta = project_dir / "test" / "example.fasta"
+dot_ps = working_dir / "dot.ps"
 # set the path and create the name of the new file without the file type
 path_rna_timestamp = working_dir / ("rna_" + str(time.time()))
 
@@ -177,6 +179,10 @@ def run(v):
         if molecules == "2" and subsequence2 is not None:
             highlightSubsequence(page, v, "2")
 
+
+        # show accessibility of Nucleotides  
+        if molecules == "2":
+            showAccessibility(v, dot_ps, page)
 
         #  extracting the built svg file
         svg = page.locator("svg").first.inner_html()
@@ -324,7 +330,11 @@ if __name__ == '__main__':
     parser.add_argument(
 			'--fastafile',
 			help='path to FASTA file, containing first: sequence second: structure data',
-            default="None")    
+            default="None")
+    parser.add_argument(
+			'--structurePrediction',
+			help='enable structure prediction if only a sequence is given. Either True or False. Default False',
+            default="False")    
     parser.add_argument(
             '-v',
 			'--verbose',

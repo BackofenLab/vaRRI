@@ -1,3 +1,6 @@
+from utils import (runCommand,listIntermolNodes)
+import re 
+
 # invisible Nodes between 2 molecules, seperating them
 GAP = 3
 
@@ -316,18 +319,17 @@ def highlightingRegion(page, v):
     for (start, end) in basepair_region:
         intermol_nodes += [i for i in range(start, end + 1, 1)]
 
-    setNodeStrokeRed(page, intermol_nodes)
+    addStyleToNodes(page, intermol_nodes, "stroke: red;")
 
 
-
-def setNodeStrokeRed(page, node_ids):
-    page.evaluate("""(node_ids) => {
+def addStyleToNodes(page, node_ids, style):
+    page.evaluate("""([node_ids, style]) => {
             node_ids.forEach((node_id)=>{
                   document.querySelectorAll(`circle[node_num="${node_id}"]`).forEach((node)=>{
-                        node.setAttribute("style", node.getAttribute("style") + "stroke: red;");
+                        node.setAttribute("style", node.getAttribute("style") + style);
                      });
                   });
-        }""", node_ids)
+        }""", [node_ids, style])
 
 def highlightSubsequence(page, v, seq):
     """Highlight a subsequence of nodes in the Fornac plot.
@@ -495,60 +497,6 @@ def highlightingBasepairs(page, v):
         });
     }""", split)  
 
-def listIntermolNodes(struc, shift=0):
-    '''
-    Return sorted indices of intermolecular basepairs in dot-bracket notation.
-
-    Analyzes a secondary structure string (dot-bracket notation, no pseudoknots)
-    and returns a sorted list of 1-based indices that belong to intermolecular
-    basepairs. Opening/closing parentheses "()" and angle brackets "<>" are
-    handled independently: unmatched opens at the end or unmatched closes are
-    considered intermolecular.
-
-    Args:
-        struc (str): Structure string in dot-bracket notation.
-
-    Returns:
-        list[int]: Sorted indices (0-based) of positions that are part of intermolecular basepairs.
-
-    Example:
-        >>> listIntermolNodes("((..))..))")
-        [8, 9]
-
-    For the following example Structures, the intermolecular basepairs are indicated with carets (^):s
-    eg (())...((...(())  and (())...))...(())
-    eg ((..(..)) and ((..)..))
-       ^                     ^
-
-    eg ((((...))... and ...))..
-       ^^                  ^^
-    eg ((<<...))... and ...>>..
-         ^^                ^^
-    '''
-    inter_basepairs = []
-    open_basepairs = {"(": [], "<": [], "[": [], "{": []}
-    basepairs = [("(",")"), ("[","]"), ("{", "}"), ("<",">")]
-    for index, char in enumerate(struc, 1):
-        for (open, close) in basepairs:
-            # check for open basepair, add to stack
-            if char == open:
-                open_basepairs[open] += [(index+shift, char)]
-                break               
-            # check for close basepair, remove from stack
-            # if stack empty, it is an intermolecular basepair
-            if char == close:
-                if open_basepairs[open]:
-                    open_basepairs[open].pop()
-                else:
-                    inter_basepairs += [(index+shift, char)]
-                break
-
-    # all remaining open basepairs in the stack are intermolecular
-    for pairs in open_basepairs.values():
-        inter_basepairs += pairs
-
-    inter_basepairs.sort()
-    return inter_basepairs
 
 def removeSecondLink(page):
     """
@@ -806,3 +754,52 @@ def listBasepairs(struc: dict):
 
     basepairs.sort()
     return basepairs
+
+def showAccessibility(v, path, page):
+    assert v["molecules"] == "2"
+
+    sequence1 = v["sequence1"]
+    sequence2 = v["sequence2"]
+    offset1= 0
+    offset2 = len(sequence1) + GAP
+
+    struc = v["structure_dict"]
+
+
+    probabillity = {i: 0 for i, _  in struc.items()}
+
+
+    for sequence, offset in [(sequence1, offset1), (sequence2, offset2)]:
+        new_probabillity = calculateProbabilities(sequence, offset, path)
+        probabillity.update(new_probabillity)
+    
+    
+    for index, probabillity in probabillity.items():
+        style = f"opacity: {1 - probabillity / 2}"
+        addStyleToNodes(page, [index], style)
+
+def calculateProbabilities(sequence, offset, path):
+    runCommand(f"echo {sequence} | RNAfold -p --noPS", "(.)")
+
+    probabillity = {}
+
+    
+    try:
+        with open(path, "r") as f:
+            for match in re.findall("\d+ \d+ \d.\d+ ubox", f.read()):
+                id1, id2, sqrt_string, _ = match.split()
+                sqrt = float(sqrt_string)
+                for id in (id1, id2):
+                    dict_id = str(int(id) + offset)
+                    if dict_id in probabillity:
+                        probabillity[dict_id] += sqrt ** 2
+                    else:
+                        probabillity[dict_id] = sqrt ** 2
+    except FileNotFoundError:
+        raise FileNotFoundError
+    
+    # remove left over file
+    runCommand(f"rm {path}", "($^)")
+
+    
+    return probabillity
