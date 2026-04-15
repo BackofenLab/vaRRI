@@ -676,6 +676,8 @@ def updateLinkTooltips(page, v):
 def backgroundhighlightingBasepairs(page, v):
 
     intermol_pairs = listIntermolPairs(v)
+    if intermol_pairs == []:
+        return
     stack = [intermol_pairs.pop(0)]
     highlightbackground = []
     for open, close in intermol_pairs:
@@ -684,10 +686,9 @@ def backgroundhighlightingBasepairs(page, v):
             stack += [(open, close)]
             continue
         # if not, make new stack and safe the old one
-        stack = [(open, close)]
         area = sorted([x for t in stack for x in t])
         highlightbackground += [area + [area[0]]]
-
+        stack = [(open, close)]
 
     area = sorted([x for t in stack for x in t])
     highlightbackground += [area + [area[0]]]
