@@ -219,7 +219,7 @@ def run(v):
             except PermissionError:
                 error = "Permission Denied for Path: "
             except ValueError:
-                error = "Pfad ist ungültig: "
+                error = "Path is invalid: "
             except FileNotFoundError:
                 error = "Path does not exist: "
 
