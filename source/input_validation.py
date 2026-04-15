@@ -567,14 +567,18 @@ def croppingInput(v, args):
             new_start_sub = start_sub if bigger_than_start else startIndex[mol]
             new_end_sub = end_sub if smaller_than_end  else endIndex[mol]
             subsequence[mol] += [(new_start_sub, new_end_sub)]
+        
+        subsequence[mol] = ",".join([f"{s}:{e}" for (s,e) in subsequence[mol]])
+        if subsequence[mol] == "":
+            subsequence[mol] = "None"
 
 
     args["startIndex1"] = str(startIndex[1])
     args["startIndex2"] = str(startIndex[2])
     args["sequence"] = "".join(sequence[1]) + "&" + "".join(sequence[2])
     args["structure"] = "".join(structure[1]) + "&" + "".join(structure[2]) 
-    args["highlightSubseq1"] = ",".join([f"{s}:{e}" for (s,e) in subsequence[1]]) 
-    args["highlightSubseq2"] = ",".join([f"{s}:{e}" for (s,e) in subsequence[2]])
+    args["highlightSubseq1"] = subsequence[1]
+    args["highlightSubseq2"] = subsequence[2]
     args["fastafile"] = "None"
     args["structurePrediction"] = "False"
 
