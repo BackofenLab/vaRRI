@@ -782,7 +782,7 @@ def showAccessibility(v, path, page):
 
 def calculateProbabilities(sequence, offset, path, RNAfold_parameters):
 
-    runCommand(f"echo {sequence} | RNAfold -p --noPS {RNAfold_parameters}", "(.)")
+    runCommand(f"echo {sequence} | RNAfold -p --noPS {RNAfold_parameters}", "([\.()]+)")
 
     probabillity = {}
 
