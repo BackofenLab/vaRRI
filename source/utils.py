@@ -1,5 +1,6 @@
 import subprocess
 import re
+import logging
 
 def listIntermolNodes(struc, shift=0):
     '''
@@ -58,10 +59,25 @@ def listIntermolNodes(struc, shift=0):
 
 def runCommand(command, expected_output):
     # expected output must be inside a group
-    std_out = subprocess.run(command, capture_output=True, text=True, shell=True).stdout.strip()
+    logging.info("------------- Systemcall -------------\n" +  command)
+    result = subprocess.run(command, capture_output=True, text=True, shell=True)
+    std_out = result.stdout.strip()
+    std_err = result.stderr
+    if std_err:
+        raise ValueError("System Call returned Error. \n" +
+                         f"------------- Command    -------------\n" + 
+                         f"{command} \n"
+                         f"------------- Output     -------------\n" +
+                         f"{std_err}")
+
+
     structure_match = re.search(expected_output, std_out)
     if structure_match:
+        logging.info(f"------------- Output     -------------\n" + std_out)
         return structure_match.group(1)
     else:
-        raise ValueError("System Call didnt return expected output. \n" +
-                         f"used command: \n{command} \nreceived output: \n{std_out}")
+        raise ValueError("System Call didnt return expected output: \n" +
+                         f"------------- Command    -------------\n" + 
+                         f"{command} \n"
+                         f"------------- Output     -------------\n" +
+                         f"{std_out}")

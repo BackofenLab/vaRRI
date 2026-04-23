@@ -24,7 +24,7 @@ def sequence_coloring(first_seq, second_seq) -> list:
     """
     color = []
     color += ["lightblue" for _ in first_seq]
-    color += ["lightgreen" for _ in second_seq]
+    color += ["#F4BB44" for _ in second_seq]
 
     return color
 
@@ -754,7 +754,78 @@ def listBasepairs(struc: dict):
     basepairs.sort()
     return basepairs
 
-def showAccessibility(v, path, page):
+def showAccessibility(v, default_lunp_file, page):
+    # options:
+    # do not show accessibility : None
+    # show accessibility using given data : "/file/lunp"
+    # show accessibility using predicted data = ""
+    # access1 = None
+    # access2 = ""
+    RNAfold_parameters = v["RNAfold"]
+
+    acc1 = v["accessibility1"]
+    acc2 = v["accessibility2"]
+    sequence1 = v["sequence1"]
+    sequence2 = v["sequence2"]
+    shift1 = 0
+    shift2 = len(sequence1) + GAP
+    access_data = {}
+    mol = {"1": (acc1, sequence1, shift1),
+           "2": (acc2, sequence2, shift2)}
+
+    for access_file, seq, shift in mol.values():
+        # 3 distinct cases
+        if access_file is None:
+            # accessibilty 
+            continue
+        elif access_file == "":
+            # if sequenc is not empty, predict access data using seq
+            # and parse lunp file and apply shift
+            # add to access data
+            if seq == "":
+                continue
+            runCommand(f"echo {seq} | RNAplfold -W{len(seq)} -u1 {RNAfold_parameters}", "(^$)")
+            access_data.update(parseLunpFile(default_lunp_file, shift))
+
+        else:
+            # and parse lunp file and apply shift
+            # add to access data
+            access_data.update(parseLunpFile(access_file, shift))
+
+    visualiseAccessibilty(page, access_data, len(sequence1))
+
+
+
+def visualiseAccessibilty(page, access_data, len_seq):
+    for index, prb in access_data.items():
+        if prb == 1:
+            continue
+        color = "purple" if index <= len_seq else "yellow"
+        style = f"fill: {color};opacity: {1 - prb}"
+        prb_tooltip = "\n" + "{:.2e}".format(prb)
+        addAccessibilityOverlay(page, index, style, prb_tooltip)
+
+def map_probability_to_opacity():
+    return 1 - prb
+
+
+
+
+def addAccessibilityOverlay(page, id, style, tooltip):
+    page.evaluate("""([id, style, tooltip]) => {
+        document.querySelectorAll(`circle[node_num="${id}"]`).forEach((node)=>{
+            var overlay_node = node.cloneNode(true);
+            overlay_node.setAttribute("node_num", `o${id}`); 
+            overlay_node.setAttribute("style", style);
+            overlay_node.firstChild.innerHTML += tooltip;
+            node.after(overlay_node);
+            });
+    }""", [id, style, tooltip])
+
+
+
+
+def showAccessibilityOld(v, path, page):
     assert v["molecules"] == "2"
 
     sequence1 = v["sequence1"]
@@ -768,9 +839,6 @@ def showAccessibility(v, path, page):
 
     probabillity = {i: 0 for i, _  in struc.items()}
 
-
-
-
     for sequence, offset in [(sequence1, offset1), (sequence2, offset2)]:
         new_probabillity = calculateProbabilities(sequence, offset, path, RNAfold_parameters)
         probabillity.update(new_probabillity)
@@ -779,6 +847,22 @@ def showAccessibility(v, path, page):
     for index, probabillity in probabillity.items():
         style = f"opacity: {1 - probabillity / 2}"
         addStyleToNodes(page, [index], style)
+
+def parseLunpFile(path, shift):
+    probabillity = {}
+    try:
+        with open(path, "r") as f:
+            for match in re.findall("\d+\t.+", f.read()):
+                id_str, prb_str = match.split("\t")
+                id, prb =  + int(id_str) + shift, float(prb_str)
+                probabillity[id] = prb
+    except FileNotFoundError:
+        raise FileNotFoundError
+    except ValueError:
+        raise ValueError("The given lunp file has an invalid line. "
+                         f"cannot convert to float: {prb_str}")
+    return probabillity
+
 
 def calculateProbabilities(sequence, offset, path, RNAfold_parameters):
 

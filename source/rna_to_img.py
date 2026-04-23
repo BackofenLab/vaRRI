@@ -7,6 +7,7 @@ import urllib.parse
 import os
 import sys
 import logging
+import traceback
 
 # import input validation functions:
 from input_validation import (croppingInput,
@@ -37,6 +38,7 @@ fornac_css = project_dir / "fornac" / "fornac.css"
 template_barebone_html = project_dir / "example_html" / "template_barebone.html"
 example_fasta = project_dir / "test" / "example.fasta"
 dot_ps = working_dir / "dot.ps"
+plfold_lunp = working_dir / "plfold_lunp"
 # set the path and create the name of the new file without the file type
 path_rna_timestamp = working_dir / ("rna_" + str(time.time()))
 
@@ -105,7 +107,8 @@ def run(v):
         # options [nothing, pairs, region]
         backgroundhighlighting = v["backgroundhighlighting"]
         # options [True, False]
-        showAccessibilityBool = v["showAccessibility"]
+        showAccessibility1 = v["accessibility1"]
+        showAccessibility2 = v["accessibility2"]
 
         
 
@@ -183,8 +186,8 @@ def run(v):
 
         #------------------------------------------------
         # show accessibility of Nucleotides  
-        if molecules == "2" and showAccessibilityBool == "True":
-            showAccessibility(v, dot_ps, page)
+        if showAccessibility1 != "None" or showAccessibility2 != "None":
+            showAccessibility(v, plfold_lunp, page)
 
         #  extracting the built svg file
         svg = page.locator("svg").first.inner_html()
@@ -338,22 +341,34 @@ if __name__ == '__main__':
 			help='enable structure prediction if only a sequence is given. Either True or False. Default False',
             default="False")
     parser.add_argument(
-			'--showAccessibility',
-			help='Changes Node opacity according an Accessibility prediction. Either True or False. Default False',
-            default="False")
+			'--accessibility1',
+			help='Visualising Node accessibility in sequence 1 \n'\
+            'according to a given lunp file containing according porbabilities. \n'\
+            'Options are [path/to/lunpfile, empty String, None] \n'\
+            'path/to/lunpfile uses the data in this file to get probabilities and visualise \n'\
+            'empty String uses the RNAplfold to predict probabilities and visualise \n'\
+            'None (default) does not visualise Accessibility',
+            default="None")
+    parser.add_argument(
+			'--accessibility2',
+			help='Visualising Node accessibility in sequence 2 \n'\
+            'according to a given lunp file containing according porbabilities. \n'\
+            'Options are [path/to/lunpfile, empty String, None] \n'\
+            'path/to/lunpfile uses the data in this file to get probabilities and visualise \n'\
+            'empty String uses the RNAplfold to predict probabilities and visualise \n'\
+            'None (default) does not visualise Accessibility',
+            default="None")
     parser.add_argument(
 			'--RNAfold',
 			help='add parameters to RNAfold call. Default ""\n' \
             'example RNAfold call:\n' \
-            'RNAfold --noPS --noDP',
+            'RNAfold --noPS -C << EOF\AAAAAAAACCCCAAAAGGGGGGGGAAACCCC\..................................\nEOF',
             default="")
     parser.add_argument(
-			'--IntaRNA',
-			help='add parameters to IntaRNA call. Default ""\n' \
-            'IntaRNA call:\n' \
-            'IntaRNA --target=TARGET --query=QUERY " \
-                    "--tRegion=TREGION --qRegion=QREGION" \
-                    " --outMode=C --outCsvCols=hybridDPfull"',
+			'--RNAplfold',
+			help='add parameters to RNAplfold call. Default ""\n' \
+            'example RNAplfold call:\n' \
+            'echo AAAAAAAAGGGGAAAACCCCAAAAAAGGGGGGGG | RNAplfold -W20 -u1',
             default="")    
     parser.add_argument(
             '-v',
@@ -372,14 +387,17 @@ if __name__ == '__main__':
         # setup logging if enabled
         validated["logging"] = args["verbose"]
         setupLogging(validated)
+        logging.info("logging activated")
 
         validated.update(validate(args))
 
         validated.update(croppingInput(validated, args))
+        logging.info("input validation completed")
 
 
     except ValueError as e:
         logging.error(e)
+        #traceback.print_exc()
         sys.exit(2)
 
     run(validated)
