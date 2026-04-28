@@ -795,6 +795,9 @@ def predictSequence(inter_structure, sequence, parameters):
     call = RNAfoldcall.replace("SEQ", sequence).replace("CONSTRAINTS", constraint)
     intra_structure = runCommand(call, r"([\.()]+)")    
 
+    # predicted Intramol structure should use < > brackets, 
+    # to seperate from intermol structure
+    intra_structure = intra_structure.replace("(", "<").replace(")", ">")
     # combine inter and intramolecular structure. They are mutual exclusive
     combined = [inter if inter!="." else intra for 
             intra, inter in zip(intra_structure, inter_structure)]
