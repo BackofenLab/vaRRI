@@ -65,6 +65,7 @@ def buildMolecules(page, v):
         assert var in v
     # complete structure and sequence with fix
     structure, sequence, interval = v["structure"], v["sequence"], v["labelInterval"]
+
     page.evaluate("""([structure, sequence, interval]) => {
             var container = new fornac.FornaContainer("#rna_ss", {'animation': false, 'labelInterval': 1});
             var options = {'structure': structure,
@@ -175,7 +176,8 @@ def run(v):
 
         #-----------------------------------------------
         # visualise basepair strenght (G-U )
-        visualiseBasepairStength(page, v)
+        if not v["guBasepairs"]:
+            visualiseBasepairStength(page, v)
 
         #------------------------------------------------
         # highlight subsequence
@@ -312,6 +314,12 @@ if __name__ == '__main__':
                 'before the start and after the end of the intermolecular Region  ',
             default='None')
     parser.add_argument(
+			'--crop',
+			help='crop both molecules on both sides: ' \
+                'visualising nt nodes ' \
+                'before the start and after the end of the intermolecular Region  ',
+            default='None')
+    parser.add_argument(
 			'--highlightSubseq1',
 			help='highlight a subsequence of the first sequence',
             default='None')
@@ -321,8 +329,8 @@ if __name__ == '__main__':
             default='None')    
     parser.add_argument(
 			'--guBasepairs',
-			help='visualise all G-U basepairs with a dashed line [True, False]',
-            default='True')    
+			help='disabble visualising all G-U basepairs with a dashed line',
+            action='store_false')    
     parser.add_argument(
             '-bH',
 			'--backgroundhighlighting',
@@ -334,19 +342,19 @@ if __name__ == '__main__':
             default='basepairs')
     parser.add_argument(
 			'--fastafile',
-			help='path to FASTA file, containing first: sequence second: structure data',
+			help='path to FASTA file, containing one or two sequences',
             default="None")
     parser.add_argument(
 			'--structurePrediction',
 			help='enable structure prediction if only a sequence is given. Either True or False. Default False',
-            default="False")
+            action='store_true')
     parser.add_argument(
 			'--accessibility1',
 			help='Visualising Node accessibility in sequence 1 \n'\
             'according to a given lunp file containing according porbabilities. \n'\
             'Options are [path/to/lunpfile, empty String, None] \n'\
             'path/to/lunpfile uses the data in this file to get probabilities and visualise \n'\
-            'empty String uses the RNAplfold to predict probabilities and visualise \n'\
+            '"RNAplfold" String uses the RNAplfold to predict probabilities and visualise \n'\
             'None (default) does not visualise Accessibility',
             default="None")
     parser.add_argument(
@@ -355,8 +363,8 @@ if __name__ == '__main__':
             'according to a given lunp file containing according porbabilities. \n'\
             'Options are [path/to/lunpfile, empty String, None] \n'\
             'path/to/lunpfile uses the data in this file to get probabilities and visualise \n'\
-            'empty String uses the RNAplfold to predict probabilities and visualise \n'\
-            'None (default) does not visualise Accessibility',
+            '"RNAplfold" String uses the RNAplfold to predict probabilities and visualise \n'\
+            'None (default)" does not visualise Accessibility',
             default="None")
     parser.add_argument(
 			'--RNAfold',

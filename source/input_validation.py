@@ -20,25 +20,25 @@ def checkStructureInputSimple(structure: str) -> None:
     """
     # check if the struture has only valid basepairs
     # ie for every open bracket, one closing bracket
-    smooth_basepairs = 0
-    edgy_basepairs = 0
+    # () <> [] {}
+    basepairs = {"(": 0, "<": 0, "[": 0, "{": 0}
+    closing_bp = {")": "(", ">": "<", "]": "[", "{": "}"}
+
     for char in structure:
-        smooth_basepairs += 1 if char == "(" else 0
-        smooth_basepairs -= 1 if char == ")" else 0
-
-        if smooth_basepairs < 0:
-            raise ValueError("The number of brackets dont line up: Too many closing ) brackets")
+        if char in basepairs:
+            basepairs[char] += 1
+        if char in closing_bp:
+            open_bp = closing_bp[char]
+            basepairs[open_bp] -= 1        
+            if basepairs[open_bp] < 0:
+                raise ValueError(f"The number of brackets dont line up. Too many closing {char} brackets:\n" \
+                f"{structure}")
         
-        edgy_basepairs += 1 if char == "<" else 0
-        edgy_basepairs -= 1 if char == ">" else 0
+    for bp, count in basepairs.items():
+        if count > 0:
+            raise ValueError(f"The number of brackets dont line up. Too many opening {bp} brackets:\n" \
+                f"{structure}")
 
-        if edgy_basepairs < 0:
-            raise ValueError("The number of brackets dont line up: Too many closing > brackets")
-
-    if smooth_basepairs > 0:
-        raise ValueError("The number of brackets dont line up: Too many opening ( brackets")
-    if edgy_basepairs > 0:
-        raise ValueError("The number of brackets dont line up: Too many opening > brackets")
 
 def sameLength(ab: tuple) -> bool:
     """
@@ -130,6 +130,7 @@ def formatStructure(validated: dict) -> tuple[str, str, str]:
     """
     assert "structure" in validated
     structure = validated["structure"]
+
     # basic formating
     first_struc, second_struc = split(structure)
 
@@ -224,7 +225,6 @@ def validateStructureInput(args: dict, validated: dict):
                 raise ValueError(f"Structure length ({len(struc)}) and Sequence length ({len(seq)}) " +
                      f"of molecule {index} do not match")
 
-    
     
     if re.fullmatch("([\.()<>\[\]{}]+&)?[\.()\[\]<>{}]+", structure):
         # make sure all basepairs work
@@ -511,7 +511,7 @@ def croppingInput(v, args):
     crop = {1: v["crop1"], 2: v["crop2"]}
     startIndex = {1: v["offset1"], 2: v["offset2"]}
     endIndex = {1: 0, 2: 0}
-    subsequence = {1: v["highlightSubseq1"], 2: v["highlightSubseq2"]}
+    subsequence = {1: str(v["highlightSubseq1"]), 2: str(v["highlightSubseq2"])}
 
     # if no cropping is needed, return without changing anything
     if crop[1] is None and crop[2] is None:
@@ -557,6 +557,9 @@ def croppingInput(v, args):
         startIndex[mol] += start_crop + 1 if crosses_zero else start_crop
         endIndex[mol] = startIndex[mol] + len(structure[mol])
 
+        # skip cropping the subsequences if they are set to None
+        if subsequence[mol] == "None":
+            continue
         # crop the subsequences 
         subsequence[mol] = []
         for (start_sub, end_sub) in v[f"highlightSubseq{mol}"]:
@@ -567,10 +570,10 @@ def croppingInput(v, args):
             new_start_sub = start_sub if bigger_than_start else startIndex[mol]
             new_end_sub = end_sub if smaller_than_end  else endIndex[mol]
             subsequence[mol] += [(new_start_sub, new_end_sub)]
-        
-        subsequence[mol] = ",".join([f"{s}:{e}" for (s,e) in subsequence[mol]])
+
         if subsequence[mol] == "":
             subsequence[mol] = "None"
+        subsequence[mol] = ",".join([f"{s}:{e}" for (s,e) in subsequence[mol]])
 
 
     args["startIndex1"] = str(startIndex[1])
@@ -580,7 +583,7 @@ def croppingInput(v, args):
     args["highlightSubseq1"] = subsequence[1]
     args["highlightSubseq2"] = subsequence[2]
     args["fastafile"] = "None"
-    args["structurePrediction"] = "False"
+    args["structurePrediction"] = False
 
     return validate(args)
 
@@ -590,8 +593,11 @@ def validate(args):
 
     validated["offset1"] = validateOffset(args, "startIndex1")
     validated["offset2"] = validateOffset(args, "startIndex2")
-    # no validation possible
-    validated["RNAfold"] = args["RNAfold"]
+    # no validation possible / needed
+    validated["RNAfold"] = args["RNAfold"]    
+    validated["RNAplfold"] = args["RNAplfold"]
+    validated["guBasepairs"] = args["guBasepairs"]
+
 
     # --------------------------------------------------------------
     # fasta input
@@ -628,7 +634,7 @@ def validate(args):
     validated["molecules"] = getMolecules(validated)
     validated["structurePrediction"] = validateStructurePredictionInput(args)
 
-    if validated["structurePrediction"] == "True":
+    if validated["structurePrediction"] == True:
         validated["structure"] = predictIntramolStructure(validated)
 
     # if an interaction between 2 Molecules is given, fornac does not display 
@@ -657,10 +663,9 @@ def validate(args):
     validated["accessibility1"] = validateAccessibilityInput(args, "accessibility1")
     validated["accessibility2"] = validateAccessibilityInput(args, "accessibility2")
 
-
     for i in ("1","2"):
         validated[f"highlightSubseq{i}"] = validateSubsequenceInput(args, validated, i)
-        validated[f"crop{i}"] = validateCropping(args, i)
+        validated[f"crop{i}"] = validateCropping(args, "") if args["crop"] != "None" else validateCropping(args, i)
 
     return validated
 
@@ -688,7 +693,7 @@ def checkforHybridInput(args, v):
 
 def validateStructurePredictionInput(args):
     assert "structurePrediction" in args
-    if args["structurePrediction"] in ["True", "False"]:
+    if args["structurePrediction"] in [True, False]:
         return args["structurePrediction"]
     raise ValueError("The given structurePrediction Input is invalid, " \
     f'only True or False allowed. Instead received: {args["structurePrediction"]}')
@@ -697,8 +702,8 @@ def validateAccessibilityInput(args, key):
     assert key in args
     if args[key] == "None":
         return None
-    if args[key] == "":
-        return ""
+    if args[key] == "RNAplfold":
+        return "RNAplfold"
     if Path(args[key]).exists():
         return args[key]
     raise ValueError(f"The given Input File could not be found: {args[key]}")
@@ -718,9 +723,6 @@ def checkSameLength(args):
 
 def validateInputFile(args):
     inputFile = args["fastafile"]
-
-    if not inputFile.endswith(".fasta"):
-        raise ValueError(f"The given Input File is not a .fasta file path: {inputFile}")
     
     if not Path(inputFile).exists():
         raise ValueError(f"The given Input File could not be found: {inputFile}")
@@ -740,6 +742,7 @@ def parse_fasta(file_path):
     current_seq = []
 
     with open(file_path) as f:
+        seq_counter = 1
         for line in f:
             line = line.strip()
             if not line:
@@ -749,7 +752,8 @@ def parse_fasta(file_path):
                 if current_titel:
                     sequences[current_titel] = "".join(current_seq)
 
-                current_titel = line[1:]
+                current_titel = line[1:] + str(seq_counter)
+                seq_counter += 1
                 current_seq = []
             else:
                 if current_titel is None:
@@ -765,13 +769,18 @@ def predictIntramolStructure(v):
     # works for 1 and 2 sequences
     mols = ["1"] if v["molecules"] == "1" else ["1", "2"]
     structure = {}
-    structure["1"], structure["2"] = split(v["structure"])
+
+    for mol, string in enumerate(v["structure"].split("&"), 1):
+        structure[str(mol)] = string
+
     parameters = v["RNAfold"]
 
     for mol in mols:
         seq = v[f"sequence{mol}"]
         struc = structure[mol]
         structure[mol] = predictSequence(struc, seq, parameters)
+
+
 
     return "&".join(structure.values())
 
@@ -781,7 +790,7 @@ def predictSequence(inter_structure, sequence, parameters):
     # predict intramol structure for a given sequence and structure
     # the intermolecular structure stays preserved
     # prepare the RNA fold call
-    RNAfoldcall = f"RNAfold --noPS {parameters} -C << EOF\nSEQ\nCONSTRAINTS\nEOF"
+    RNAfoldcall = f"RNAfold --noPS -C {parameters} << EOF\nSEQ\nCONSTRAINTS\nEOF"
     constraint = "".join([char if char == "." else "x" for char in inter_structure])
     call = RNAfoldcall.replace("SEQ", sequence).replace("CONSTRAINTS", constraint)
     intra_structure = runCommand(call, r"([\.()]+)")    

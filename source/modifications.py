@@ -761,7 +761,8 @@ def showAccessibility(v, default_lunp_file, page):
     # show accessibility using predicted data = ""
     # access1 = None
     # access2 = ""
-    RNAfold_parameters = v["RNAfold"]
+    RNAplfold_parameters = v["RNAplfold"]
+    RNAplfold_call = "echo SEQ | RNAplfold WLEN -u1 PARAMETERS", "(^$)"
 
     acc1 = v["accessibility1"]
     acc2 = v["accessibility2"]
@@ -776,19 +777,29 @@ def showAccessibility(v, default_lunp_file, page):
     for access_file, seq, shift in mol.values():
         # 3 distinct cases
         if access_file is None:
-            # accessibilty 
+            # accessibilty disabled
             continue
-        elif access_file == "":
+        elif access_file == "RNAplfold":
             # if sequenc is not empty, predict access data using seq
             # and parse lunp file and apply shift
             # add to access data
             if seq == "":
                 continue
-            runCommand(f"echo {seq} | RNAplfold -W{len(seq)} -u1 {RNAfold_parameters}", "(^$)")
+            # if no additional winsize is given, use the whole sequence length as window
+            win_size = f"-W{len(seq)}"
+            if "-W" in RNAplfold_parameters or "--winsize" in RNAplfold_parameters:
+                win_size = ""
+
+            runCommand(f"echo {seq} | RNAplfold {win_size} -u1 {RNAplfold_parameters}", "(^$)")
             access_data.update(parseLunpFile(default_lunp_file, shift))
+            # remove left over files
+            runCommand(f"rm plfold_lunp", "(^$)")
+            runCommand(f"rm plfold_dp.ps", "(^$)")
+
 
         else:
-            # and parse lunp file and apply shift
+            # otherwise, data shall be given: 
+            # parse lunp file and apply shift
             # add to access data
             access_data.update(parseLunpFile(access_file, shift))
 
@@ -798,14 +809,12 @@ def showAccessibility(v, default_lunp_file, page):
 
 def visualiseAccessibilty(page, access_data, len_seq):
     for index, prb in access_data.items():
-        if prb == 1:
-            continue
-        color = "purple" if index <= len_seq else "yellow"
-        style = f"fill: {color};opacity: {1 - prb}"
+        color = "purple" if index <= len_seq else "red"
+        style = f"fill: {color};opacity: {map_probability_to_opacity(prb)}"
         prb_tooltip = "\n" + "{:.2e}".format(prb)
         addAccessibilityOverlay(page, index, style, prb_tooltip)
 
-def map_probability_to_opacity():
+def map_probability_to_opacity(prb):
     return 1 - prb
 
 
