@@ -176,7 +176,7 @@ def run(v):
 
         #-----------------------------------------------
         # visualise basepair strenght (G-U )
-        if not v["guBasepairs"]:
+        if v["guBasepairs"]:
             visualiseBasepairStength(page, v)
 
         #------------------------------------------------
@@ -246,16 +246,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
 			prog='rna_to_svg.py',
 			description='takes as an input a rna structure and sequence and ' \
-			'creates a svg with a grafical representation using fornac' \
+			'creates an image with a grafical representation using fornac' \
 			'example: \n ' \
 			'python3.10 rna_to_svg.py "..((((...))))...((...((...((..&............))...))...)).." "ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG"')
     parser.add_argument(
-			'-u',
             '--structure',
 			help='structure of the rna, in dot-bracket notation',
             default="")
     parser.add_argument(
-			'-e',
             '--sequence',
 			help='sequence of the rna, out of the letters C,G,U and A',
             default="")
@@ -322,11 +320,11 @@ if __name__ == '__main__':
     parser.add_argument(
 			'--highlightSubseq1',
 			help='highlight a subsequence of the first sequence',
-            default='None')
+            default='')
     parser.add_argument(
 			'--highlightSubseq2',
 			help='highlight a subsequence of the second sequnec',
-            default='None')    
+            default='')    
     parser.add_argument(
 			'--guBasepairs',
 			help='disabble visualising all G-U basepairs with a dashed line',
@@ -345,8 +343,12 @@ if __name__ == '__main__':
 			help='path to FASTA file, containing one or two sequences',
             default="None")
     parser.add_argument(
-			'--structurePrediction',
-			help='enable structure prediction if only a sequence is given. Either True or False. Default False',
+			'--predictStructure1',
+			help='enable intramolecular structure prediction for the first sequence',
+            action='store_true')
+    parser.add_argument(
+			'--predictStructure2',
+			help='enable intramolecular structure prediction for the second sequence',
             action='store_true')
     parser.add_argument(
 			'--accessibility1',

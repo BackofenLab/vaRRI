@@ -38,6 +38,32 @@ def checkStructureInputSimple(structure: str) -> None:
         if count > 0:
             raise ValueError(f"The number of brackets dont line up. Too many opening {bp} brackets:\n" \
                 f"{structure}")
+        
+def findBasePairs(structure):
+    basepair_list = []
+    basepairs = {"(": [], "<": [], "[": [], "{": []}
+    closing_bp = {")": "(", ">": "<", "]": "[", "{": "}"}
+
+    for index, char in enumerate(structure):
+        if char in basepairs:
+            basepairs[char] += [index]
+        if char in closing_bp:
+            open_bp = closing_bp[char]
+            if basepairs[open_bp]:
+                basepair_open = basepairs[open_bp].pop()
+                basepair_list += [(basepair_open, index)]
+    return basepair_list
+
+def removeBPoutsideBounds(structure: list, bounds):
+
+    start, end = bounds
+    for start_bp, end_bp in findBasePairs(structure):
+        if start_bp < start or end_bp > end:
+            structure[start_bp] = "."
+            structure[end_bp] = "."
+    return "".join(structure)
+
+
 
 
 def sameLength(ab: tuple) -> bool:
@@ -453,8 +479,8 @@ def validateSubsequenceInput(args: dict, v: dict, seq: str) -> tuple:
     name = "highlightSubseq" + seq
     offset = "offset" + seq
     sequence = "sequence" + seq
-    if args[name] == "None":
-        return None
+    if args[name] == "":
+        return ""
 
     for var in [offset, sequence]:
             assert var in v
@@ -547,6 +573,9 @@ def croppingInput(v, args):
         start_crop = start - crop[mol] if bigger_than_0 else 0 
         end_crop = end + crop[mol] if smaller_than_end else end_structure
 
+        # remove all basepairs outside bounds
+        structure[mol]= removeBPoutsideBounds(list(structure[mol]), (start_crop, end_crop))
+
         # crop substring: [start index : end Index + 1]
         structure[mol]= structure[mol][start_crop:end_crop+1] 
         sequence[mol]= sequence[mol][start_crop:end_crop+1]
@@ -558,7 +587,7 @@ def croppingInput(v, args):
         endIndex[mol] = startIndex[mol] + len(structure[mol])
 
         # skip cropping the subsequences if they are set to None
-        if subsequence[mol] == "None":
+        if subsequence[mol] == "":
             continue
         # crop the subsequences 
         subsequence[mol] = []
@@ -571,8 +600,7 @@ def croppingInput(v, args):
             new_end_sub = end_sub if smaller_than_end  else endIndex[mol]
             subsequence[mol] += [(new_start_sub, new_end_sub)]
 
-        if subsequence[mol] == "":
-            subsequence[mol] = "None"
+
         subsequence[mol] = ",".join([f"{s}:{e}" for (s,e) in subsequence[mol]])
 
 
@@ -583,7 +611,8 @@ def croppingInput(v, args):
     args["highlightSubseq1"] = subsequence[1]
     args["highlightSubseq2"] = subsequence[2]
     args["fastafile"] = "None"
-    args["structurePrediction"] = False
+    args["predictStructure1"] = False
+    args["predictStructure2"] = False
 
     return validate(args)
 
@@ -597,6 +626,8 @@ def validate(args):
     validated["RNAfold"] = args["RNAfold"]    
     validated["RNAplfold"] = args["RNAplfold"]
     validated["guBasepairs"] = args["guBasepairs"]
+    validated["predictStructure1"] = args["predictStructure1"] 
+    validated["predictStructure2"] = args["predictStructure2"] 
 
 
     # --------------------------------------------------------------
@@ -632,9 +663,8 @@ def validate(args):
 
     # if enabled, use structure prediction for intramolecular structure
     validated["molecules"] = getMolecules(validated)
-    validated["structurePrediction"] = validateStructurePredictionInput(args)
 
-    if validated["structurePrediction"] == True:
+    if validated["predictStructure1"] == True or validated["predictStructure2"]:
         validated["structure"] = predictIntramolStructure(validated)
 
     # if an interaction between 2 Molecules is given, fornac does not display 
@@ -690,13 +720,6 @@ def checkforHybridInput(args, v):
     
     return structure
 
-
-def validateStructurePredictionInput(args):
-    assert "structurePrediction" in args
-    if args["structurePrediction"] in [True, False]:
-        return args["structurePrediction"]
-    raise ValueError("The given structurePrediction Input is invalid, " \
-    f'only True or False allowed. Instead received: {args["structurePrediction"]}')
 
 def validateAccessibilityInput(args, key):
     assert key in args
@@ -776,9 +799,11 @@ def predictIntramolStructure(v):
     parameters = v["RNAfold"]
 
     for mol in mols:
-        seq = v[f"sequence{mol}"]
-        struc = structure[mol]
-        structure[mol] = predictSequence(struc, seq, parameters)
+        if v[f"predictStructure{mol}"]:
+            # check if struc prediction mol is true
+            seq = v[f"sequence{mol}"]
+            struc = structure[mol]
+            structure[mol] = predictSequence(struc, seq, parameters)
 
 
 
