@@ -39,7 +39,20 @@ def checkStructureInputSimple(structure: str) -> None:
             raise ValueError(f"The number of brackets dont line up. Too many opening {bp} brackets:\n" \
                 f"{structure}")
         
-def findBasePairs(structure):
+def findBasePairs(structure) -> list:
+    """
+    Identify base pair indices in a structure string.
+
+    Parses a dot-bracket style structure and returns index pairs
+    for matching brackets.
+
+    Args:
+        structure: Structure string containing bracket notation.
+
+    Returns:
+        A list of tuples where each tuple contains the indices
+        of a matching base pair (opening, closing).
+    """
     basepair_list = []
     basepairs = {"(": [], "<": [], "[": [], "{": []}
     closing_bp = {")": "(", ">": "<", "]": "[", "{": "}"}
@@ -54,16 +67,26 @@ def findBasePairs(structure):
                 basepair_list += [(basepair_open, index)]
     return basepair_list
 
-def removeBPoutsideBounds(structure: list, bounds):
+def removeBPoutsideBounds(structure: list, bounds) -> str:
+    """
+    Remove base pairs outside specified bounds.
 
+    Replaces base pairs that fall outside the given index range
+    with unpaired positions ('.').
+
+    Args:
+        structure: Structure as a list of characters.
+        bounds: Tuple containing start and end indices.
+
+    Returns:
+        The modified structure as a string.
+    """
     start, end = bounds
     for start_bp, end_bp in findBasePairs(structure):
         if start_bp < start or end_bp > end:
             structure[start_bp] = "."
             structure[end_bp] = "."
     return "".join(structure)
-
-
 
 
 def sameLength(ab: tuple) -> bool:
@@ -95,7 +118,7 @@ def split(string: str) -> tuple[str, str]:
     second = string.split("&")[1] if "&" in string else ""
     return (first, second)
     
-def validateHighlighting(args: dict):
+def validateHighlighting(args: dict) -> str:
     """
     Validate the highlighting option.
 
@@ -108,7 +131,7 @@ def validateHighlighting(args: dict):
     Raises:
         ValueError: If the highlighting value is not accepted.
     """
-
+    assert "highlighting" in args
     input_highlighting = args["highlighting"]
     valid_highlighting = ["nothing", "basepairs", "region"]
     if input_highlighting in valid_highlighting:
@@ -117,7 +140,7 @@ def validateHighlighting(args: dict):
                           "is not accepted [nothing, basepairs, region]") 
 
 
-def validateBackgroundhighlighting(args: dict):
+def validateBackgroundhighlighting(args: dict) -> str:
     """
     Validate the backgroundhighlighting option.
 
@@ -130,7 +153,7 @@ def validateBackgroundhighlighting(args: dict):
     Raises:
         ValueError: If the backgroundhighlighting value is not accepted.
     """
-
+    assert "backgroundhighlighting" in args
     input_backgroundhighlighting = args["backgroundhighlighting"]
     valid_backgroundhighlighting = ["nothing", "basepairs", "region"]
     if input_backgroundhighlighting in valid_backgroundhighlighting:
@@ -138,7 +161,7 @@ def validateBackgroundhighlighting(args: dict):
     raise ValueError(f"The given backgroundhighlighting input ({input_backgroundhighlighting}) " +
                           "is not accepted [nothing, basepairs, region]") 
 
-def formatStructure(validated: dict) -> tuple[str, str, str]:
+def formatStructure(validated: dict) -> dict:
     """
     Format the structure for further processing.
 
@@ -149,10 +172,11 @@ def formatStructure(validated: dict) -> tuple[str, str, str]:
         validated: Dictionary containing the key 'structure'.
 
     Returns:
-        A tuple containing:
-        - first structure
-        - second structure
-        - corrected full structure
+        A dictionary containing:
+        - structure1: First structure part
+        - structure2: Second structure part
+        - structure: Corrected full structure
+        - structure_dict: Indexed structure representation
     """
     assert "structure" in validated
     structure = validated["structure"]
@@ -170,7 +194,7 @@ def formatStructure(validated: dict) -> tuple[str, str, str]:
     return {"structure1": first_struc, "structure2": second_struc, 
             "structure": structure, "structure_dict": structure_dict}
 
-def formatSequence(validated: dict) -> tuple[str, str, str]:
+def formatSequence(validated: dict) -> dict:
     """
     Format the sequence for further processing.
 
@@ -181,10 +205,11 @@ def formatSequence(validated: dict) -> tuple[str, str, str]:
         validated: Dictionary containing the key 'sequence'.
 
     Returns:
-        A tuple containing:
-        - first sequence
-        - second sequence
-        - corrected full sequence
+        A dictionary containing:
+        - sequence1: First sequence part
+        - sequence2: Second sequence part
+        - sequence: Corrected full sequence
+        - sequence_dict: Indexed sequence representation
     """
     assert "sequence" in validated
     sequence = validated["sequence"]
@@ -210,7 +235,7 @@ def getMolecules(validated: dict) -> str:
         validated: Validated input dictionary.
 
     Returns:
-        "1" if one molecule is present, otherwise "2".
+        "1" if a single molecule is present, otherwise "2".
     """
     assert "sequence2" in validated
     # returns how many molecules given. either 1 or 2
@@ -218,12 +243,14 @@ def getMolecules(validated: dict) -> str:
         return "2"
     return "1"
 
-def validateStructureInput(args: dict, validated: dict):
+def validateStructureInput(args: dict, validated: dict) -> str:
     """
     Validate and normalize structure input.
 
-    Supports both standard structure strings and hybrid notation.
-    Ensures that structure and sequence lengths are compatible.
+    Ensures that the structure string is valid dot-bracket notation
+    and that structure and sequence lengths are compatible.
+
+    Hybrid notation is processed beforehand and is not handled here.
 
     Args:
         args: Raw argument dictionary containing 'structure'.
@@ -265,7 +292,7 @@ def validateSequenceInput(args: dict) -> str:
     """
     Validate sequence input.
 
-    Only RNA sequences consisting of  IUPAC code allowed,
+    Accepts nucleotide sequences consisting of IUPAC characters,
     optionally separated by '&'.
 
     Args:
@@ -277,6 +304,7 @@ def validateSequenceInput(args: dict) -> str:
     Raises:
         ValueError: If the sequence is empty or contains invalid characters.
     """
+    assert "sequence" in args
     sequence = args["sequence"]
 
     # making sure the sequnce is in the right format: ([AGUC]+&)?[AGUC]+
@@ -303,6 +331,7 @@ def validateOffset(args : dict, offset: str) -> int:
     Raises:
         ValueError: If the offset value is not a valid integer.
     """
+    assert offset in args
     if args[offset] == "0":
         raise ValueError(f"Index 0 is not valid, use either <=-1 or >=1")
     if re.fullmatch("-?\d+", args[offset]):
@@ -321,12 +350,13 @@ def validateOutput(args: dict) -> tuple[str, str]:
 
     Returns:
         A tuple containing:
-        - full output path without extension
+        - output path including file name but without extension
         - output file type ('svg' or 'png')
 
     Raises:
         ValueError: If the output file name or file type is invalid.
     """
+    assert "output" in args
     output: str = args["output"]
     valid_output_file_types = ["svg", "png"]
 
@@ -367,6 +397,7 @@ def validateColoring(args: dict) -> str:
     Raises:
         ValueError: If the coloring value is invalid.
     """
+    assert "coloring" in args
     coloring = args["coloring"]
     if coloring in ["loop", "strand"]:
         return coloring
@@ -466,16 +497,34 @@ def validateLabelInterval(args: dict) -> str:
         The validated label interval value as a string.
 
     Raises:
-        ValueError: If the label interval is not a positive integer.
+        ValueError: If the label interval is not greater than 1.
     """
+    assert "labelInterval" in args
     interval = args["labelInterval"]
     if int(interval) <= 1:
         raise ValueError(f"Label Interval must be 2 or higher and not {interval}")
     return interval
 
 
-def validateSubsequenceInput(args: dict, v: dict, seq: str) -> tuple:
+def validateSubsequenceInput(args: dict, v: dict, seq: str) -> list:
+    """
+    Validate subsequence highlighting input.
 
+    Parses and validates subsequence intervals provided in the
+    format "start:end,start:end,...".
+
+    Args:
+        args: Argument dictionary containing subsequence input.
+        v: Dictionary with validated sequence and offset values.
+        seq: Identifier for the molecule ("1" or "2").
+
+    Returns:
+        A list of tuples representing validated subsequence intervals,
+        or an empty string if no subsequence is provided.
+
+    Raises:
+        ValueError: If the input format or values are invalid.
+    """
     name = "highlightSubseq" + seq
     offset = "offset" + seq
     sequence = "sequence" + seq
@@ -513,7 +562,24 @@ def validateSubsequenceInput(args: dict, v: dict, seq: str) -> tuple:
     
     raise ValueError(f"The given {name} input is invalid: {input_string}")
 
-def validateCropping(args, mol):
+def validateCropping(args, mol) -> int:
+    """
+    Validate cropping input for a molecule.
+
+    Converts cropping input to an integer if valid or returns None
+    if cropping is disabled.
+
+    Args:
+        args: Argument dictionary containing cropping values.
+        mol: Molecule identifier used to access the correct key.
+
+    Returns:
+        The cropping value as an integer, or None if not set.
+
+    Raises:
+        ValueError: If the cropping value is invalid.
+    """
+    assert f"crop{mol}" in args
     crop = args[f"crop{mol}"]
     if crop == "None": return None
     if re.fullmatch("\d+", crop):
@@ -521,7 +587,22 @@ def validateCropping(args, mol):
     return ValueError    
 
 
-def croppingInput(v, args):
+def croppingInput(v, args) -> dict:
+    """
+    Apply cropping to structure and sequence data.
+
+    Crops sequences and structures around intermolecular regions
+    based on specified cropping values and updates related indices
+    and subsequences.
+
+    Args:
+        v: Dictionary containing validated inputs.
+        args: Argument dictionary to be updated.
+
+    Returns:
+        Updated validated dictionary after cropping, or the original
+        dictionary if no cropping is applied.
+    """
     for var in ["molecules", "structure1", "structure2", "sequence1", "sequence2",
               "crop1", "crop2", "offset1", "offset2", 
               "highlightSubseq1", "highlightSubseq2"]:
@@ -617,7 +698,23 @@ def croppingInput(v, args):
     return validate(args)
 
 
-def validate(args):
+def validate(args) -> dict:
+    """
+    Validate and normalize all input arguments.
+
+    This function serves as the main validation pipeline. It processes
+    sequence, structure, offsets, and additional parameters, ensuring
+    consistency and correctness across all inputs.
+
+    Args:
+        args: Raw argument dictionary.
+
+    Returns:
+        A dictionary containing all validated and formatted values.
+
+    Raises:
+        ValueError: If any validation step fails.
+    """
     validated = {}
 
     validated["offset1"] = validateOffset(args, "startIndex1")
@@ -699,7 +796,23 @@ def validate(args):
 
     return validated
 
-def checkforHybridInput(args, v):
+def checkforHybridInput(args, v) -> str:
+    """
+    Detect and process hybrid structure input.
+
+    Identifies hybrid notation in the structure input, validates it,
+    and converts it into standard dot-bracket notation if necessary.
+
+    Args:
+        args: Argument dictionary containing structure input.
+        v: Dictionary with validated offsets and sequence.
+
+    Returns:
+        The processed structure string.
+    """
+    for var in ["structure", "sequence"]:
+        assert var in args
+
     offset_1 = v["offset1"]
     offset_2 = v["offset2"]
     structure = args["structure"]
@@ -721,7 +834,23 @@ def checkforHybridInput(args, v):
     return structure
 
 
-def validateAccessibilityInput(args, key):
+def validateAccessibilityInput(args, key) -> str:
+    """
+    Validate accessibility input.
+
+    Checks whether the given accessibility input is valid, either as
+    a predefined keyword or as a path to an existing file.
+
+    Args:
+        args: Argument dictionary.
+        key: Key corresponding to the accessibility parameter.
+
+    Returns:
+        The path to Accessibility input file, the RNAplfold string value or None.
+
+    Raises:
+        ValueError: If the input is invalid or the file does not exist.
+    """
     assert key in args
     if args[key] == "None":
         return None
@@ -734,7 +863,19 @@ def validateAccessibilityInput(args, key):
 
 
 
-def checkSameLength(args):
+def checkSameLength(args) -> None:
+    """
+    Ensure structure and sequence have the same length.
+
+    Compares the length of structure and sequence strings and raises
+    an error if they differ.
+
+    Args:
+        args: Argument dictionary containing 'structure' and 'sequence'.
+
+    Raises:
+        ValueError: If lengths do not match.
+    """
     for parameter in ["structure", "sequence"]:
         assert parameter in args
     structure, sequence = args["structure"], args["sequence"]
@@ -744,7 +885,23 @@ def checkSameLength(args):
         raise ValueError(f"Structure length ({len(structure)}) and Sequence length ({len(sequence)}) do not match")
 
 
-def validateInputFile(args):
+def validateInputFile(args)-> str:
+    """
+    Validate and parse FASTA input file.
+
+    Reads a FASTA file, ensures the number of sequences does not exceed
+    two, and combines them into a single string separated by '&'.
+
+    Args:
+        args: Argument dictionary containing the file path.
+
+    Returns:
+        A combined sequence string.
+
+    Raises:
+        ValueError: If the file does not exist or contains too many sequences.
+    """
+    assert "fastafile" in args
     inputFile = args["fastafile"]
     
     if not Path(inputFile).exists():
@@ -759,7 +916,22 @@ def validateInputFile(args):
     
     return "&".join(sequences.values())
 
-def parse_fasta(file_path):
+def parse_fasta(file_path) -> dict:
+    """
+    Parse a FASTA file into a dictionary of sequences.
+
+    Reads a FASTA file and extracts sequences with their corresponding
+    headers.
+
+    Args:
+        file_path: Path to the FASTA file.
+
+    Returns:
+        A dictionary mapping sequence headers to sequences.
+
+    Raises:
+        ValueError: If the FASTA format is invalid.
+    """
     sequences = {}
     current_titel = None
     current_seq = []
@@ -788,7 +960,20 @@ def parse_fasta(file_path):
 
     return sequences
 
-def predictIntramolStructure(v):
+def predictIntramolStructure(v) -> str:
+    """
+    Predict intramolecular structures for sequences.
+
+    Uses external RNA folding tools to predict intramolecular
+    structures while preserving intermolecular constraints.
+
+    Args:
+        v: Dictionary containing sequences, structures, and parameters.
+
+    Returns:
+        A combined structure string with predicted intramolecular
+        interactions.
+    """
     # works for 1 and 2 sequences
     mols = ["1"] if v["molecules"] == "1" else ["1", "2"]
     structure = {}
@@ -811,7 +996,21 @@ def predictIntramolStructure(v):
 
     
 
-def predictSequence(inter_structure, sequence, parameters):
+def predictSequence(inter_structure, sequence, parameters) ->str:
+    """
+    Predict intramolecular structure for a single sequence.
+
+    Calls an external RNA folding tool with constraints derived from
+    the intermolecular structure and integrates the predicted result.
+
+    Args:
+        inter_structure: Structure containing intermolecular constraints.
+        sequence: RNA sequence.
+        parameters: Parameters for the RNA folding tool.
+
+    Returns:
+        A structure string combining inter- and intramolecular interactions.
+    """
     # predict intramol structure for a given sequence and structure
     # the intermolecular structure stays preserved
     # prepare the RNA fold call
