@@ -2,25 +2,22 @@ import subprocess
 import re
 import logging
 
-def listIntermolNodes(struc, shift=0):
-    '''
-    Return sorted indices of intermolecular basepairs in dot-bracket notation.
+def listIntermolNodes(struc: str, shift: int = 0) -> list[tuple[int, str]]:
+    """Identify intermolecular basepair positions in a structure string.
 
-    Analyzes a secondary structure string (dot-bracket notation, no pseudoknots)
-    and returns a sorted list of 1-based indices that belong to intermolecular
-    basepairs. Opening/closing parentheses "()" and angle brackets "<>" are
-    handled independently: unmatched opens at the end or unmatched closes are
-    considered intermolecular.
+    Analyzes a dot-bracket structure (without pseudoknots) and returns
+    positions involved in intermolecular basepairs. Unmatched opening
+    or closing brackets are considered intermolecular.
+
+    Supports multiple bracket types independently: (), [], {}, <>.
 
     Args:
         struc (str): Structure string in dot-bracket notation.
+        shift (int, optional): Offset added to each index. Defaults to 0.
 
     Returns:
-        list[int]: Sorted indices (0-based) of positions that are part of intermolecular basepairs.
-
-    Example:
-        >>> listIntermolNodes("((..))..))")
-        [8, 9]
+        list[tuple[int, str]]: Sorted list of (index, bracket) pairs,
+        where index is 1-based and includes the applied shift.
 
     For the following example Structures, the intermolecular basepairs are indicated with carets (^):s
     eg (())...((...(())  and (())...))...(())
@@ -31,7 +28,7 @@ def listIntermolNodes(struc, shift=0):
        ^^                  ^^
     eg ((<<...))... and ...>>..
          ^^                ^^
-    '''
+    """
     inter_basepairs = []
     open_basepairs = {"(": [], "<": [], "[": [], "{": []}
     basepairs = [("(",")"), ("[","]"), ("{", "}"), ("<",">")]
@@ -57,7 +54,25 @@ def listIntermolNodes(struc, shift=0):
     inter_basepairs.sort()
     return inter_basepairs
 
-def runCommand(command, expected_output):
+def runCommand(command: str, expected_output: str) -> str:
+    """Execute a shell command and extract expected output via regex.
+
+    Runs the given command in a subprocess, captures stdout, and searches
+    for a match using the provided regular expression. The regex must
+    contain a capturing group, whose content will be returned.
+
+    Args:
+        command (str): Shell command to execute.
+        expected_output (str): Regular expression with a capturing group
+            to extract the desired output.
+
+    Returns:
+        str: The matched group from the command output.
+
+    Raises:
+        ValueError: If the command produces stderr output or if the
+            expected pattern is not found in stdout.
+    """
     # expected output must be inside a group
     logging.info("------------- Systemcall -------------\n" +  command)
     result = subprocess.run(command, capture_output=True, text=True, shell=True)
