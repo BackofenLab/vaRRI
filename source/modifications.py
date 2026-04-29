@@ -7,20 +7,17 @@ GAP = 3
 def sequence_coloring(first_seq, second_seq) -> list:
     """Generate a color list for two sequences.
 
-    Produces a list of CSS color names where each element of `first_seq`
-    is mapped to "lightsalmon" and each element of `second_seq` is mapped
-    to "lightgreen". The returned list length equals len(first_seq) + len(second_seq).
+    Produces a list of color values where each element of `first_seq`
+    is mapped to "lightblue" and each element of `second_seq` is mapped
+    to "#F4BB44". The returned list length equals the combined length
+    of both sequences.
 
     Args:
         first_seq (Sequence): Iterable representing the first sequence.
         second_seq (Sequence): Iterable representing the second sequence.
 
     Returns:
-        list[str]: Color names for each position in the concatenated sequences.
-
-    Example:
-        >>> sequence_coloring("ACG", "UU")
-        ['lightsalmon', 'lightsalmon', 'lightsalmon', 'lightgreen', 'lightgreen']
+        list[str]: Color values for each position in the concatenated sequences.
     """
     color = []
     color += ["lightblue" for _ in first_seq]
@@ -29,16 +26,18 @@ def sequence_coloring(first_seq, second_seq) -> list:
     return color
 
 
-def changeBackgroundColor(page, v):
-    """Color circle elements on the page according to two sequences.
+def changeBackgroundColor(page, v) -> None:
+    """Apply sequence-based coloring to circle elements in the DOM.
 
-    Executes JavaScript in the provided `page` context to set the `fill`
-    style of circle elements (selector '[r="5"]') based on the color list
-    produced by `sequence_coloring`.
+    Uses `sequence_coloring` to generate a list of colors and assigns them
+    to all circle elements matching the selector '[r="5"]' by updating their
+    fill style.
 
     Args:
         page: Playwright-like page object used to evaluate JavaScript.
-        v (dict): Dictionary containing at least "sequence1" and "sequence2".
+        v (dict): Dictionary containing:
+            - "sequence1" (Sequence): First sequence.
+            - "sequence2" (Sequence): Second sequence.
 
     Returns:
         None
@@ -92,6 +91,21 @@ def updateNodeToolTips(page, v):
 
 
 def getSequenceIndicies(seq, offset, length):
+    """Generate indexed sequence positions with RNA-style numbering.
+
+    Creates a list of (sequence_id, index) tuples starting from the given
+    offset. If the generated indices include 0, it is removed and replaced
+    by extending the sequence at the end to maintain consistent length.
+    This supports RNA-style numbering that skips zero (e.g., -2, -1, 1, 2, ...).
+
+    Args:
+        seq (str): Identifier for the sequence (e.g., "s1", "s2").
+        offset (int): Starting index offset.
+        length (int): Length of the sequence.
+
+    Returns:
+        list[tuple[str, int]]: List of (sequence_id, index) tuples.
+    """
     indicies = [(seq, i) for i in range(offset, length+offset, 1)]
     # with rna counting works like: -2, -1, 1, 2, 3, ... 
     if (seq, 0) in indicies:
@@ -103,6 +117,23 @@ def getSequenceIndicies(seq, offset, length):
     return indicies
 
 def getIndexDictionary(v):
+    """Construct a mapping of node indices to sequence labels and positions.
+
+    Combines index information for two sequences, including a fixed number
+    of gap nodes between them, and returns a dictionary mapping Fornac node
+    IDs to (sequence_id, position) pairs.
+
+    Args:
+        v (dict): Dictionary containing:
+            - "offset1" (int): Offset for sequence 1.
+            - "offset2" (int): Offset for sequence 2.
+            - "sequence1" (Sequence): First sequence.
+            - "sequence2" (Sequence): Second sequence.
+
+    Returns:
+        dict[int, list[str, int]]: Mapping from node index (1-based) to
+        [sequence_id, position].
+    """
     for var in ["offset1", "offset2", "sequence1", "sequence2"]:
         assert var in v
 
@@ -123,25 +154,24 @@ def getIndexDictionary(v):
 
         
 
-def setIndexLabels(page, v):
-    """
-    Set index markers for sequence positions with priority-based placement.
+def setIndexLabels(page, v) -> None:
+    """Set index labels for sequence positions with priority-based placement.
 
-    Determines which positions should display index markers based on a
+    Determines which positions should display index labels based on a
     three-tier priority system: sequence boundaries (highest priority),
     basepair region boundaries (medium priority), and regular intervals
-    (lowest priority). Uses `validateLabelPos` to avoid overlapping markers
-    and executes JavaScript to update the DOM with the computed marker labels.
+    (lowest priority). Prevents overlapping labels using `validateLabelPos`
+    and updates the DOM accordingly.
 
     Args:
         page: Playwright-like page object used to evaluate JavaScript.
-        v (dict): Dictionary with keys:
+        v (dict): Dictionary containing:
             - "structure1" (str): Dot-bracket notation for first structure.
             - "structure2" (str): Dot-bracket notation for second structure.
             - "sequence1" (Sequence): First sequence.
             - "labelInterval" (int): Interval for regular marker placement.
-        numbering (list[tuple[str, int]]): List of (sequence_id, position) tuples
-            representing the numbering for all positions.
+            - "molecules" (str): Number of molecules ("1" or "2").
+            - "sequence_dict" (dict): Mapping of node indices to sequence values.
 
     Returns:
         None
@@ -213,12 +243,14 @@ def setIndexLabels(page, v):
             removeLabellink(page,pos)
 
 def colorLabelRed(page, target_index):
-    """
+    """Highlight a label by coloring it red.
 
+    Applies a red stroke style to all label elements associated with
+    the given index.
 
     Args:
-        page: Playwright page object used to evaluate JavaScript.
-        target_index (int): Index of the marker/link pair mark red.
+        page: Playwright-like page object used to evaluate JavaScript.
+        target_index (int): Index of the label to highlight.
 
     Returns:
         None
@@ -265,7 +297,16 @@ def validateLabelPos(pos: int, indexing: dict, number: int) -> int:
 
 
 def removeLabel(page, index):
-    """
+    """Remove label elements for a given index.
+
+    Deletes all label group elements in the DOM that match the specified index.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        index (int): Label index to remove.
+
+    Returns:
+        None
     """
     page.evaluate("""(index) => {            
             document.querySelectorAll('[label_gnum="'+ index +'"]').forEach((node) => {
@@ -274,7 +315,17 @@ def removeLabel(page, index):
         }""", index)
 
 def removeLabellink(page, index):
-    """
+    """Remove label link elements associated with a given index.
+
+    Deletes line elements that represent label links starting at the
+    specified index.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        index (int): Index of the label link to remove.
+
+    Returns:
+        None
     """
     page.evaluate("""(index) => {            
             document.querySelectorAll('line[start="'+ index +'"]').forEach((line)=>{
@@ -287,21 +338,17 @@ def removeLabellink(page, index):
 
     
 def highlightingRegion(page, v):
-    """
-    Highlight contiguous intermolecular basepair regions for both structures.
+    """Highlight intermolecular basepair regions in the DOM.
 
-    Uses `getIntermolBasepairRegion` to identify the ranges of positions involved
-    in intermolecular basepairs for both structures, then executes JavaScript
-    to set a red stroke on all circle nodes within those regions in the DOM.
+    Uses `getIntermolBasepairRegion` to identify contiguous regions of
+    intermolecular basepairs and applies a red stroke style to all
+    corresponding nodes.
 
     Args:
         page: Playwright-like page object used to evaluate JavaScript.
-        v (dict): Dictionary with keys:
-            - "structure1" (str): Dot-bracket notation for first structure.
-            - "structure2" (str): Dot-bracket notation for second structure (must be non-empty).
-
-    Raises:
-        AssertionError: If `structure2` is empty or if no intermolecular pairs are found.
+        v (dict): Dictionary containing:
+            - "structure1" (str): First structure.
+            - "structure2" (str): Second structure (must not be empty).
 
     Returns:
         None
@@ -323,6 +370,19 @@ def highlightingRegion(page, v):
 
 
 def addStyleToNodes(page, node_ids, style):
+    """Apply additional CSS styles to specified nodes.
+
+    Iterates over given node IDs and appends the provided style string
+    to the existing style attribute of each corresponding SVG circle element.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        node_ids (Sequence[int]): List of node IDs to style.
+        style (str): CSS style string to append.
+
+    Returns:
+        None
+    """
     page.evaluate("""([node_ids, style]) => {
             node_ids.forEach((node_id)=>{
                   document.querySelectorAll(`circle[node_num="${node_id}"]`).forEach((node)=>{
@@ -422,28 +482,24 @@ def polyline(page, indicies, style):
         }""", [indicies, style])
 
     
-def getIntermolBasepairRegion(structure1, structure2):
-    """
-    Determine contiguous intermolecular basepair regions for both structures.
+def getIntermolBasepairRegion(structure1, structure2) -> list:
+    """Determine intermolecular basepair regions for both structures.
 
-    For each structure, identifies the range of positions involved in
-    intermolecular basepairs using `listIntermolNodes`, converts from
-    0-based to 1-based indexing, and adjusts the second structure's
-    indices to Fornac's global coordinate system by adding an offset
-    equal to the length of the first structure plus 3 (for separator nodes).
+    Identifies the range of positions involved in intermolecular basepairs
+    for each structure using `listIntermolNodes`. Converts indices to
+    1-based coordinates and shifts the second structure to match the global
+    Fornac coordinate system.
+
+    If no intermolecular basepairs are found in a structure, an empty list
+    is returned.
 
     Args:
         structure1 (str): Dot-bracket notation for the first RNA structure.
         structure2 (str): Dot-bracket notation for the second RNA structure.
 
     Returns:
-        list[tuple[int, int]]: List of (start, end) tuples representing
-        the 1-based index ranges of intermolecular basepair regions for
-        both structures, with the second structure's indices adjusted
-        to global Fornac coordinates.
-
-    Raises:
-        AssertionError: If no intermolecular basepairs are found in either structure.
+        list[tuple[int, int]]: List of (start, end) index ranges for
+        intermolecular basepair regions, or an empty list if none exist.
     """
     basepair_region = []
     offset = len(structure1) + GAP
@@ -632,6 +688,17 @@ def visualiseBasepairStength(page, v):
 
 
 def setLinksId(page):
+    """Assign start and end node IDs to link elements.
+
+    Parses the textual content of link elements in the DOM to extract
+    node IDs and sets them as "start" and "end" attributes on each line.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+
+    Returns:
+        None
+    """
     page.evaluate("""() => {
         var list_of_lines = document.querySelectorAll('line');
         list_of_lines.forEach(line => {
@@ -645,6 +712,18 @@ def setLinksId(page):
     }""")
 
 def setLabelsId(page):
+    """Assign sequential IDs to label elements in the DOM.
+
+    Iterates over label group elements and assigns unique identifiers
+    for both the group ("label_gnum") and its child label ("label_num"),
+    based on their order in the document.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+
+    Returns:
+        None
+    """
     page.evaluate("""() => {
         var list_of_labels = document.querySelectorAll('g[num="n-1"]');
         list_of_labels.forEach((label, index) => {
@@ -674,7 +753,6 @@ def updateLinkTooltips(page, v):
 
 
 def backgroundhighlightingBasepairs(page, v):
-
     intermol_pairs = listIntermolPairs(v)
     if intermol_pairs == []:
         return
@@ -698,7 +776,20 @@ def backgroundhighlightingBasepairs(page, v):
 
 
 def backgroundhighlightingRegion(page, v):
-    """
+    """Highlight intermolecular regions with a filled background.
+
+    Identifies contiguous intermolecular basepair regions and draws a
+    filled polyline over the corresponding nodes to visually emphasize
+    the region.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        v (dict): Dictionary containing:
+            - "structure1" (str): First structure.
+            - "structure2" (str): Second structure.
+
+    Returns:
+        None
     """
     for var in ["structure1", "structure2"]:
         assert var in v
@@ -718,6 +809,21 @@ def backgroundhighlightingRegion(page, v):
 
 
 def listIntermolPairs(v):
+    """Extract intermolecular basepairs from combined structure data.
+
+    Builds a combined structure representation from two input structures,
+    marks intermolecular basepairs using `listIntermolNodes`, and returns
+    a list of basepair index tuples.
+
+    Args:
+        v (dict): Dictionary containing:
+            - "structure_dict" (dict): Combined structure representation.
+            - "structure1" (str): First structure (dot-bracket notation).
+            - "structure2" (str): Second structure.
+
+    Returns:
+        list[tuple[int, int]]: List of basepair index pairs.
+    """
     for var in ["structure_dict", "structure1", "structure2"]:
         assert var in v
     struc = v["structure_dict"]
@@ -733,8 +839,17 @@ def listIntermolPairs(v):
 
 
 def listBasepairs(struc: dict):
-    '''
-    '''
+    """Parse basepairs from a dot-bracket-like structure dictionary.
+
+    Uses a stack-based approach to match opening and closing brackets
+    and extract basepair index tuples for multiple bracket types.
+
+    Args:
+        struc (dict[int, str]): Mapping of positions to structure characters.
+
+    Returns:
+        list[tuple[int, int]]: Sorted list of basepair index pairs.
+    """
     basepairs = []
     open_basepairs = {"(": [], "<": [], "[": [], "{": []}
     brackets = [("(",")"), ("[","]"), ("{", "}"), ("<",">")]
@@ -755,15 +870,34 @@ def listBasepairs(struc: dict):
     return basepairs
 
 def showAccessibility(v, default_lunp_file, page):
-    # options:
-    # do not show accessibility : None
-    # show accessibility using given data : "/file/lunp"
-    # show accessibility using predicted data = ""
-    # access1 = None
-    # access2 = ""
-    RNAplfold_parameters = v["RNAplfold"]
-    RNAplfold_call = "echo SEQ | RNAplfold WLEN -u1 PARAMETERS", "(^$)"
+    """Visualize accessibility data for one or two sequences.
 
+    Depending on configuration, accessibility data is either:
+    - disabled (None),
+    - computed using RNAplfold ("RNAplfold"),
+    - or loaded from a provided lunp file.
+
+    The resulting accessibility values are mapped to node opacity
+    and rendered as overlays in the DOM.
+
+    Args:
+        v (dict): Dictionary containing:
+            - "sequence1" (str): First sequence.
+            - "sequence2" (str): Second sequence.
+            - "accessibility1" (str | None): Accessibility source for sequence 1.
+            - "accessibility2" (str | None): Accessibility source for sequence 2.
+            - "RNAplfold" (str): Parameters for RNAplfold.
+        default_lunp_file (str): Path to default lunp output file.
+        page: Playwright-like page object used to evaluate JavaScript.
+
+    Returns:
+        None
+    """
+    for var in ["accessibility1", "accessibility2", 
+                "sequence1", "sequence2", "RNAplfold"]:
+        assert var in v
+    
+    RNAplfold_parameters = v["RNAplfold"]
     acc1 = v["accessibility1"]
     acc2 = v["accessibility2"]
     sequence1 = v["sequence1"]
@@ -815,12 +949,37 @@ def visualiseAccessibilty(page, access_data, len_seq):
         addAccessibilityOverlay(page, index, style, prb_tooltip)
 
 def map_probability_to_opacity(prb):
+    """Convert a probability value to an opacity value.
+
+    Maps a probability in the range [0, 1] to an opacity value by
+    subtracting it from 1, so higher probabilities result in lower opacity.
+
+    Args:
+        prb (float): Probability value.
+
+    Returns:
+        float: Corresponding opacity value.
+    """
     return 1 - prb
 
 
 
 
 def addAccessibilityOverlay(page, id, style, tooltip):
+    """Add a visual overlay node representing accessibility data.
+
+    Clones an existing node, applies a new style and tooltip, and inserts
+    it directly after the original node in the DOM.
+
+    Args:
+        page: Playwright-like page object used to evaluate JavaScript.
+        id (int): Node ID to overlay.
+        style (str): CSS style string for the overlay node.
+        tooltip (str): Additional tooltip text to append.
+
+    Returns:
+        None
+    """
     page.evaluate("""([id, style, tooltip]) => {
         document.querySelectorAll(`circle[node_num="${id}"]`).forEach((node)=>{
             var overlay_node = node.cloneNode(true);
@@ -831,31 +990,6 @@ def addAccessibilityOverlay(page, id, style, tooltip):
             });
     }""", [id, style, tooltip])
 
-
-
-
-def showAccessibilityOld(v, path, page):
-    assert v["molecules"] == "2"
-
-    sequence1 = v["sequence1"]
-    sequence2 = v["sequence2"]
-    offset1= 0
-    offset2 = len(sequence1) + GAP
-    RNAfold_parameters = v["RNAfold"]
-
-    struc = v["structure_dict"]
-
-
-    probabillity = {i: 0 for i, _  in struc.items()}
-
-    for sequence, offset in [(sequence1, offset1), (sequence2, offset2)]:
-        new_probabillity = calculateProbabilities(sequence, offset, path, RNAfold_parameters)
-        probabillity.update(new_probabillity)
-    
-    
-    for index, probabillity in probabillity.items():
-        style = f"opacity: {1 - probabillity / 2}"
-        addStyleToNodes(page, [index], style)
 
 def parseLunpFile(path, shift):
     probabillity = {}
@@ -874,7 +1008,24 @@ def parseLunpFile(path, shift):
 
 
 def calculateProbabilities(sequence, offset, path, RNAfold_parameters):
+    """Calculate basepair probabilities using RNAfold output.
 
+    Executes RNAfold to compute basepair probabilities, parses the output
+    file, and accumulates pairing probabilities for each nucleotide,
+    adjusted by the given offset.
+
+    Args:
+        sequence (str): RNA sequence.
+        offset (int): Offset applied to node indices.
+        path (str): Path to the RNAfold output file.
+        RNAfold_parameters (str): Additional parameters for RNAfold.
+
+    Returns:
+        dict[str, float]: Mapping from node ID (as string) to probability.
+
+    Raises:
+        FileNotFoundError: If the output file cannot be found.
+    """
     runCommand(f"echo {sequence} | RNAfold -p --noPS {RNAfold_parameters}", "([\.()]+)")
 
     probabillity = {}
