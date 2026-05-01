@@ -1,8 +1,26 @@
 # vaRRI
 This Tool creates a visualization for any working inter- and intramolecular structure and sequence involving one or two molecules, using FornaC.
 
-Example interaction between the molecule MicF and IpxR, displayed in the paper(link), generated using vaRRI
-![example.svg](test/verified/test36_animated.svg)
+Example interaction between the molecule MicF and IpxR, displayed in this [paper](https://doi.org/10.1111/j.1365-2958.2012.08031.x) also generated using vaRRI
+
+<table>
+<tr>
+<td>
+        <a href="test/images/README_paper_example.png">
+            <img src="test/images/README_paper_example.png" width="200">
+        </a>    
+</td>
+<td>
+        <a href="test/verified/test36_animated.svg">
+            <img src="test/verified/test36_animated.svg" width="200">
+        </a>   
+
+</td>
+</tr>
+</table>
+
+
+
 ~~~
 ./rna_to_img.py -o=example.svg --startIndex1=67 --sequence="GCCAGUAGCCUUGCUAUUUCAGUGGCGAAUGAUGAUGCAGGU&GCUAUCAUCAUUAACUUUAUUUAU" --structure="...(((((............(((....(((((((((((....&)).))))))))).))))))))..." --accessibility1="RNAplfold" --accessibility2="RNAplfold"
 ~~~
@@ -84,7 +102,7 @@ rna_to_img.py \
 
 </td>
     <td style="border:none;">
-        <a href="test/verified/test1.svg">
+        <a href="test/verified/test2.svg">
             <img src="test/verified/test2.svg" width="200">
         </a>    
     </td>
@@ -224,8 +242,9 @@ rna_to_img.py \
 <br/> 
 </details>
 <details>
-<summary><b><code>--sequence</code></b> Specifies the RNA sequence using IUPAC nucleotide codes
+<summary><b><code>--sequence</code></b> Specifies the RNA sequence using IUPAC nucleotide codes (see also <b><code>--fastafile</code></b>)
 </summary>
+
 
 | Code | Nucleotide | Code | Nucleotide |
 |------|-----------|------|-----------|
