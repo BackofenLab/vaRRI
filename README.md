@@ -559,10 +559,12 @@ rna_to_img.py \
 <details>
 <summary><code><b>--predictStructure1</code>, <code>--predictStructure2</code></b> Enable intramolecular structure prediction </summary>
 
-| Parameter             | Description                           |
-| --------------------- | ------------------------------------- |
-| `--predictStructure1` | Predict intramolecular structure for first molecule. Constraints: `--structure` Basepairs  |
-| `--predictStructure2` | Predict intramolecular structure for second molecule. Constraints: `--structure` Basepairs  |
+| Flag Option            | Description                         |
+| ----------------- | ----------------------------------- |
+| Enabled  | Predict intramolecular structure for each molecule. Using RNAfold with constraints: `--structure` given Basepairs |
+| Disabled  (default)        | No structure prediction          |
+
+
 
 ```sh
 rna_to_img.py \
@@ -586,7 +588,7 @@ rna_to_img.py \
 </details>
 
 <details>
-<summary><code><b>--accessibility1</code>, <code>--accessibility2</code></b> Visualize nucleotide accessibility </summary>
+<summary><code><b>--accessibility1</code>, <code>--accessibility2</code></b> Visualize nucleotide accessibility</summary>
 
 
 | Option           | Description                           |
