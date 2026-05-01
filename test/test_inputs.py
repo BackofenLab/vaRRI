@@ -62,9 +62,10 @@ inputs = [
     # complex showcase test [start 31, tests 1]
     'SCRIPT --structure=".<<<....>>>.(((.<<<<<....>>>>>.(((..<<..>>..&..<<....>>..)))...)))." --sequence="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN"  -o=TEST',
     'SCRIPT --structure="....(((......&..))).." --sequence="NNNNNNNNNNNNN&NNNNNNN" -o=TEST ',
-    'SCRIPT -o=TEST -H=region --startIndex1=-10 --startIndex2=200 --predictStructure1 --structure="..((((...))))...((...((..(((...))).((.....))))))" --accessibility1="RNAplfold" --accessibility2="RNAplfold" --sequence="ACGAUCAGAGAUCAGAGCAUACGACCCCAAAGGGAGCAGAAAAAAAAA" --RNAplfold="-T20" --highlightSubseq2=201:222 --predictStructure2',
-    'SCRIPT -o=TEST -H=region --startIndex1=-10 --startIndex2=200 --predictStructure1 --structure="5..||||...&209...||||...." --accessibility1="RNAplfold" --accessibility2="RNAplfold" --fastafile=test/example.fasta --RNAplfold="-T20" --highlightSubseq2=201:222 --predictStructure2',
-    'SCRIPT -o=TEST -H=region --startIndex1=-10 --startIndex2=200 --predictStructure1 --structure="5..||||...&209...||||...." --accessibility1="RNAplfold" --accessibility2="RNAplfold" --fastafile=test/example.fasta --RNAplfold="-T20" --highlightSubseq2=201:222 --predictStructure2 --crop=5',
+    'SCRIPT -o=TEST -H=region --startIndex1=-10 --startIndex2=200 --predictStructure1 --structure="..((((...))))...((...((..(((...))).((.....))))))" --accessibility1="RNAplfold" --accessibility2="RNAplfold" --sequence="ACGAUCAGAGAUCAGAGCAUACGACCCCAAAGGGAGCAGAAAAAAAAA" --RNAplfold="-T20"',
+    'SCRIPT -o=TEST -H=region --startIndex1=-10 --startIndex2=200 --predictStructure1 --structure="5..||||...&209...||||...." --accessibility1="RNAplfold" --accessibility2="RNAplfold" --fastafile=test/example.fasta --RNAplfold="-T20" --highlightSubseq2=215:222 --predictStructure2',
+    'SCRIPT -o=TEST -H=region --startIndex1=-10 --startIndex2=200 --predictStructure1 --structure="5..||||...&209...||||...." --accessibility1="RNAplfold" --accessibility2="RNAplfold" --fastafile=test/example.fasta --RNAplfold="-T20" --highlightSubseq2=210:222 --predictStructure2 --crop=5',
+    'SCRIPT -o=TEST --startIndex1=67 --sequence="GCCAGUAGCCUUGCUAUUUCAGUGGCGAAUGAUGAUGCAGGU&GCUAUCAUCAUUAACUUUAUUUAU" --structure="...(((((............(((....(((((((((((....&)).))))))))).))))))))..." --accessibility1="RNAplfold" --accessibility2="RNAplfold"'
     ]
 
 

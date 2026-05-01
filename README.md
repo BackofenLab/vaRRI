@@ -1,11 +1,10 @@
 # vaRRI
 This Tool creates a visualization for any working inter- and intramolecular structure and sequence involving one or two molecules, using FornaC.
 
-Example for two colored molecules, with their intermolecular region highlighted:
-
-![example.svg](test/verified/test31.svg)
+Example interaction between the molecule MicF and IpxR, displayed in the paper(link), generated using vaRRI
+![example.svg](test/verified/test36_animated.svg)
 ~~~
-./rna_to_img.py -u=".<<<....>>>.(((.<<<<<....>>>>>.(((..<<..>>..&..<<....>>..)))...)))." -e="NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN&NNNNNNNNNNNNNNNNNNNNNN" -c=strand -o=example.svg
+./rna_to_img.py -o=example.svg --startIndex1=67 --sequence="GCCAGUAGCCUUGCUAUUUCAGUGGCGAAUGAUGAUGCAGGU&GCUAUCAUCAUUAACUUUAUUUAU" --structure="...(((((............(((....(((((((((((....&)).))))))))).))))))))..." --accessibility1="RNAplfold" --accessibility2="RNAplfold"
 ~~~
 # Overview
 
@@ -40,15 +39,15 @@ python3 -m playwright --version
 ## Mandatory Parameters
 
 <details>
-<summary><code><b>-u</code>/ <code>--structure</code></b> Specifies the RNA secondary structure in dot-bracket notation.</summary>
+<summary><b><code>--structure</code></b> Specifies the RNA secondary structure in dot-bracket notation.</summary>
 
 
 | Notation | Meaning |
 |----------|---------|
 | `(` `)` | Base pair |
-| `[` `]` | Alternative bracket pair (pseudoknot region 1) |
-| `<` `>` | Alternative bracket pair (pseudoknot region 2) |
-| `{` `}` | Alternative bracket pair (pseudoknot region 3) |
+| `[` `]` | Alternative bracket pair  |
+| `<` `>` | Alternative bracket pair  |
+| `{` `}` | Alternative bracket pair  |
 | `.` | Unpaired nucleotide |
 | `&` | Separator between two molecules (intermolecular interaction) |
 
@@ -225,7 +224,7 @@ rna_to_img.py \
 <br/> 
 </details>
 <details>
-<summary><code><b>-e</code>/ <code>--sequence</code></b> Specifies the RNA sequence using IUPAC nucleotide codes
+<summary><b><code>--sequence</code></b> Specifies the RNA sequence using IUPAC nucleotide codes
 </summary>
 
 | Code | Nucleotide | Code | Nucleotide |
@@ -243,7 +242,7 @@ rna_to_img.py \
     <br/><br/>
 
 ```sh
-rna_to_img.py -u="((...))." -e="ACGAGUGA"
+rna_to_img.py -u=".((...))." -e="AACGAGUGA"
 ```
 
 </td>
@@ -318,7 +317,7 @@ rna_to_img.py \
 </details>
 
 <details>
-<summary><code><b>-i</code>/ <code>--highlighting</code></b> Specifies which elements should be highlighted in intermolecular structures </summary>
+<summary><code><b>-H</code>/ <code>--highlighting</code></b> Specifies the highlighting mode for intermolecular structures </summary>
 
 
 <table style="width:100%">
@@ -395,10 +394,26 @@ rna_to_img.py \
 
 
 </details>
+<details>
+<summary><code><b>-bH</code>/ <code>--backgroundhighlighting</code></b> Specifies the background highlighting mode for intermolecular interactions </summary>
+
+| Option | Description |
+|--------|------------|
+| `nothing` | no background highlighting |
+| `basepairs` (default) | highlights intermolecular basepair stacking |
+| `region` | highlights the full intermolecular interaction region |
+
+
+```sh
+rna_to_img.py \
+  --structure="((...))..<<..&...>>.." \
+  --sequence="NNNNNNNNNNNNN&NNNNNNN" \
+  -bH=region
+```
+</details>
 
 <details>
-<summary><code><b>-i1</code>/ <code>--startIndex1</code></b> Sets the starting index for the first molecule's nucleotide numbering </summary>
-
+<summary><code><b>-i1</code>/ <code>--startIndex1</code>, <code>-i2</code>/ <code>--startIndex2</code></b> Sets the starting index for each molecule </summary>
 
 | Parameter | Constraint |
 |-----------|-----------|
@@ -408,7 +423,7 @@ rna_to_img.py \
 <table style="width:100%">
   <tr>
     <td> 
-    <b>Example (start numbering at 10):</b>
+      <b>Example:</b> Indexing starts with 10
     <br/><br/>
 
 ```sh
@@ -425,23 +440,11 @@ rna_to_img.py \
         </a>
     </td>
   </tr>
-</table>
-
-</details>
-<details>
-<summary><code><b>-i2</code>/ <code>--startIndex2</code></b> Sets the starting index for the second molecule's nucleotide numbering (only relevant for intermolecular structures) </summary>
-
-
-| Parameter | Constraint |
-|-----------|-----------|
-| Default | `1` |
-| Restriction | Cannot be `0` |
-
-<table style="width:100%">
   <tr>
     <td> 
-    <b>Example:</b>
+      <b>Example:</b> Both molecules have different start indicies
     <br/><br/>
+
     
 ```sh
 rna_to_img.py \
@@ -459,17 +462,173 @@ rna_to_img.py \
     </td>
   </tr>
 </table>
-
 </details>
 <details>
 <summary><code><b>-v</code>/ <code>--verbose</code></b>
  Enables detailed logging output for debugging and troubleshooting </summary>
 
-
 ```bash
 ./rna_to_img.py -u="((...))." -e="ACGAGUGA" -v
 ```
 </details>
+<details>
+<summary><code><b>-l</code>/ <code>--labelInterval</code></b> Defines how often labels with indices are displayed </summary>
+
+| Option | Description |
+|-----------|-------------|
+| n | Shows index labels every *n* nucleotides  |
+| `10` | default |
+
+```sh
+rna_to_img.py \
+  -u="((...))....((...))" \
+  -e="ACGAGUGAACGAGUGA" \
+  -l=5
+```
+</details>
+
+<details>
+<summary><code><b>--crop</code>, <code>--crop1</code>, <code>--crop2</code></b> Crops sequences around the intermolecular interaction region </summary>
+
+
+| Parameter | Description                        |
+| --------- | ---------------------------------- |
+| `--crop`  | Applies cropping to both molecules |
+| `--crop1` | Crops only the first molecule      |
+| `--crop2` | Crops only the second molecule     |
+
+```sh
+rna_to_img.py \
+  -u="((...))..<<..&...>>.." \
+  -e="NNNNNNNNNNNNN&NNNNNNN" \
+  --crop=5
+```
+
+</details>
+
+
+<details>
+<summary><code><b>--highlightSubseq1</code>,  <code>--highlightSubseq2</code></b> Highlights specific subsequences </summary>
+
+| Parameter            | Description                    |
+| -------------------- | ------------------------------ |
+| `--highlightSubseq1` | Subsequences in first molecule  |
+| `--highlightSubseq2` | Subsequences in second molecule |
+
+```sh
+rna_to_img.py \
+  -u="((...))..<<..&...>>.." \
+  -e="NNNNNNNNNNNNN&NNNNNNN" \
+  --highlightSubseq1="1:2,5:10"
+```
+
+</details>
+
+
+<details>
+<summary><code><b>--guBasepairs</code></b> Controls visualization of G-U base pairs </summary>
+
+| Option            | Description                         |
+| ----------------- | ----------------------------------- |
+| Enabled (default) | G-U basepairs shown as dashed lines |
+| Disabled          | No special visualization            |
+
+```sh
+rna_to_img.py \
+  -u="((...))" \
+  -e="GUGUGUGU" \
+  --guBasepairs
+```
+
+</details>
+
+
+<details>
+<summary><code><b>--fastafile</code></b> Load one or two sequences from a FASTA file </summary>
+
+
+```sh
+rna_to_img.py \
+  --fastafile=example.fasta \
+  -u="((...))"
+```
+
+</details>
+
+
+<details>
+<summary><code><b>--predictStructure1</code>, <code>--predictStructure2</code></b> Enable intramolecular structure prediction </summary>
+
+| Parameter             | Description                           |
+| --------------------- | ------------------------------------- |
+| `--predictStructure1` | Predict intramolecular structure for first molecule. Constraints: `--structure` Basepairs  |
+| `--predictStructure2` | Predict intramolecular structure for second molecule. Constraints: `--structure` Basepairs  |
+
+```sh
+rna_to_img.py \
+  -e="ACGAGUGA" \
+  --predictStructure1
+```
+
+</details>
+
+<details>
+<summary><code><b>--animation</code></b> Activates fornac’s force-directed layout animation
+</summary>
+
+```sh
+rna_to_img.py \
+  -u="((...))" \
+  -e="ACGAGUGA" \
+  --animation
+```
+
+</details>
+
+<details>
+<summary><code><b>--accessibility1</code>, <code>--accessibility2</code></b> Visualize nucleotide accessibility </summary>
+
+
+| Option           | Description                           |
+| ---------------- | ------------------------------------- |
+| `None` (default) | No visualization                      |
+| `RNAplfold`      | Predict accessibility using RNAplfold |
+| `path/to/file`   | Use precomputed lunp file             |
+
+```sh
+rna_to_img.py \
+  -u="((...))" \
+  -e="ACGAGUGA" \
+  --accessibility1="RNAplfold"
+```
+
+</details>
+
+<details>
+<summary><code><b>--RNAfold</code></b> Pass custom parameters to RNAfold </summary>
+
+```sh
+rna_to_img.py \
+  -e="ACGAGUGA" \
+  --predictStructure1 \
+  --RNAfold="-T20"
+```
+
+</details>
+
+<details>
+<summary><code><b>--RNAplfold</code></b> Pass custom parameters to RNAplfold </summary>
+
+
+```sh
+rna_to_img.py \
+  -e="ACGAGUGA" \
+  --accessibility1="RNAplfold" \
+  --RNAplfold="-T20"
+```
+
+</details>
+
 
 
 ## Usage Examples

@@ -725,6 +725,7 @@ def validate(args) -> dict:
     validated["guBasepairs"] = args["guBasepairs"]
     validated["predictStructure1"] = args["predictStructure1"] 
     validated["predictStructure2"] = args["predictStructure2"] 
+    validated["animation"] = args["animation"]
 
 
     # --------------------------------------------------------------

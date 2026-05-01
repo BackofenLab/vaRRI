@@ -61,18 +61,21 @@ except FileNotFoundError:
 
 
 def buildMolecules(page, v):
-    for var in ["structure", "sequence", "labelInterval"]:
+    for var in ["structure", "sequence", "animation"]:
         assert var in v
     # complete structure and sequence with fix
-    structure, sequence, interval = v["structure"], v["sequence"], v["labelInterval"]
+    structure, sequence, animation = v["structure"], v["sequence"], v["animation"]
 
-    page.evaluate("""([structure, sequence, interval]) => {
-            var container = new fornac.FornaContainer("#rna_ss", {'animation': false, 'labelInterval': 1});
+    page.evaluate("""([structure, sequence, animation]) => {
+            var container = new fornac.FornaContainer("#rna_ss", {'animation': animation, 'labelInterval': 1});
             var options = {'structure': structure,
                         'sequence': sequence
             };
             container.addRNA(options.structure, options);
-        }""", [structure, sequence, interval])
+        }""", [structure, sequence, animation])
+    
+    if animation:
+            page.wait_for_timeout(2000)
     
 # -----------------------------------------------------------------
 def setupLogging(v: dict):
@@ -350,6 +353,10 @@ if __name__ == '__main__':
 			'--predictStructure2',
 			help='enable intramolecular structure prediction for the second sequence',
             action='store_true')
+    parser.add_argument(
+			'--animation',
+			help='enable fornacs forcefield, to allow the structure to move ',
+            action='store_true')    
     parser.add_argument(
 			'--accessibility1',
 			help='Visualising Node accessibility in sequence 1 \n'\
