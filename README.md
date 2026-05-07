@@ -1,25 +1,23 @@
 # vaRRI
 This Tool creates a visualization for any working inter- and intramolecular structure and sequence involving one or two molecules, using FornaC.
 
-Example interaction between the molecule MicF and IpxR, displayed in this [paper](https://doi.org/10.1111/j.1365-2958.2012.08031.x) also generated using vaRRI
-
 <table>
 <tr>
-<td>
+<td style="border:none;">
+ Example interaction between the molecule MicF and IpxR, displayed in this <a href="https://doi.org/10.1111/j.1365-2958.2012.08031.x">paper</a>   
+</td>
+<td style="border:none;">
         <a href="test/images/README_paper_example.png">
             <img src="test/images/README_paper_example.png" width="200">
-        </a>    
-</td>
-<td>
-        <a href="test/verified/test36_animated.svg">
-            <img src="test/verified/test36_animated.svg" width="200">
         </a>   
 
 </td>
 </tr>
 </table>
 
-
+<a href="test/verified/test36_animated.svg">
+    <img src="test/verified/test36_animated.svg">
+</a>   
 
 ~~~
 ./rna_to_img.py -o=example.svg --startIndex1=67 --sequence="GCCAGUAGCCUUGCUAUUUCAGUGGCGAAUGAUGAUGCAGGU&GCUAUCAUCAUUAACUUUAUUUAU" --structure="...(((((............(((....(((((((((((....&)).))))))))).))))))))..." --accessibility1="RNAplfold" --accessibility2="RNAplfold"

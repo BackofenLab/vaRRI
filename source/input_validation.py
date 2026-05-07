@@ -762,7 +762,7 @@ def validate(args) -> dict:
     # if enabled, use structure prediction for intramolecular structure
     validated["molecules"] = getMolecules(validated)
 
-    if validated["predictStructure1"] == True or validated["predictStructure2"]:
+    if validated["predictStructure1"] or validated["predictStructure2"]:
         validated["structure"] = predictIntramolStructure(validated)
 
     # if an interaction between 2 Molecules is given, fornac does not display 
