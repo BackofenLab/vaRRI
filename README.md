@@ -17,7 +17,10 @@ This Tool creates a visualization for any working inter- and intramolecular stru
 
 <a href="test/verified/test36_animated.svg">
     <img src="test/verified/test36_animated.svg">
-</a>   
+</a>
+
+(Temporary Information) Displaying: purple strand IpxR, orange strand MicF, red link intermolecular Basepair, brighter -> darker node: accessible -> less accessible node
+
 
 ~~~
 ./rna_to_img.py -o=example.svg --startIndex1=67 --sequence="GCCAGUAGCCUUGCUAUUUCAGUGGCGAAUGAUGAUGCAGGU&GCUAUCAUCAUUAACUUUAUUUAU" --structure="...(((((............(((....(((((((((((....&)).))))))))).))))))))..." --accessibility1="RNAplfold" --accessibility2="RNAplfold"
