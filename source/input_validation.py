@@ -1,7 +1,10 @@
 import re
 import logging
-from utils import (listIntermolNodes, runCommand)
+from utils import (listIntermolNodes, runCommand, parseLunpFile,  plfold_lunp)
 from pathlib import Path
+
+# invisible Nodes between 2 molecules, seperating them
+GAP = 3
 
 def checkStructureInputSimple(structure: str) -> None:
     """
@@ -587,7 +590,7 @@ def validateCropping(args, mol) -> int:
     return ValueError    
 
 
-def croppingInput(v, args) -> dict:
+def croppingInput(v) -> dict:
     """
     Apply cropping to structure and sequence data.
 
@@ -604,12 +607,12 @@ def croppingInput(v, args) -> dict:
         dictionary if no cropping is applied.
     """
     for var in ["molecules", "structure1", "structure2", "sequence1", "sequence2",
-              "crop1", "crop2", "offset1", "offset2", 
+              "crop1", "crop2", "offset1", "offset2", "access_data",
               "highlightSubseq1", "highlightSubseq2"]:
         assert var in v
 
     # only makes sense in an intermolecular setting
-    if v["molecules"] == 2:
+    if v["molecules"] == "1":
         return v
     
     # all variables that may change
@@ -619,6 +622,7 @@ def croppingInput(v, args) -> dict:
     startIndex = {1: v["offset1"], 2: v["offset2"]}
     endIndex = {1: 0, 2: 0}
     subsequence = {1: str(v["highlightSubseq1"]), 2: str(v["highlightSubseq2"])}
+    access_data = {1: {}, 2:{}}
 
     # if no cropping is needed, return without changing anything
     if crop[1] is None and crop[2] is None:
@@ -667,6 +671,14 @@ def croppingInput(v, args) -> dict:
         startIndex[mol] += start_crop + 1 if crosses_zero else start_crop
         endIndex[mol] = startIndex[mol] + len(structure[mol])
 
+        # add accessibility if inside the cropped sequence
+        old_shift = 1 if mol == 1 else len(v['structure1']) + 2
+        new_shift = 1 if mol == 1 else len(structure[1]) + 2
+        crop_indicies = {old: new for new, old in enumerate(list(range(start_crop+old_shift, end_crop+old_shift+1)),new_shift)}
+        access_data[mol] = {crop_indicies[i]: prb for i, prb in v["access_data"].items() if i in crop_indicies.keys()}
+
+  
+
         # skip cropping the subsequences if they are set to None
         if subsequence[mol] == "":
             continue
@@ -682,20 +694,26 @@ def croppingInput(v, args) -> dict:
             subsequence[mol] += [(new_start_sub, new_end_sub)]
 
 
-        subsequence[mol] = ",".join([f"{s}:{e}" for (s,e) in subsequence[mol]])
 
 
-    args["startIndex1"] = str(startIndex[1])
-    args["startIndex2"] = str(startIndex[2])
-    args["sequence"] = "".join(sequence[1]) + "&" + "".join(sequence[2])
-    args["structure"] = "".join(structure[1]) + "&" + "".join(structure[2]) 
-    args["highlightSubseq1"] = subsequence[1]
-    args["highlightSubseq2"] = subsequence[2]
-    args["fastafile"] = "None"
-    args["predictStructure1"] = False
-    args["predictStructure2"] = False
+    validated = {}
+    validated["offset1"] = startIndex[1]
+    validated["offset2"] = startIndex[2]
+    validated["sequence"] = "".join(sequence[1]) + "&" + "".join(sequence[2])
+    validated["structure"] = "".join(structure[1]) + "&" + "".join(structure[2]) 
+    validated["highlightSubseq1"] = subsequence[1]
+    validated["highlightSubseq2"] = subsequence[2]
+    validated["fastafile"] = "None"
+    validated["predictStructure1"] = False
+    validated["predictStructure2"] = False
 
-    return validate(args)
+    validated.update(formatStructure(validated))
+    validated.update(formatSequence(validated))
+
+    validated["access_data"] = access_data[1] | access_data[2]
+    # access data cropping
+
+    return validated
 
 
 def validate(args) -> dict:
@@ -791,11 +809,90 @@ def validate(args) -> dict:
     validated["accessibility1"] = validateAccessibilityInput(args, "accessibility1")
     validated["accessibility2"] = validateAccessibilityInput(args, "accessibility2")
 
+    validated["access_data"] = parseAccessibility(validated)
+
     for i in ("1","2"):
         validated[f"highlightSubseq{i}"] = validateSubsequenceInput(args, validated, i)
         validated[f"crop{i}"] = validateCropping(args, "") if args["crop"] != "None" else validateCropping(args, i)
 
+
+    # ---------------------------
+    # crop all input
+    validated.update(croppingInput(validated))
+
+
     return validated
+
+
+def parseAccessibility(v):
+    """
+    Depending on configuration, accessibility data is either:
+    - disabled (None),
+    - computed using RNAplfold ("RNAplfold"),
+    - or loaded from a provided lunp file.
+
+    """
+
+    # get default lunp file
+    for var in ["accessibility1", "accessibility2", 
+                "sequence1", "sequence2", "RNAplfold"]:
+        assert var in v
+    
+    RNAplfold_parameters = v["RNAplfold"]
+    acc1 = v["accessibility1"]
+    acc2 = v["accessibility2"]
+    sequence1 = v["sequence1"]
+    sequence2 = v["sequence2"]
+    shift1 = 0
+    shift2 = len(sequence1) + GAP
+    access_data = {}
+    mol = {"1": (acc1, sequence1, shift1),
+           "2": (acc2, sequence2, shift2)}
+
+    for access_file, seq, shift in mol.values():
+        # 3 distinct cases
+        if access_file is None:
+            # accessibilty disabled
+            continue
+        elif access_file == "RNAplfold":
+            # if sequenc is not empty, predict access data using seq
+            # and parse lunp file and apply shift
+            # add to access data
+            if seq == "":
+                continue
+            # if no additional winsize is given, use the whole sequence length as window
+            win_size = f"-W{len(seq)}"
+            if "-W" in RNAplfold_parameters or "--winsize" in RNAplfold_parameters:
+                win_size = ""
+
+            runCommand(f"echo {seq} | RNAplfold {win_size} -u1 {RNAplfold_parameters}", "(^$)")
+            access_data.update(parseLunpFile(plfold_lunp, shift))
+            # remove left over files
+            runCommand(f"rm plfold_lunp", "(^$)")
+            runCommand(f"rm plfold_dp.ps", "(^$)")
+
+
+        else:
+            # otherwise, data shall be given: 
+            # parse lunp file and apply shift
+            # add to access data
+            access_data.update(parseLunpFile(access_file, shift))
+
+    # check if access data is valid:
+    validateAccessData(v, access_data)
+
+    return access_data
+
+
+
+def validateAccessData(v, data):
+    for index, prb in data.items():
+        if str(index) not in v["sequence_dict"]:
+            raise ValueError("The given lunp file has an index where\n" +
+            "there is no corresponding nucleotide in the sequence\n"+
+            f"Index: {index}")
+
+
 
 def checkforHybridInput(args, v) -> str:
     """

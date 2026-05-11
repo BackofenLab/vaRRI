@@ -1,6 +1,26 @@
 import subprocess
 import re
 import logging
+from pathlib import Path
+import os
+import time
+
+
+
+# -----------------------------------------------------------------
+project_dir = Path(__file__).resolve().parent.parent.absolute()
+working_dir = Path(os.getcwd())
+# get the path to fornac.css and template_barebone.html
+fornac_css = project_dir / "fornac" / "fornac.css"
+template_barebone_html = project_dir / "example_html" / "template_barebone.html"
+example_fasta = project_dir / "test" / "example.fasta"
+dot_ps = working_dir / "dot.ps"
+plfold_lunp = working_dir / "plfold_lunp"
+# set the path and create the name of the new file without the file type
+path_rna_timestamp = working_dir / ("rna_" + str(time.time()))
+
+
+# --------------------------------------------------------------
 
 def listIntermolNodes(struc: str, shift: int = 0) -> list[tuple[int, str]]:
     """Identify intermolecular basepair positions in a structure string.
@@ -96,3 +116,19 @@ def runCommand(command: str, expected_output: str) -> str:
                          f"{command} \n"
                          f"------------- Output     -------------\n" +
                          f"{std_out}")
+
+
+def parseLunpFile(path, shift):
+    probabillity = {}
+    try:
+        with open(path, "r") as f:
+            for match in re.findall("\d+\t.+", f.read()):
+                id_str, prb_str = match.split("\t")
+                id, prb =  int(id_str) + shift, float(prb_str)
+                probabillity[id] = prb
+    except FileNotFoundError:
+        raise FileNotFoundError
+    except ValueError:
+        raise ValueError("The given lunp file has an invalid line. "
+                         f"cannot convert to float: {prb_str}")
+    return probabillity

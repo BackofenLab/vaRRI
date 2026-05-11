@@ -1,10 +1,7 @@
 #!/usr/bin/python3
-from pathlib import Path
-import time
 import argparse
 from playwright.sync_api import sync_playwright
 import urllib.parse
-import os
 import sys
 import logging
 import traceback
@@ -28,19 +25,14 @@ from modifications import (changeBackgroundColor,
                            setIndexLabels,
                            backgroundhighlightingBasepairs,
                            backgroundhighlightingRegion,
-                           showAccessibility
+                           visualiseAccessibilty
                            )
-# -----------------------------------------------------------------
-project_dir = Path(__file__).resolve().parent.parent.absolute()
-working_dir = Path(os.getcwd())
-# get the path to fornac.css and template_barebone.html
-fornac_css = project_dir / "fornac" / "fornac.css"
-template_barebone_html = project_dir / "example_html" / "template_barebone.html"
-example_fasta = project_dir / "test" / "example.fasta"
-dot_ps = working_dir / "dot.ps"
-plfold_lunp = working_dir / "plfold_lunp"
-# set the path and create the name of the new file without the file type
-path_rna_timestamp = working_dir / ("rna_" + str(time.time()))
+
+from utils import (plfold_lunp, 
+                fornac_css, 
+                template_barebone_html,
+                working_dir)
+
 
 
 
@@ -93,7 +85,7 @@ def run(v):
     with sync_playwright() as p:
         for var in ["molecules", "coloring", "highlighting", 
                     "output_name", "output_type", "sequence",
-                    "backgroundhighlighting"]:
+                    "backgroundhighlighting", "sequence1"]:
             assert var in v
 
         file_name, file_type = v["output_name"], v["output_type"]
@@ -113,6 +105,9 @@ def run(v):
         # options [True, False]
         showAccessibility1 = v["accessibility1"]
         showAccessibility2 = v["accessibility2"]
+        access_data = v["access_data"]
+
+        split = len(v["sequence1"])
 
         
 
@@ -192,7 +187,7 @@ def run(v):
         #------------------------------------------------
         # show accessibility of Nucleotides  
         if showAccessibility1 != "None" or showAccessibility2 != "None":
-            showAccessibility(v, plfold_lunp, page)
+            visualiseAccessibilty(page, access_data, split)
 
         #  extracting the built svg file
         svg = page.locator("svg").first.inner_html()
@@ -408,7 +403,6 @@ if __name__ == '__main__':
 
         validated.update(validate(args))
 
-        validated.update(croppingInput(validated, args))
         logging.info("input validation completed")
 
 

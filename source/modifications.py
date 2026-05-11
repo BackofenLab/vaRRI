@@ -1,4 +1,4 @@
-from utils import (runCommand,listIntermolNodes)
+from utils import (runCommand,listIntermolNodes, parseLunpFile)
 import re 
 
 # invisible Nodes between 2 molecules, seperating them
@@ -869,82 +869,13 @@ def listBasepairs(struc: dict):
     basepairs.sort()
     return basepairs
 
-def showAccessibility(v, default_lunp_file, page):
-    """Visualize accessibility data for one or two sequences.
-
-    Depending on configuration, accessibility data is either:
-    - disabled (None),
-    - computed using RNAplfold ("RNAplfold"),
-    - or loaded from a provided lunp file.
-
-    The resulting accessibility values are mapped to node opacity
-    and rendered as overlays in the DOM.
-
-    Args:
-        v (dict): Dictionary containing:
-            - "sequence1" (str): First sequence.
-            - "sequence2" (str): Second sequence.
-            - "accessibility1" (str | None): Accessibility source for sequence 1.
-            - "accessibility2" (str | None): Accessibility source for sequence 2.
-            - "RNAplfold" (str): Parameters for RNAplfold.
-        default_lunp_file (str): Path to default lunp output file.
-        page: Playwright-like page object used to evaluate JavaScript.
-
-    Returns:
-        None
-    """
-    for var in ["accessibility1", "accessibility2", 
-                "sequence1", "sequence2", "RNAplfold"]:
-        assert var in v
-    
-    RNAplfold_parameters = v["RNAplfold"]
-    acc1 = v["accessibility1"]
-    acc2 = v["accessibility2"]
-    sequence1 = v["sequence1"]
-    sequence2 = v["sequence2"]
-    shift1 = 0
-    shift2 = len(sequence1) + GAP
-    access_data = {}
-    mol = {"1": (acc1, sequence1, shift1),
-           "2": (acc2, sequence2, shift2)}
-
-    for access_file, seq, shift in mol.values():
-        # 3 distinct cases
-        if access_file is None:
-            # accessibilty disabled
-            continue
-        elif access_file == "RNAplfold":
-            # if sequenc is not empty, predict access data using seq
-            # and parse lunp file and apply shift
-            # add to access data
-            if seq == "":
-                continue
-            # if no additional winsize is given, use the whole sequence length as window
-            win_size = f"-W{len(seq)}"
-            if "-W" in RNAplfold_parameters or "--winsize" in RNAplfold_parameters:
-                win_size = ""
-
-            runCommand(f"echo {seq} | RNAplfold {win_size} -u1 {RNAplfold_parameters}", "(^$)")
-            access_data.update(parseLunpFile(default_lunp_file, shift))
-            # remove left over files
-            runCommand(f"rm plfold_lunp", "(^$)")
-            runCommand(f"rm plfold_dp.ps", "(^$)")
-
-
-        else:
-            # otherwise, data shall be given: 
-            # parse lunp file and apply shift
-            # add to access data
-            access_data.update(parseLunpFile(access_file, shift))
-
-    visualiseAccessibilty(page, access_data, len(sequence1))
-
 
 
 def visualiseAccessibilty(page, access_data, len_seq):
     for index, prb in access_data.items():
+        # add if prb is None, then continue
         color = "purple" if index <= len_seq else "red"
-        style = f"fill: {color};opacity: {map_probability_to_opacity(prb)}"
+        style = f"fill: {color};opacity: {map_probability_to_opacity(prb)}; stroke-width: 0;"
         prb_tooltip = "\n" + "{:.2e}".format(prb)
         addAccessibilityOverlay(page, index, style, prb_tooltip)
 
@@ -991,20 +922,6 @@ def addAccessibilityOverlay(page, id, style, tooltip):
     }""", [id, style, tooltip])
 
 
-def parseLunpFile(path, shift):
-    probabillity = {}
-    try:
-        with open(path, "r") as f:
-            for match in re.findall("\d+\t.+", f.read()):
-                id_str, prb_str = match.split("\t")
-                id, prb =  + int(id_str) + shift, float(prb_str)
-                probabillity[id] = prb
-    except FileNotFoundError:
-        raise FileNotFoundError
-    except ValueError:
-        raise ValueError("The given lunp file has an invalid line. "
-                         f"cannot convert to float: {prb_str}")
-    return probabillity
 
 
 def calculateProbabilities(sequence, offset, path, RNAfold_parameters):
