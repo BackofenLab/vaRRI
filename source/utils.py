@@ -3,7 +3,6 @@ import re
 import logging
 from pathlib import Path
 import os
-import time
 
 
 
@@ -13,11 +12,11 @@ working_dir = Path(os.getcwd())
 # get the path to fornac.css and template_barebone.html
 fornac_css = project_dir / "fornac" / "fornac.css"
 template_barebone_html = project_dir / "example_html" / "template_barebone.html"
+template_legende_html = project_dir / "example_html" / "legende.html"
 example_fasta = project_dir / "test" / "example.fasta"
 dot_ps = working_dir / "dot.ps"
 plfold_lunp = working_dir / "plfold_lunp"
 # set the path and create the name of the new file without the file type
-path_rna_timestamp = working_dir / ("rna_" + str(time.time()))
 
 
 # --------------------------------------------------------------

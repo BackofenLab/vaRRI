@@ -1,7 +1,8 @@
 import re
 import logging
-from utils import (listIntermolNodes, runCommand, parseLunpFile,  plfold_lunp)
+from utils import (listIntermolNodes, runCommand, parseLunpFile,  plfold_lunp, working_dir)
 from pathlib import Path
+import time
 
 # invisible Nodes between 2 molecules, seperating them
 GAP = 3
@@ -379,12 +380,19 @@ def validateOutput(args: dict) -> tuple[str, str]:
     
     output_file_name, output_file_type = output_path_last.split(".")
     match = re.search(".*\/", output) 
-    output_path = match.group() if match else ""
+    output_path = Path(match.group() if match else "")
     if output_file_type not in valid_output_file_types:
         raise ValueError(f"The sepcified output file type is not accepted: {output_file_type}" \
         " Allowed types are svg and png")
     
-    return (output_path + output_file_name, output_file_type)
+    
+    
+    # finalise file name
+    if output_file_name == "default":
+        complete_path = working_dir / output_path / ("rna_" + str(time.time()) + "." + output_file_type)
+    else:
+        complete_path = working_dir / output_path / (output_file_name + "." + output_file_type)
+    return (complete_path, output_file_type)
         
     
 def validateColoring(args: dict) -> str:

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<svg width="560" height="200" viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bluePurpleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="lightblue"/>
+      <stop offset="100%" stop-color="purple"/>
+    </linearGradient>
+    <linearGradient id="orangeRedGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F4BB44"/>
+      <stop offset="100%" stop-color="red"/>
+    </linearGradient>
+  </defs>
+
+  <style>
+    .header {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      fill: #222;
+    }
+
+    .cell-text {
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      fill: #444;
+      dominant-baseline: middle;
+      text-anchor: middle;
+    }
+
+    .scale-text {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      fill: #666;
+      text-anchor: middle;
+    }
+
+  </style>
+
+  <!-- Table background -->
+  <rect x="20" y="20" width="520" height="160" fill="white" stroke="#E5E5E5"/>
+
+  <!-- Headers -->
+  <text x="90" y="40" class="header" text-anchor="middle">Sequences</text>
+  <text x="220" y="40" class="header">Colors</text>
+
+  <!-- ================= ROW 1 ================= -->
+
+  <!-- Scale Row 1 -->
+  <text row="1" x="220" y="75" class="scale-text">0</text>
+  <text row="1" x="345" y="75" class="scale-text">0.5</text>
+  <text row="1" x="470" y="75" class="scale-text">1</text>
+
+  <!-- Row 1 label -->
+  <text row="1" x="90" y="90" class="cell-text">sequence1</text>
+
+  <!-- colorbox -->
+  <rect row="1" id="colorbox1" x="220" y="78" width="250" height="28" rx="4" fill="url(#bluePurpleGradient)"/>
+
+  <!-- ================= ROW 2 ================= -->
+
+  <!-- Scale Row 2 -->
+  <text row="2" x="220" y="135" id="scale2" class="scale-text">0</text>
+  <text row="2" x="345" y="135" id="scale2" class="scale-text">0.5</text>
+  <text row="2" x="470" y="135" id="scale2" class="scale-text">1</text>
+
+  <!-- Row 2 label -->
+  <text row="2" x="90" y="150" class="cell-text">sequence2</text>
+
+  <!-- Gradient bar -->
+  <rect row="2" id="colorbox2" x="220" y="138" width="250" height="28" rx="4" fill="url(#orangeRedGradient)"/>
+</svg>
+ 
+</body>
+</html>

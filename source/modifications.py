@@ -25,6 +25,21 @@ def sequence_coloring(first_seq, second_seq) -> list:
 
     return color
 
+def turnElementsInvisible(page, attr, value):
+    page.evaluate("""([attr, value]) => {
+            document.querySelectorAll(`[${attr}=${value}]`).forEach((el) => {
+                    el.setAttribute("display", "None");
+                  });
+        }""", [attr, value])
+
+
+def setAttributeForElements(page, target_attr, target_value, set_attr, set_value):
+    page.evaluate("""([target_attr, target_value, set_attr, set_value]) => {
+            document.querySelectorAll(`[${target_attr}=${target_value}]`).forEach((el) => {
+                    el.setAttribute(set_attr, set_value);
+                  });
+        }""", [target_attr, target_value, set_attr, set_value])
+
 
 def changeBackgroundColor(page, v) -> None:
     """Apply sequence-based coloring to circle elements in the DOM.
@@ -411,8 +426,12 @@ def highlightSubsequence(page, v, seq):
     """
     key_highlightSubseq = f"highlightSubseq{seq}"
     key_startIndex = f"offset{seq}"
+    # get dict, mapping RNA index -> web node id
+    index_dict = {index: web for web, (mol, index) in getIndexDictionary(v).items() if mol == f"s{seq}"}
+    # calculate shift for second sequence
+    shift = len(v["sequence1"]) + GAP if seq == "2" else 0
 
-    for var in [key_highlightSubseq, key_startIndex, "sequence1"]:
+    for var in [key_highlightSubseq, key_startIndex, "sequence1",]:
         assert var in v
 
     # iterate through all subsequences
@@ -420,6 +439,17 @@ def highlightSubsequence(page, v, seq):
         # translate start end index to position of nodes in fornac
         start, end = subsequence
         startIndex = v[key_startIndex]
+
+        if start == end:
+            # get web node id for the index
+            web_id = index_dict[start]
+            # use web node id to get Position
+            x, y = getPositionOfNode(page,web_id)
+            # add circle
+            attributes = {"cx": x, "cy": y, "r": "7px", "style":"fill:purple;opacity:0.3;"}
+            addElement(page, "circle", attributes)
+            # skip everyth
+            continue
 
         # startIndex ------> start --------> end -----> endIndex
         # [ -----distance1--->|---distance2 -->|-------------->]
@@ -437,15 +467,44 @@ def highlightSubsequence(page, v, seq):
         end_node = distance1 + distance2 + 1
 
         # shift the calculation for the second sequence
-        if seq == "2":
-            shift = len(v["sequence1"]) + GAP
-            start_node += shift
-            end_node += shift
+
+        start_node += shift
+        end_node += shift
 
         indicies = list(range(start_node, end_node + 1))
         polyline(page, indicies, 
                         "stroke:purple;stroke-width:10;opacity:0.3;fill:None;" \
                         "stroke-linejoin: miter;stroke-miterlimit: 0.1;")
+        
+
+def getPositionOfNode(page, node_id):
+    """Add a visual background node representing  data.
+
+    """
+    position = page.evaluate("""(node_id) => {
+                  var pos = [];
+                  document.querySelectorAll(`g[num="n${node_id}"]`).forEach((node)=>{
+                    const transform = node.getAttribute("transform");
+                    Array.from(transform.matchAll(/-?\d+(?:\.\d+)?/g)).forEach(([val])=>{
+                            pos.push(val);
+                         });
+                    });
+                return pos;
+    }""", node_id)
+    return position
+def addElement(page, element, attr):
+    """Add a visual background node representing  data.
+
+    """
+    position = page.evaluate("""([element, attr]) => {
+                var el = document.createElement(element);
+                Object.entries(attr).forEach(([key, value]) => {
+                        el.setAttribute(key, value);      
+                             });
+                fornac_plot = document.getElementsByClassName("fornac-plot")[0];
+                fornac_plot.insertBefore(el, fornac_plot.firstChild);
+            }""", [element, attr])
+    return position
 
 
 def polyline(page, indicies, style):  

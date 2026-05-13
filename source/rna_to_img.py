@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright
 import urllib.parse
 import sys
 import logging
-import traceback
+
 
 # import input validation functions:
 from input_validation import (croppingInput,
@@ -25,20 +25,22 @@ from modifications import (changeBackgroundColor,
                            setIndexLabels,
                            backgroundhighlightingBasepairs,
                            backgroundhighlightingRegion,
-                           visualiseAccessibilty
+                           visualiseAccessibilty,
+                           turnElementsInvisible,
+                           setAttributeForElements
                            )
 
 from utils import (plfold_lunp, 
                 fornac_css, 
                 template_barebone_html,
-                working_dir)
+                template_legende_html)
 
 
 
 
 # -----------------------------------------------------------------
 # creating the template for the svg file:
-svg_template = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"> \n' \
+svg_template = '<svg xmlns="http://www.w3.org/2000/svg" viewBox=VIEWBOX> \n' \
                 '<style type="text/css">\n FORNAC_PLACEHOLDER \n</style>\n' \
                 'SVG_PLACEHOLDER' \
                 '\n</svg>'
@@ -77,6 +79,47 @@ def setupLogging(v: dict):
     logging.basicConfig(level=logging_option,
                         format="[{levelname}] {message}",
                         style="{")
+    
+
+def extractImage(page, browser, file_name, file_type, viewbox):
+    #  extracting the built svg file
+    svg = page.locator("svg").first.inner_html()
+
+    # adding the svg code into svg file template
+    final_svg = svg_template.replace("SVG_PLACEHOLDER", svg)
+    final_svg = final_svg.replace("VIEWBOX", viewbox)
+
+    error = ""
+
+    if file_name == "STDOUT":
+        print(final_svg)
+    else:
+        try:
+            if file_type == "png":
+                # create a new page with the svg code and take a screenshot
+                svg_page = browser.new_page()
+                url_svg = urllib.parse.quote(final_svg)
+                svg_page.goto(f"data:image/svg+xml,{url_svg}")
+                svg_page.screenshot(path=file_name)
+                
+                logging.info(f"png File created: {file_name}")
+            if file_type == "svg":
+                # writing the svg code as a string into a file
+                with open(file_name, "w") as f:
+                    f.write(final_svg)
+                logging.info(f"svg File created: {file_name}")
+
+        except PermissionError:
+            error = "Permission Denied for Path: "
+        except ValueError:
+            error = "Path is invalid: "
+        except FileNotFoundError:
+            error = "Path does not exist: "
+
+    if error:
+        print("[Error] " + error + str(file_name))
+        sys.exit(2)
+
 
 # -----------------------------------------------------------------
 # open a headless chromium browser instance and load html file with
@@ -186,54 +229,42 @@ def run(v):
 
         #------------------------------------------------
         # show accessibility of Nucleotides  
-        if showAccessibility1 != "None" or showAccessibility2 != "None":
+        if showAccessibility1 != None or showAccessibility2 != None:
             visualiseAccessibilty(page, access_data, split)
 
-        #  extracting the built svg file
-        svg = page.locator("svg").first.inner_html()
 
-        # adding the svg code into svg file template
-        final_svg = svg_template.replace("SVG_PLACEHOLDER", svg)
+        #------------------------------------------------
+        # create legende
+        # legende page
+        legende_page = browser.new_page()
+        # go to legende template 
+        assert template_barebone_html.exists()
+        legende_page.goto("file:///" + str(template_legende_html))
+        # if mol ==1 make row == 2 invisible
+        if molecules == "1":
+            setAttributeForElements(legende_page, "row", "2", "display", "None")
+        if showAccessibility1 == None:
+            setAttributeForElements(legende_page, "id", "colorbox1", "fill", "lightblue")
+            setAttributeForElements(legende_page, "id", "scale1", "display", "None")
+        if showAccessibility2 == None:
+            setAttributeForElements(legende_page, "id", "colorbox2", "fill", "#F4BB44")
+            setAttributeForElements(legende_page, "id", "scale2", "display", "None")
 
-        # finalise file name
-        if file_name == "default":
-            complete_path = working_dir / ("rna_" + str(time.time()) + "." + file_type)
-        else:
-            complete_path = working_dir / (file_name + "." + file_type)
 
-        error = ""
+        extractImage(legende_page, browser, "testlegende.svg", "svg", '"0 0 560 200"')
 
-        if file_name == "STDOUT":
-            print(final_svg)
-        else:
-            try:
-                if file_type == "png":
-                    # create a new page with the svg code and take a screenshot
-                    svg_page = browser.new_page()
-                    url_svg = urllib.parse.quote(final_svg)
-                    svg_page.goto(f"data:image/svg+xml,{url_svg}")
-                    svg_page.screenshot(path=complete_path)
-                    
-                    logging.info(f"png File created: {complete_path}")
-                if file_type == "svg":
-                    # writing the svg code as a string into a file
-                    with open(complete_path, "w") as f:
-                        f.write(final_svg)
-                    logging.info(f"svg File created: {complete_path}")
-
-            except PermissionError:
-                error = "Permission Denied for Path: "
-            except ValueError:
-                error = "Path is invalid: "
-            except FileNotFoundError:
-                error = "Path does not exist: "
-
-        if error:
-            print("[Error] " + error + str(complete_path))
-            sys.exit(2)
+        # extract Image
+        extractImage(page, browser, file_name, file_type, '"0 0 300 300"')
 
         # close chromium borwser
         browser.close()
+
+
+def buildLegend():
+    # return svg
+    return 
+
+
 
 # -----------------------------------------------------------------
 # Input parameters for script: 
