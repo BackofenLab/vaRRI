@@ -7,9 +7,7 @@ import logging
 
 
 # import input validation functions:
-from input_validation import (croppingInput,
-                              validateCropping,
-                              validate)
+from input_validation import ( validate)
 
 from modifications import (changeBackgroundColor,
                            highlightingRegion,
@@ -26,12 +24,10 @@ from modifications import (changeBackgroundColor,
                            backgroundhighlightingBasepairs,
                            backgroundhighlightingRegion,
                            visualiseAccessibilty,
-                           turnElementsInvisible,
                            setAttributeForElements
                            )
 
-from utils import (plfold_lunp, 
-                fornac_css, 
+from utils import (fornac_css, 
                 template_barebone_html,
                 template_legende_html)
 
@@ -55,10 +51,11 @@ except FileNotFoundError:
 
 
 def buildMolecules(page, v):
-    for var in ["structure", "sequence", "animation"]:
+    for var in ["structure", "sequence", "forcefield"]:
         assert var in v
     # complete structure and sequence with fix
-    structure, sequence, animation = v["structure"], v["sequence"], v["animation"]
+    structure, sequence = v["structure"], v["sequence"], 
+    animation, timer = v["forcefield"], v["forcefield_timer"]
 
     page.evaluate("""([structure, sequence, animation]) => {
             var container = new fornac.FornaContainer("#rna_ss", {'animation': animation, 'labelInterval': 1});
@@ -69,7 +66,7 @@ def buildMolecules(page, v):
         }""", [structure, sequence, animation])
     
     if animation:
-            page.wait_for_timeout(2000)
+            page.wait_for_timeout(timer * 1000)
     
 # -----------------------------------------------------------------
 def setupLogging(v: dict):
@@ -127,11 +124,12 @@ def extractImage(page, browser, file_name, file_type, viewbox):
 def run(v):
     with sync_playwright() as p:
         for var in ["molecules", "coloring", "highlighting", 
-                    "output_name", "output_type", "sequence",
+                    "output_name", "output_type", "output_legend", "sequence",
                     "backgroundhighlighting", "sequence1"]:
             assert var in v
 
         file_name, file_type = v["output_name"], v["output_type"]
+        legend = v["legend"]
         # amount of molecules [1, 2]
         molecules = v["molecules"]
         # options [default, distinct]
@@ -235,34 +233,43 @@ def run(v):
 
         #------------------------------------------------
         # create legende
-        # legende page
-        legende_page = browser.new_page()
-        # go to legende template 
-        assert template_barebone_html.exists()
-        legende_page.goto("file:///" + str(template_legende_html))
-        # if mol ==1 make row == 2 invisible
-        if molecules == "1":
-            setAttributeForElements(legende_page, "row", "2", "display", "None")
-        if showAccessibility1 == None:
-            setAttributeForElements(legende_page, "id", "colorbox1", "fill", "lightblue")
-            setAttributeForElements(legende_page, "id", "scale1", "display", "None")
-        if showAccessibility2 == None:
-            setAttributeForElements(legende_page, "id", "colorbox2", "fill", "#F4BB44")
-            setAttributeForElements(legende_page, "id", "scale2", "display", "None")
+        if legend:
+            buildLegend(browser, v)
 
-
-        extractImage(legende_page, browser, "testlegende.svg", "svg", '"0 0 560 200"')
-
-        # extract Image
+        # extract RNA Image
         extractImage(page, browser, file_name, file_type, '"0 0 300 300"')
 
         # close chromium borwser
         browser.close()
 
 
-def buildLegend():
-    # return svg
-    return 
+def buildLegend(browser, v):
+    for var in ["molecules", "output_type", "output_legend",
+                "accessibility1", "accessibility1"]:
+        assert var in v
+    
+    molecules = v["molecules"]
+    showAccessibility1 = v["accessibility1"]
+    showAccessibility2 = v["accessibility2"]
+    file_legend = v["output_legend"]
+    file_type = v["output_type"]
+    # legende page
+    legende_page = browser.new_page()
+    # go to legende template 
+    assert template_barebone_html.exists()
+    legende_page.goto("file:///" + str(template_legende_html))
+    # if mol ==1 make row == 2 invisible
+    if molecules == "1":
+        setAttributeForElements(legende_page, "row", "2", "display", "None")
+    if showAccessibility1 == None:
+        setAttributeForElements(legende_page, "id", "colorbox1", "fill", "lightblue")
+        setAttributeForElements(legende_page, "id", "scale1", "display", "None")
+    if showAccessibility2 == None:
+        setAttributeForElements(legende_page, "id", "colorbox2", "fill", "#F4BB44")
+        setAttributeForElements(legende_page, "id", "scale2", "display", "None")
+
+
+    extractImage(legende_page, browser, file_legend, file_type, '"0 0 560 200"')
 
 
 
@@ -380,9 +387,15 @@ if __name__ == '__main__':
 			help='enable intramolecular structure prediction for the second sequence',
             action='store_true')
     parser.add_argument(
-			'--animation',
-			help='enable fornacs forcefield, to allow the structure to move ',
-            action='store_true')    
+			'--legend',
+			help='disable generating legend file',
+            action='store_false')
+    parser.add_argument(
+			'--forcefield',
+			help='enable fornacs forcefield, to allow the structure to move. \n' \
+            'set the timer, how many seconds the forcefield may move the molecules.\n' \
+            'recommended 0.01 seconds',
+            default='0')     
     parser.add_argument(
 			'--accessibility1',
 			help='Visualising Node accessibility in sequence 1 \n'\

@@ -1,4 +1,4 @@
-from utils import (runCommand,listIntermolNodes, parseLunpFile)
+from utils import (runCommand,listIntermolNodes)
 import re 
 
 # invisible Nodes between 2 molecules, seperating them
@@ -25,17 +25,11 @@ def sequence_coloring(first_seq, second_seq) -> list:
 
     return color
 
-def turnElementsInvisible(page, attr, value):
-    page.evaluate("""([attr, value]) => {
-            document.querySelectorAll(`[${attr}=${value}]`).forEach((el) => {
-                    el.setAttribute("display", "None");
-                  });
-        }""", [attr, value])
 
 
 def setAttributeForElements(page, target_attr, target_value, set_attr, set_value):
     page.evaluate("""([target_attr, target_value, set_attr, set_value]) => {
-            document.querySelectorAll(`[${target_attr}=${target_value}]`).forEach((el) => {
+            document.querySelectorAll(`[${target_attr}="${target_value}"]`).forEach((el) => {
                     el.setAttribute(set_attr, set_value);
                   });
         }""", [target_attr, target_value, set_attr, set_value])

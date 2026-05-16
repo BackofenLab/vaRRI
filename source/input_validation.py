@@ -390,9 +390,11 @@ def validateOutput(args: dict) -> tuple[str, str]:
     # finalise file name
     if output_file_name == "default":
         complete_path = working_dir / output_path / ("rna_" + str(time.time()) + "." + output_file_type)
+        complete_path_legend = working_dir / output_path / ("rna_" + str(time.time()) + "_legend." + output_file_type)
     else:
         complete_path = working_dir / output_path / (output_file_name + "." + output_file_type)
-    return (complete_path, output_file_type)
+        complete_path_legend = working_dir / output_path / (output_file_name + "_legend." + output_file_type)
+    return (complete_path, complete_path_legend, output_file_type)
         
     
 def validateColoring(args: dict) -> str:
@@ -751,7 +753,7 @@ def validate(args) -> dict:
     validated["guBasepairs"] = args["guBasepairs"]
     validated["predictStructure1"] = args["predictStructure1"] 
     validated["predictStructure2"] = args["predictStructure2"] 
-    validated["animation"] = args["animation"]
+    validated["legend"] = args["legend"]
 
 
     # --------------------------------------------------------------
@@ -804,7 +806,7 @@ def validate(args) -> dict:
     # --------------------------------------------------------------
     # rest
 
-    validated["output_name"], validated["output_type"] = validateOutput(args)
+    validated["output_name"], validated["output_legend"], validated["output_type"] = validateOutput(args)
 
     validated["coloring"] = validateColoring(args)
 
@@ -822,6 +824,8 @@ def validate(args) -> dict:
     for i in ("1","2"):
         validated[f"highlightSubseq{i}"] = validateSubsequenceInput(args, validated, i)
         validated[f"crop{i}"] = validateCropping(args, "") if args["crop"] != "None" else validateCropping(args, i)
+
+    validated["forcefield"], validated["forcefield_timer"] = validateForcefieldInput(args)
 
 
     # ---------------------------
@@ -901,6 +905,19 @@ def validateAccessData(v, data):
             f"Index: {index}")
 
 
+def validateForcefieldInput(args):
+    timer = validateFloat(args, "forcefield")
+    if timer == 0:
+        return (False, 0)
+    else:
+        return (True, timer)
+
+def validateFloat(args, key) -> float:
+    string = args[key]
+    try:
+        return float(string)
+    except ValueError:
+        raise ValueError(f"Invalid float for {key}: {string}")
 
 def checkforHybridInput(args, v) -> str:
     """
