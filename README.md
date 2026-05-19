@@ -19,7 +19,9 @@ This Tool creates a visualization for any working inter- and intramolecular stru
     <img src="test/verified/test36_animated.svg">
 </a>
 
-(Temporary Information) Displaying: purple strand IpxR, orange strand MicF, red link intermolecular Basepair, brighter -> darker node: accessible -> less accessible node
+<a href="./test/images/example_legend.svg">
+  <img src="./test/images/example_legend.svg" width="300">
+</a>   
 
 
 ~~~
