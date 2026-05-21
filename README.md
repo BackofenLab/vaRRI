@@ -25,7 +25,11 @@ This Tool creates a visualization for any working inter- and intramolecular stru
 
 
 ~~~
-./rna_to_img.py -o=example.svg --startIndex1=67 --sequence="GCCAGUAGCCUUGCUAUUUCAGUGGCGAAUGAUGAUGCAGGU&GCUAUCAUCAUUAACUUUAUUUAU" --structure="...(((((............(((....(((((((((((....&)).))))))))).))))))))..." --accessibility1="RNAplfold" --accessibility2="RNAplfold"
+./rna_to_img.py -o=example.svg \
+  --sequence="GCCAGUAGCCUUGCUAUUUCAGUGGCGAAUGAUGAUGCAGGU&GCUAUCAUCAUUAACUUUAUUUAU" \
+  --structure="...(((((............(((....(((((((((((....&)).))))))))).))))))))..." \
+  --startIndex1=67 \
+  --accessibility1="RNAplfold" --accessibility2="RNAplfold"
 ~~~
 # Overview
 
