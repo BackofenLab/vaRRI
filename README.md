@@ -20,7 +20,7 @@ This Tool creates a visualization for any working inter- and intramolecular stru
 </a>
 
 <a href="./test/images/example_legend.svg">
-  <img src="./test/images/example_legend.svg" width="300">
+  <img src="./test/images/example_legend.svg" width="500">
 </a>   
 
 
