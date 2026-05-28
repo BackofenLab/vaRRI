@@ -386,14 +386,15 @@ def validateOutput(args: dict) -> tuple[str, str]:
         " Allowed types are svg and png")
     
     
-    
-    # finalise file name
+    # finalise file name    
     if output_file_name == "default":
-        complete_path = working_dir / output_path / ("rna_" + str(time.time()) + "." + output_file_type)
-        complete_path_legend = working_dir / output_path / ("rna_" + str(time.time()) + "_legend." + output_file_type)
+        output_file_name = "rna_" + str(time.time()) + "."
+    if output_file_name == "STDOUT":
+        complete_path = output_file_name
     else:
         complete_path = working_dir / output_path / (output_file_name + "." + output_file_type)
-        complete_path_legend = working_dir / output_path / (output_file_name + "_legend." + output_file_type)
+    complete_path_legend = working_dir / output_path / (output_file_name + "_legend." + output_file_type)
+
     return (complete_path, complete_path_legend, output_file_type)
         
     

@@ -395,7 +395,7 @@ if __name__ == '__main__':
 			help='enable fornacs forcefield, to allow the structure to move. \n' \
             'set the timer, how many seconds the forcefield may move the molecules.\n' \
             'recommended 0.01 seconds',
-            default='0')     
+            default='0.1')     
     parser.add_argument(
 			'--accessibility1',
 			help='Visualising Node accessibility in sequence 1 \n'\
