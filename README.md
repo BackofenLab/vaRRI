@@ -71,6 +71,19 @@ python3 -m playwright install chromium
 python3 -m playwright --version
 ```
 
+For structure prediction and accessibility data prediction, vaRRI uses RNAplfold and RNAfold from the ViennaRNA package.
+Recommended installation using [Miniconda](https://www.anaconda.com/docs/getting-started/miniconda/install/overview)
+
+```sh
+# setup bioconda
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+# install viennaRNA package
+conda install viennarna
+```
+
 # Features
 
 ## Mandatory Parameters
