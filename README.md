@@ -23,12 +23,12 @@ This Tool creates a visualization for any working inter- and intramolecular stru
 <table>
 <tr>
 <td style="border:none;">
- Sequence 1 (blue/purple) is the MicF RNA and Sequence 2 (orange/red) is the IpxR RNA. The basepairs forming the interaction have an opague red background. The color grading displays predicted accessibilty data starting at 1, completely accessible, to 0, not accessible.
+ Sequence 1 (blue/purple) is the MicF RNA and Sequence 2 (orange/red) is the IpxR RNA. The basepairs forming the interaction are highlighted using an opague red background. The color grading displays predicted accessibilty data starting at 1, completely accessible, to 0, not accessible.
 
 </td>
 <td style="border:none;">
         <a href="./test/images/example_legend.svg">
-  <img src="./test/images/example_legend.svg" width="700">
+  <img src="./test/images/example_legend.svg" width="2000">
 </a>   
 
 </td>
