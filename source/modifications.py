@@ -33,6 +33,7 @@ def setAttributeForElements(page, target_attr, target_value, set_attr, set_value
                     el.setAttribute(set_attr, set_value);
                   });
         }""", [target_attr, target_value, set_attr, set_value])
+    
 
 
 def changeBackgroundColor(page, v) -> None:
@@ -605,6 +606,8 @@ def highlightingBasepairs(page, v):
             
         });
     }""", split)  
+
+
 
 
 def removeSecondLink(page):

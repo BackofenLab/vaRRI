@@ -19,9 +19,21 @@ This Tool creates a visualization for any working inter- and intramolecular stru
     <img src="test/verified/test36_animated.svg">
 </a>
 
-<a href="./test/images/example_legend.svg">
-  <img src="./test/images/example_legend.svg" width="500">
+
+<table>
+<tr>
+<td style="border:none;">
+ Sequence 1 (blue/purple) is the MicF RNA and Sequence 2 (orange/red) is the IpxR RNA. The basepairs forming the interaction have an opague red background. The color grading displays predicted accessibilty data starting at 1, completely accessible, to 0, not accessible.
+
+</td>
+<td style="border:none;">
+        <a href="./test/images/example_legend.svg">
+  <img src="./test/images/example_legend.svg" width="700">
 </a>   
+
+</td>
+</tr>
+</table>
 
 
 ~~~
@@ -601,14 +613,14 @@ rna_to_img.py \
 </details>
 
 <details>
-<summary><code><b>--animation</code></b> Activates fornac’s force-directed layout animation
+<summary><code><b>--forcefield</code></b> Activates fornac’s force-directed layout forcefield
 </summary>
 
 ```sh
 rna_to_img.py \
   -u="((...))" \
   -e="ACGAGUGA" \
-  --animation
+  --forcefield=0
 ```
 
 </details>
