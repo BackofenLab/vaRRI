@@ -1,4 +1,4 @@
-# vaRRI
+# vaRRI - Visualizing any RNA-RNA interaction
 This Tool creates a visualization for any working inter- and intramolecular structure and sequence involving one or two molecules, using FornaC.
 
 <table>
