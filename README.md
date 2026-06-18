@@ -58,7 +58,7 @@ This Tool creates a visualization for any working inter- and intramolecular stru
 
 # Dependency Installation
 
-We need to install
+After cloning the [repository](https://github.com/BackofenLab/vaRRI), we just need to install
 
 - playwright (tested and developed with v1.57.0)
 - chromium browser (install via playwright)
