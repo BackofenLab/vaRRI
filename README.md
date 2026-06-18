@@ -47,7 +47,7 @@ This Tool creates a visualization for any working inter- and intramolecular stru
 
 - [vaRRI](#varri)
 - [Overview](#overview)
-- [Installation](#installation)
+- [Dependency Installation](#dependency-installation)
 - [Features](#features)
   - [Mandatory Parameters](#mandatory-parameters)
   - [Optional Parameters](#optional-parameters)
@@ -56,7 +56,7 @@ This Tool creates a visualization for any working inter- and intramolecular stru
 
 
 
-# Installation
+# Dependency Installation
 
 We need to install
 
