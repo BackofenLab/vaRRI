@@ -753,8 +753,8 @@ rna_to_img.py \
 
   <tr>
     <td> 
-    <b>Pseudoknot Structure (Simple)</b><br/>
-A basic pseudoknot involving two interacting molecules:
+    <b>Pseudoknot Structure (Kissing Hairpins)</b><br/>
+A basic pseudoknot involving two interacting hairpin structures:
     <br/><br/>
 
 ```sh
@@ -775,7 +775,7 @@ rna_to_img.py \
   </tr>
   <tr>
     <td> 
-    <b>Pseudoknot Structure (Complex - Kissing Hairpins)</b><br/>
+    <b>Pseudoknot Structure (Complex - Double Kissing Hairpins)</b><br/>
 Two molecules forming a complex kissing hairpin interaction:
     <br/><br/>
 
