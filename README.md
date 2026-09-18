@@ -485,6 +485,7 @@ Currently, vaRRI is already available as an RRI visualizer in the the following 
     - [Example visualization](https://rna.informatik.uni-freiburg.de/CopomuS/Result.jsp?toolName=CopomuS&jobID=1595284)
 - Galaxy Visualizer: [https://usegalaxy.eu/](https://usegalaxy.eu/)
   - vaRRI is available as a visualization tool for RNA-RNA interactions in the Galaxy workflow system
+    - [Example Galaxy history](https://usegalaxy.eu/u/videmp/h/varri-galaxy-visualization) visualizing RRIs from different tools
 
 
 ### Query Parameter
