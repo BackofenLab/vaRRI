@@ -174,11 +174,12 @@ const viewerPath = require.resolve('varri-js/index.html');
 Resolving this path does not start a server; serve its containing directory to make the viewer
 and its assets available. HTML is a browser document, not a JavaScript module.
 
-**Network requirements:** the existing viewer uses jsDelivr for `marked` and external
-university logos from `www.bioinf.uni-freiburg.de`. The help page also uses cdnjs for its
-Markdown stylesheet, and the citation page loads Citation.js from jsDelivr. These URLs
-are retained, so this is not a fully offline distribution. Deployments with restricted
-network access must provide those assets locally and update the HTML references/CSP.
+**Network requirements:** the main viewer serves Vue, Markdown parsing, D3, and
+application modules locally. University logos come from `www.bioinf.uni-freiburg.de`.
+The help page uses external Markdown assets, and the citation page loads Citation.js
+from jsDelivr. These ancillary URLs remain, so the whole package is not fully offline.
+Deployments with restricted network access can provide those assets locally and update
+the HTML references/CSP.
 Opening the help or citation page through `file://` can additionally fetch fallback content
 from `raw.githubusercontent.com`; serving the package over HTTP uses the local files.
 
@@ -198,6 +199,8 @@ const vaRRI = require('varri-js');
 
 The core bundle installs `window.vaRRI` and includes D3. Serve the compatible
 `fornac/fornac.css` stylesheet alongside it; no Fornac runtime is required.
+The [standalone embedding guide](docs/standalone-embedding.md) explains the
+downloadable core artifact built by GitHub Actions on every push and release.
 
 
 > [!NOTE]
@@ -561,7 +564,7 @@ You can use any of the four bracket types to represent basepairs, and they can b
 The only restriction is that the brackets must be balanced, i.e. every opening bracket must have a corresponding closing bracket of the same type.
 
 > [!IMPORTANT] 
-> Since vaRRI is based on the fornac library, its underlying layout algorithm does not support pseudoknots, i.e. basepairs that cross each other.
+> vaRRI retains the polygon layout algorithm extracted from Fornac. This initial layout uses non-crossing basepairs, so pseudoknots need additional handling.
 > In that case, the primary layout will be based on a reduced set of basepairs that do not cross each other, and the remaining basepairs are added subsequently.
 > Therefore, the layout of pseudoknotted structures may not be optimal, and the visualisation may be less clear than for non-pseudoknotted structures.
 

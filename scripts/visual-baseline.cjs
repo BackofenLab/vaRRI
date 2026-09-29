@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
+const { isDeepStrictEqual } = require('node:util');
 const { chromium } = require('playwright');
 const { createCanvas, loadImage } = require('canvas');
 
@@ -58,8 +59,16 @@ async function compareImage(name) {
   }
   // Permit minor platform antialiasing, but not missing nucleotides or annotations.
   const ratio = different / (actual.width * actual.height);
-  assert.ok(ratio <= 0.002, `${name}: ${(ratio * 100).toFixed(3)}% changed pixels (limit 0.2%)`);
+  assert.ok(ratio <= 0.002, `${name}: ${(ratio * 100).toFixed(3)}% changed pixels (limit 0.2%). Compare ${path.join(output, name + '.png')} with ${path.join(baseline, name + '.png')}`);
   return ratio;
+}
+
+function compareScene(name, actual, expected) {
+  assert.deepEqual(actual.counts, expected.counts, name + ': SVG element counts changed');
+  assert.equal(actual.shapes.length, expected.shapes.length, name + ': SVG shape count changed');
+  const index = actual.shapes.findIndex((shape, position) => !isDeepStrictEqual(shape, expected.shapes[position]));
+  if (index !== -1) assert.deepEqual(actual.shapes[index], expected.shapes[index],
+    `${name}: SVG shape ${index} changed; full actual scene: ${path.join(output, name + '.json')}`);
 }
 
 function scene() {
@@ -90,19 +99,24 @@ async function main() {
   fs.mkdirSync(output, { recursive: true });
   if (update) fs.mkdirSync(baseline, { recursive: true });
   const server = await serve();
-  let browser;
+  let browser, activePage, currentFixture;
+  let browserErrors = [];
   const results = [];
   try {
     browser = await chromium.launch({ headless: true,
       ...(process.env.VARRI_BROWSER_PATH ? { executablePath: process.env.VARRI_BROWSER_PATH } : {}) });
     const origin = `http://127.0.0.1:${server.address().port}`;
     for (const name of fixtures) {
+      currentFixture = name;
       const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+      activePage = page;
       const errors = [];
+      browserErrors = errors;
       page.on('pageerror', error => errors.push(error.message));
       page.on('response', response => {
         if (response.url().startsWith(origin) && response.status() >= 400) errors.push(response.url());
       });
+      page.on('requestfailed', request => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
       // External branding and Markdown CDN are irrelevant to the RNA canvas baseline.
       await page.route('**/*', route => route.request().url().startsWith(origin)
         ? route.continue() : route.fulfill({ status: 200, body: '' }));
@@ -114,7 +128,8 @@ async function main() {
         forceLayout: '0', forceLayoutLinearRRI: '0', forceLayoutLinearStructure: '0',
         freeTrailingEnds: '0', pullPseudoknotBasepairs: '0' });
       await page.goto(`${origin}/index.html?${parameters}`, { waitUntil: 'networkidle' });
-      await page.waitForFunction(() => document.querySelector('#rendering-canvas circle[node_num]'));
+      await page.waitForFunction(() => document.querySelector('#rendering-canvas circle[node_num]') &&
+        document.getElementById('msg')?.textContent.includes('Visualisation ready'));
       if (await page.locator('script[type="module"][src="src/main.js"]').count()) {
         assert.equal(await page.evaluate(async () => {
           const entry = await import('./src/main.js');
@@ -132,8 +147,9 @@ async function main() {
         results.push({ name, ...snapshot.counts });
       } else {
         const expected = JSON.parse(fs.readFileSync(path.join(baseline, name + '.json'), 'utf8'));
-        assert.deepEqual(snapshot, expected, name + ': SVG geometry or annotations changed');
-        results.push({ name, ...snapshot.counts, changedPixelRatio: await compareImage(name) });
+        const changedPixelRatio = await compareImage(name);
+        compareScene(name, snapshot, expected);
+        results.push({ name, ...snapshot.counts, changedPixelRatio });
       }
       await page.close();
     }
@@ -141,7 +157,18 @@ async function main() {
       revision, browser: browser.version(), viewport: { width: 1440, height: 1000 }, seed: 83,
       forceLayout: false, fixtures: results,
     }, null, 2) + '\n');
-    console.log(JSON.stringify({ result: 'passed', mode: update ? 'record' : 'compare', fixtures: results }, null, 2));
+    console.log(JSON.stringify({ result: 'passed', browser: browser.version(), mode: update ? 'record' : 'compare', fixtures: results }, null, 2));
+  } catch (error) {
+    if (activePage && !activePage.isClosed()) {
+      await activePage.screenshot({ path: path.join(output, 'failure.png'), fullPage: true }).catch(() => {});
+      fs.writeFileSync(path.join(output, 'failure.html'), await activePage.content().catch(() => ''));
+    }
+    fs.writeFileSync(path.join(output, 'failure.json'), JSON.stringify({
+      fixture: currentFixture, browser: browser?.version(), url: activePage?.url(),
+      message: error.message, browserErrors,
+    }, null, 2) + '\n');
+    console.error(`Visual regression failed for ${currentFixture || 'browser startup'}; diagnostics: ${output}`);
+    throw error;
   } finally {
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));

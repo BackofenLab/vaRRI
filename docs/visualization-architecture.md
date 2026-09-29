@@ -76,3 +76,10 @@ The regression suite includes original visual fixtures, semantic model and force
 tests, separate viewer instances, URL behavior, SVG/PNG export, and the actual
 packed/installed npm distribution. Tests should assert observable behavior,
 not reproduce the implementation or silently accept visual changes.
+
+`npm run test:architecture` checks native imports, module boundaries, and authored
+file sizes. The build also inspects its input graph to reject non-core dependencies.
+PR CI runs these checks, unit and installed-package tests, and the three real-browser
+suites. The standalone bundle workflow runs on push/release; Pages serves source.
+See [standalone-embedding.md](standalone-embedding.md) and the contributor rules in
+[AGENTS.md](../AGENTS.md).

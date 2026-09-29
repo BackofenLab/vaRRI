@@ -64,6 +64,11 @@ try {
   for (const name of ['README.md', 'CITATION.bib', 'CITATION.cff', 'src/README.md']) {
     assert.ok(fs.statSync(path.join(installed, name)).size > 0, `${name} must be packaged`);
   }
+  for (const name of ['README.md', 'fornac.css', 'fornac.css.map',
+    'licenses/vaRRI-MIT.txt', 'licenses/D3-BSD.txt',
+    'licenses/Fornac-Apache-2.0.txt', 'licenses/Fornac-NOTICE.md']) {
+    assert.ok(fs.statSync(path.join(installed, 'dist', name)).size > 0, `Missing embedding asset: ${name}`);
+  }
   // Markdown embeds are loaded by README.html after parsing, so inspect them too.
   const readme = fs.readFileSync(path.join(installed, 'README.md'), 'utf8');
   for (const match of readme.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {

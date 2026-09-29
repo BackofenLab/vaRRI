@@ -37,7 +37,8 @@ describe('UI document structure', () => {
 
   test('runs the complete test suite with an environment diagnostic', () => {
     expect(packageConfig.jest.globalSetup).toBe('<rootDir>/tests/jest-global-setup.js');
-    expect(testWorkflow).toMatch(/run:\s+npm test -- --runInBand/);
+    expect(testWorkflow).toContain('npm run test:ci');
+    expect(packageConfig.scripts['test:ci']).toBe('jest --runInBand');
     expect(testWorkflow).not.toMatch(/jest\s+tests\/vaRRI\.test\.js/);
   });
 

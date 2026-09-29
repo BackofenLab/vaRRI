@@ -56,22 +56,26 @@ async function annotationCrud(page, fixture) {
 async function main() {
   fs.mkdirSync(output, { recursive: true });
   const server = await serve();
-  let browser;
+  let browser, page;
+  let phase = 'browser startup';
+  const errors = [];
   try {
     browser = await chromium.launch({ headless: true,
       ...(process.env.VARRI_BROWSER_PATH ? { executablePath: process.env.VARRI_BROWSER_PATH } : {}) });
     const origin = `http://127.0.0.1:${server.address().port}`;
-    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
-    const errors = [];
+    page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1, acceptDownloads: true });
     page.on('pageerror', error => errors.push(error.message));
     page.on('response', response => {
       if (response.url().startsWith(origin) && response.status() >= 400) errors.push(response.url());
     });
+    page.on('requestfailed', request => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
     await page.route('**/*', route => route.request().url().startsWith(origin)
       ? route.continue() : route.fulfill({ status: 200, body: '' }));
+    phase = 'initial viewer load';
     await page.goto(origin + '/index.html', { waitUntil: 'networkidle' });
     await ready(page);
     for (const [id, example] of Object.entries(examples)) {
+      phase = 'example ' + id;
       await openPanel(page, '#exampleDropdown');
       await page.locator('#exampleDropdownTrigger').click();
       await page.locator(`[data-example="${id}"]`).click();
@@ -84,6 +88,7 @@ async function main() {
     // A clean URL isolates dialog behavior from the catalog's annotations.
     const initial = new URLSearchParams({ sequence: 'ACGU&UGCA', structure: '((..&..))',
       highlighting: 'nothing', backgroundhighlighting: 'nothing', forceLayout: '0' });
+    phase = 'sequence editing';
     await page.goto(`${origin}/index.html?${initial}`, { waitUntil: 'networkidle' });
     await ready(page);
     await page.locator('#sequence').fill('AGGU&UGCA');
@@ -91,6 +96,7 @@ async function main() {
     await ready(page);
     await page.waitForFunction(() => document.querySelector('#rendering-canvas circle[node_num="2"]')?.__data__?.name === 'G');
 
+    phase = 'FASTA dialog';
     await page.locator('#fastaInputBtn').click();
     await page.locator('#fastaInput').fill('>first\nACGU\n((..\n>second\nUGCA\n..))');
     await page.waitForFunction(() => document.getElementById('fastaSequence')?.value === 'ACGU&UGCA');
@@ -106,8 +112,12 @@ async function main() {
       { add: '#mutationSubmitBtn', dialog: '#mutationDialog', items: '#mutation-list .highlight-item',
         fields: { mutationPosition: '1', mutationBase: 'G' }, edit: ['mutationBase', 'U'], expected: 'U' },
     ];
-    for (const fixture of annotations) await annotationCrud(page, fixture);
+    for (const fixture of annotations) {
+      phase = fixture.dialog + ' add and edit';
+      await annotationCrud(page, fixture);
+    }
 
+    phase = 'profile, force and rotation controls';
     await openPanel(page, '#profileData1');
     await page.locator('#profileData1').fill('1 0.2\n2 0.8');
     await page.locator('#profileApplyBtn').click();
@@ -123,6 +133,7 @@ async function main() {
       element.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
+    phase = 'share link roundtrip';
     await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', {
       configurable: true, value: { writeText: async url => { window.sharedTestUrl = url; } },
     }));
@@ -145,20 +156,24 @@ async function main() {
     assert.equal(await page.locator('#rendering-canvas svg').getAttribute('data-varri-rotation'), '35');
 
     for (const fixture of annotations) {
+      phase = fixture.dialog + ' deletion';
       await openPanel(page, fixture.add);
       await page.locator(fixture.items + ' .highlight-delete').click();
       await page.waitForFunction(selector => document.querySelectorAll(selector).length === 0, fixture.items);
       await ready(page);
     }
     for (const extension of ['svg', 'png']) {
-      const download = page.waitForEvent('download');
-      await page.locator(extension === 'svg' ? '#exportSvgBtn' : '#exportPngBtn').click();
+      phase = extension + ' export';
+      const [download] = await Promise.all([page.waitForEvent('download'),
+        page.locator(extension === 'svg' ? '#exportSvgBtn' : '#exportPngBtn').click(),
+      ]);
       const target = path.join(output, 'viewer.' + extension);
-      await (await download).saveAs(target);
+      await download.saveAs(target);
       assert.ok(fs.statSync(target).size > 100, extension + ': UI export');
       if (extension === 'svg') assert.ok(fs.readFileSync(target, 'utf8').includes('data-varri-rotation="35"'));
       else assert.equal(fs.readFileSync(target).subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
     }
+    phase = 'render-only and Full Page restoration';
     params.set('showRenderingOnly', '1');
     await page.goto(origin + '/index.html?' + params, { waitUntil: 'networkidle' });
     await ready(page);
@@ -172,7 +187,17 @@ async function main() {
     await page.screenshot({ path: path.join(output, 'render-only.png') });
     assert.deepEqual(errors, [], 'Browser errors during Vue UI workflow');
     await page.close();
-    console.log('Vue browser UI passed: five examples, edits, FASTA, annotation CRUD, profiles, force, share roundtrip, export, render-only.');
+    console.log(`Vue browser UI passed (Chromium ${browser.version()}): five examples, edits, FASTA, annotation CRUD, profiles, force, share roundtrip, export, render-only.`);
+  } catch (error) {
+    if (page && !page.isClosed()) {
+      await page.screenshot({ path: path.join(output, 'failure.png'), fullPage: true }).catch(() => {});
+      fs.writeFileSync(path.join(output, 'failure.html'), await page.content().catch(() => ''));
+    }
+    fs.writeFileSync(path.join(output, 'failure.json'), JSON.stringify({
+      phase, browser: browser?.version(), url: page?.url(), message: error.message, browserErrors: errors,
+    }, null, 2) + '\n');
+    console.error(`Vue browser regression failed during ${phase}; diagnostics: ${output}`);
+    throw error;
   } finally {
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));

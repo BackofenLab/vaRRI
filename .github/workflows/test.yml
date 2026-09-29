@@ -2,13 +2,18 @@ name: Tests
 
 on:
   pull_request:
-    branches:
-      - main
-      - issue-83-*
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
@@ -22,7 +27,27 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm test -- --runInBand
+        run: |
+          npm run test:architecture
+          npm run test:ci
 
       - name: Verify installed package contents
         run: npm run test:package
+
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify native source, embedding, UI, and visual fixtures
+        run: |
+          npm run test:browser
+          npm run test:ui
+          npm run test:visual
+
+      - name: Upload browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-diagnostics
+          path: output/playwright/
+          if-no-files-found: ignore
+          retention-days: 7

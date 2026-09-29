@@ -32,7 +32,9 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm run test:ci
+        run: |
+          npm run test:architecture
+          npm run test:ci
 
       - name: Set package version from release tag
         env:

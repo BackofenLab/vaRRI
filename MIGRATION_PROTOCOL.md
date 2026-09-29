@@ -14,7 +14,7 @@ only that phase's changes. Do not merge or publish releases automatically.
 | 1 | Native ESM entry/import map, original visual baseline, this protocol | [PR #87](https://github.com/BackofenLab/vaRRI/pull/87) |
 | 2 | DOM-free model, independent D3 canvas, strand-boundary fix, architecture docs | [PR #88](https://github.com/BackofenLab/vaRRI/pull/88) |
 | 3 | Native Vue 3 JS components, complete legacy URL compatibility | [PR #89](https://github.com/BackofenLab/vaRRI/pull/89) |
-| 4 | Standalone core bundle workflow and enforced contributor rules | Pending |
+| 4 | Standalone core bundle workflow and enforced contributor rules | In progress |
 
 ## Council decision
 
@@ -79,8 +79,8 @@ the skipped zero). Maintain all existing URL names and encodings, including
 annotation styles, profiles, rotation, force options, and render-only mode.
 Generated region highlights must not become persisted user annotations.
 
-The current implementation inserts three gap nucleotides because Fornac's
-strand-break conversion otherwise hides real nucleotides. Phase 2 represents
+Before phase 2, the implementation inserted three gap nucleotides because Fornac's
+strand-break conversion otherwise hid real nucleotides. Phase 2 represents
 strand boundaries directly, excludes cross-strand backbone links, and builds
 each base pair once. Internal contiguous node IDs can change; biological indices
 in the model and URLs must not. Removing the artificial gap can legitimately
@@ -176,3 +176,32 @@ force controls, rotation, share-link restoration, rendering-only mode, and
 SVG/PNG downloads. All five visual fixtures preserve exact SVG scene equality
 and zero changed pixels against the unchanged phase-2 core baseline. The packed
 package and native/standalone renderer parity checks also pass.
+
+### Phase 4
+
+The standalone bundle workflow runs on push and published release. It builds
+`dist/varri.min.js` from the core entry, rejects any non-core build input, and
+uploads the embedding distribution with source maps, compatible CSS, and all
+dependency licenses. Pages continues serving native source without a build.
+See [standalone-embedding.md](docs/standalone-embedding.md).
+
+[AGENTS.md](AGENTS.md) documents the module boundaries, JavaScript/native-ESM
+rules, Vue reactivity boundary, 400-line limit, compatibility contracts, and
+verification commands. The architecture checker parses native imports and
+rejects reverse dependencies, browser state in the model, unsupported source
+formats, missing import targets, generated runtime dependencies, and oversized
+authored files. Vendor exemptions name specific licensed assets.
+
+PR CI now runs architecture, unit, installed-package, core-browser, Vue-browser,
+and visual checks. Failures retain screenshots, page HTML, scene data, and browser
+metadata. A deliberately corrupted temporary baseline confirmed that failures
+are detected and produce useful diagnostics; neither baseline was rewritten.
+
+The council's final review confirmed all 81 original public API functions remain
+available. Locally, all browser checks and five zero-pixel-difference visual
+fixtures pass on pinned Playwright Chromium, and the standalone installed package
+passes with its stylesheet and licenses. The full suite has 266 passing tests,
+including 35 architecture cases; 132 authored files and 86 native modules pass
+the boundary checker. Each completed phase has a separate
+stacked PR; review and merge them in order, retargeting subsequent PRs to main as
+their dependencies land.

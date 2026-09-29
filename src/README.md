@@ -6,6 +6,7 @@ rendered. Vue is not a core dependency.
 
 ```html
 <link rel="stylesheet" href="fornac/fornac.css">
+<div id="rendering-canvas" style="width: 800px; height: 600px"></div>
 <script type="module">
   import vaRRI, { createVaRRI } from './src/core/index.js';
   const viewer = createVaRRI(); // independent colors, annotations, and canvas
