@@ -60,7 +60,7 @@ export function highlightSubsequence(session, v, seq, range, color, alpha) {
  * @param {Object} v
  */
 export function applyRegionHighlights(session, v) {
-  const registryHighlights = getRegionHighlights(session);
+  const registryHighlights = getRegionHighlights(session.modelState);
   const highlights = registryHighlights.length > 0 ? registryHighlights : Array.isArray(v.regionHighlights) ? v.regionHighlights : [];
   highlights.forEach(highlight => {
     const nodePath = getRegionHighlightNodePath(v, highlight);
@@ -96,7 +96,7 @@ export function applySubsequenceHighlights(session, v) {
 export function backgroundhighlightBasepairs(session, v) {
   const intermolPairs = listIntermolPairs(v);
   if (intermolPairs.length === 0) {
-    clearGeneratedRegionHighlights(session);
+    clearGeneratedRegionHighlights(session.modelState);
     return;
   }
   let stack = [intermolPairs.shift()];
@@ -113,12 +113,12 @@ export function backgroundhighlightBasepairs(session, v) {
   }
   const area = stack.flatMap(([a, b]) => [a, b]).sort((a, b) => a - b);
   highlightAreas.push(area);
-  clearGeneratedRegionHighlights(session);
+  clearGeneratedRegionHighlights(session.modelState);
   highlightAreas.forEach(region => {
     const seq1Range = getBackgroundRangeForPositions(v, region, '1');
     const seq2Range = getBackgroundRangeForPositions(v, region, '2');
     if (seq1Range && seq2Range) {
-      registerGeneratedRegionHighlight(session, v, {
+      registerGeneratedRegionHighlight(session.modelState, v, {
         sequence1Range: seq1Range,
         sequence2Range: seq2Range,
         color: session.colors.backgroundHighlight
@@ -137,7 +137,7 @@ export function backgroundhighlightRegion(session, v) {
   if (!ranges) {
     return;
   }
-  registerGeneratedRegionHighlight(session, v, {
+  registerGeneratedRegionHighlight(session.modelState, v, {
     sequence1Range: ranges.sequence1Range,
     sequence2Range: ranges.sequence2Range,
     color: session.colors.backgroundHighlight

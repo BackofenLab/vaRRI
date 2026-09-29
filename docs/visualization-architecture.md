@@ -26,8 +26,9 @@ canvas. The canvas may import model functions; the model never imports the UI.
 ## Core instances and API
 
 `createVaRRI()` produces an independent API instance. Pure helpers are shared
-functions; stateful operations receive an explicit session containing colors,
-annotation registries, a scoped DOM adapter, and lifecycle state. The document
+functions; model operations receive only serializable colors and annotation
+registries from `createModelState()`. Canvas operations receive the renderer
+session, which holds that model state, a scoped DOM adapter, and lifecycle state. The document
 and its D3 runtime are resolved only when drawing. Importing the core and using
 validation in Node does not require a DOM.
 

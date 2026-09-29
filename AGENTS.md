@@ -7,7 +7,9 @@
 - Write browser code as modern JavaScript native ES modules in `.js` files. Use explicit `.js`
   extensions in local imports. Do not add TypeScript, JSX, Vue SFCs, bundler-only
   imports, or generated application source.
-  Node-only test and distribution helpers may use `.cjs`.
+  Existing Node-only test/distribution helpers use `.cjs`. This is an implementation
+  exception to issue #83's unqualified `.js`-only wording, not an approved waiver.
+  Do not introduce additional exceptions; see `docs/strict-constraints-audit.md`.
 - `src/core/model/` holds serializable data and algorithms. It must not reference
   DOM APIs, Vue, canvas, or a renderer session; its imports stay within model.
 - `src/core/canvas/` owns SVG, D3 nodes, forces, interaction, exports, and disposal.
@@ -26,8 +28,10 @@
 
 - Keep authored code, HTML, and CSS files at or below 400 lines, with one coherent
   responsibility. Split by behavior, never by numbered chunks or compressed code.
-  Pinned third-party runtimes and retained upstream Fornac sources have explicit
-  exemptions; document provenance and preserve licenses when updating them.
+  The current checker exempts pinned third-party runtimes and retained upstream
+  Fornac sources. Issue #83 does not explicitly grant these exceptions. Keep their
+  provenance and licenses, and do not interpret a passing checker as proof of
+  literal repository-wide compliance.
 - Preserve public API names and existing URL names/encodings, signed biological
   indices and skipped zero, annotation styles, profile coordinates, and exports.
   Generated region highlights must not become persistent user annotations.

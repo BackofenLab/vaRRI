@@ -69,11 +69,37 @@ async function main() {
       if (response.url().startsWith(origin) && response.status() >= 400) errors.push(response.url());
     });
     page.on('requestfailed', request => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
-    await page.route('**/*', route => route.request().url().startsWith(origin)
-      ? route.continue() : route.fulfill({ status: 200, body: '' }));
+    // Prove the source viewer does not rely on a previous build or npm install.
+    await page.route('**/*', route => {
+      const url = new URL(route.request().url());
+      if (url.origin !== origin) return route.fulfill({ status: 200, body: '' });
+      if (/^\/(?:dist\/|node_modules\/|fornac\/(?:d3|fornac)\.js$)/.test(url.pathname)) {
+        errors.push(`Source requested forbidden runtime dependency: ${url.pathname}`);
+        return route.abort();
+      }
+      return route.continue();
+    });
     phase = 'initial viewer load';
     await page.goto(origin + '/index.html', { waitUntil: 'networkidle' });
     await ready(page);
+    phase = 'live Vue and D3 reactivity boundary';
+    const boundary = await page.evaluate(async () => {
+      const { isProxy } = await import('/src/ui/vendor/vue.esm-browser.prod.js');
+      const { default: viewer } = await import('/index.js');
+      const plainData = value => {
+        if (value === null || value === undefined) return true;
+        if (typeof value !== 'object') return ['string', 'number', 'boolean'].includes(typeof value);
+        const prototype = Object.getPrototypeOf(value);
+        return (Array.isArray(value) || prototype === Object.prototype || prototype === null)
+          && Object.values(value).every(plainData);
+      };
+      const nodes = [...document.querySelectorAll('#rendering-canvas circle[node_type="nucleotide"]')]
+        .map(circle => circle.__data__);
+      return { plainState: plainData(viewer.state), nodes: nodes.length, proxies: nodes.filter(isProxy).length };
+    });
+    assert.ok(boundary.plainState, 'Vue state must contain only plain data, not renderer objects or functions');
+    assert.ok(boundary.nodes > 0, 'The reactivity check must inspect an actual rendered graph');
+    assert.equal(boundary.proxies, 0, 'D3 graph nodes must not be Vue proxies');
     for (const [id, example] of Object.entries(examples)) {
       phase = 'example ' + id;
       await openPanel(page, '#exampleDropdown');
@@ -106,7 +132,7 @@ async function main() {
 
     const annotations = [
       { add: '#highlightSubmitBtn', dialog: '#subseqHighlightDialog', items: '#highlight-list .highlight-item',
-        fields: { subseqRange: '1-2' }, edit: ['subseqRange', '2-3'], expected: '2-3' },
+        fields: { subseqRange: '1-2' }, edit: ['subseqRange', '1-1,3-4'], expected: '1-1,3-4' },
       { add: '#regionSubmitBtn', dialog: '#regionHighlightDialog', items: '#region-list .highlight-item:not(.generated)',
         fields: { region1: '1-2', region2: '1-2' }, edit: ['region1', '2-3'], expected: '2-3&1-2' },
       { add: '#mutationSubmitBtn', dialog: '#mutationDialog', items: '#mutation-list .highlight-item',
@@ -145,12 +171,14 @@ async function main() {
     assert.equal(params.get('forceLayoutLinearRRI'), '1');
     assert.equal(params.get('rotation'), '35');
     for (const key of ['subseqHighlights', 'regionHighlights', 'mutations']) assert.ok(params.get(key), key + ' must be shared');
+    assert.match(params.get('subseqHighlights'), /^1:1-1,3-4:[0-9a-f]{6}:0\.3$/i);
     await page.goto(origin + '/index.html?' + params, { waitUntil: 'networkidle' });
     await ready(page);
     for (const id of ['subseqCounterUI', 'regionCounterUI', 'mutationCounterUI', 'profileCounterUI']) {
       assert.equal((await page.locator('#' + id).textContent()).trim(), '(1)', id + ': restored state');
     }
     assert.equal(await page.locator('#forceLayoutLinearRRI').isChecked(), true);
+    assert.ok((await page.locator('#highlight-list').textContent()).includes('1-1,3-4'), 'All ranges stay in one restored annotation');
     assert.equal(await page.locator('#rotationSlider').inputValue(), '0');
     assert.ok((await page.locator('#rotation').textContent()).includes('35'));
     assert.equal(await page.locator('#rendering-canvas svg').getAttribute('data-varri-rotation'), '35');

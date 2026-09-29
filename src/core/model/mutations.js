@@ -122,8 +122,8 @@ export function createPointMutation(input, sequenceContext = {}, colors = DEFAUL
  * @param {{'1'?:{offset:number, sequence:string}, '2'?:{offset:number, sequence:string}}=} sequenceContext
  * @returns {Object}
  */
-export function registerPointMutation(session, input, sequenceContext = {}) {
-  return registerRegistryItem(session.annotations.mutations, createPointMutation(input, sequenceContext, session.colors), clonePointMutation);
+export function registerPointMutation(modelState, input, sequenceContext = {}) {
+  return registerRegistryItem(modelState.annotations.mutations, createPointMutation(input, sequenceContext, modelState.colors), clonePointMutation);
 }
 
 /**
@@ -134,15 +134,15 @@ export function registerPointMutation(session, input, sequenceContext = {}) {
  * @param {{'1'?:{offset:number, sequence:string}, '2'?:{offset:number, sequence:string}}=} sequenceContext
  * @returns {Object}
  */
-export function updatePointMutation(session, id, patch, sequenceContext = {}) {
-  const target = getRegistryItem(session.annotations.mutations, id);
+export function updatePointMutation(modelState, id, patch, sequenceContext = {}) {
+  const target = getRegistryItem(modelState.annotations.mutations, id);
   const normalized = createPointMutation({
     id,
     sequence: patch.sequence !== undefined ? patch.sequence : target.sequence,
     position: patch.position !== undefined ? patch.position : target.position,
     replacement: patch.replacement !== undefined ? patch.replacement : target.replacement,
     color: patch.color !== undefined ? patch.color : target.color
-  }, sequenceContext, session.colors);
+  }, sequenceContext, modelState.colors);
   Object.assign(target, normalized);
   return clonePointMutation(target);
 }
@@ -153,15 +153,15 @@ export function updatePointMutation(session, id, patch, sequenceContext = {}) {
  * @param {number} id
  * @returns {boolean}
  */
-export function removePointMutation(session, id) {
-  return removeRegistryItem(session.annotations.mutations, id);
+export function removePointMutation(modelState, id) {
+  return removeRegistryItem(modelState.annotations.mutations, id);
 }
 
 /**
  * Remove all registered point mutations.
  */
-export function clearPointMutations(session) {
-  clearRegistry(session.annotations.mutations);
+export function clearPointMutations(modelState) {
+  clearRegistry(modelState.annotations.mutations);
 }
 
 /**
@@ -169,6 +169,6 @@ export function clearPointMutations(session) {
  *
  * @returns {Array<Object>}
  */
-export function getPointMutations(session) {
-  return listRegistryItems(session.annotations.mutations, clonePointMutation);
+export function getPointMutations(modelState) {
+  return listRegistryItems(modelState.annotations.mutations, clonePointMutation);
 }

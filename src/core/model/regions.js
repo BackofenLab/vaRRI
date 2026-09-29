@@ -101,8 +101,8 @@ export function createRegionHighlight(input, sequenceContext = {}, colors = DEFA
  * @param {{'1'?:{offset:number, length:number}, '2'?:{offset:number, length:number}}=} sequenceContext
  * @returns {Object}
  */
-export function registerRegionHighlight(session, input, sequenceContext = {}) {
-  return registerRegistryItem(session.annotations.regions, createRegionHighlight(input, sequenceContext, session.colors), cloneRegionHighlight);
+export function registerRegionHighlight(modelState, input, sequenceContext = {}) {
+  return registerRegistryItem(modelState.annotations.regions, createRegionHighlight(input, sequenceContext, modelState.colors), cloneRegionHighlight);
 }
 
 /**
@@ -113,8 +113,8 @@ export function registerRegionHighlight(session, input, sequenceContext = {}) {
  * @param {{'1'?:{offset:number, length:number}, '2'?:{offset:number, length:number}}=} sequenceContext
  * @returns {Object}
  */
-export function updateRegionHighlight(session, id, patch, sequenceContext = {}) {
-  const target = getRegistryItem(session.annotations.regions, id);
+export function updateRegionHighlight(modelState, id, patch, sequenceContext = {}) {
+  const target = getRegistryItem(modelState.annotations.regions, id);
   const normalized = createRegionHighlight({
     id,
     sequence1Range: patch.sequence1Range !== undefined ? patch.sequence1Range : target.sequence1Range,
@@ -122,7 +122,7 @@ export function updateRegionHighlight(session, id, patch, sequenceContext = {}) 
     color: patch.color !== undefined ? patch.color : target.color,
     alpha: patch.alpha !== undefined ? patch.alpha : target.alpha,
     generated: patch.generated !== undefined ? patch.generated : target.generated
-  }, sequenceContext, session.colors);
+  }, sequenceContext, modelState.colors);
   Object.assign(target, normalized);
   return cloneRegionHighlight(target);
 }
@@ -133,15 +133,15 @@ export function updateRegionHighlight(session, id, patch, sequenceContext = {}) 
  * @param {number} id
  * @returns {boolean}
  */
-export function removeRegionHighlight(session, id) {
-  return removeRegistryItem(session.annotations.regions, id);
+export function removeRegionHighlight(modelState, id) {
+  return removeRegistryItem(modelState.annotations.regions, id);
 }
 
 /**
  * Remove all registered region highlights.
  */
-export function clearRegionHighlights(session) {
-  clearRegistry(session.annotations.regions);
+export function clearRegionHighlights(modelState) {
+  clearRegistry(modelState.annotations.regions);
 }
 
 /**
@@ -149,16 +149,16 @@ export function clearRegionHighlights(session) {
  *
  * @returns {Array<Object>}
  */
-export function getRegionHighlights(session) {
-  return listRegistryItems(session.annotations.regions, cloneRegionHighlight);
+export function getRegionHighlights(modelState) {
+  return listRegistryItems(modelState.annotations.regions, cloneRegionHighlight);
 }
 
 /**
  * Remove all generated region highlights from the active registry.
  */
-export function clearGeneratedRegionHighlights(session) {
-  getRegionHighlights(session).filter(highlight => highlight.generated).forEach(highlight => {
-    removeRegionHighlight(session, highlight.id);
+export function clearGeneratedRegionHighlights(modelState) {
+  getRegionHighlights(modelState).filter(highlight => highlight.generated).forEach(highlight => {
+    removeRegionHighlight(modelState, highlight.id);
   });
 }
 
@@ -169,7 +169,7 @@ export function clearGeneratedRegionHighlights(session) {
  * @param {{sequence1Range:[number, number], sequence2Range:[number, number], color?:string, alpha?:number}} spec
  * @returns {Object}
  */
-export function registerGeneratedRegionHighlight(session, v, spec) {
+export function registerGeneratedRegionHighlight(modelState, v, spec) {
   const sequenceContext = {
     '1': {
       offset: v.offset1,
@@ -182,10 +182,10 @@ export function registerGeneratedRegionHighlight(session, v, spec) {
       sequence: v.sequence2
     }
   };
-  return registerRegionHighlight(session, {
+  return registerRegionHighlight(modelState, {
     sequence1Range: spec.sequence1Range,
     sequence2Range: spec.sequence2Range,
-    color: spec.color || session.colors.backgroundHighlight,
+    color: spec.color || modelState.colors.backgroundHighlight,
     alpha: spec.alpha,
     generated: true
   }, sequenceContext);

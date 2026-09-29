@@ -2,6 +2,11 @@
 
 Tracking issue: https://github.com/BackofenLab/vaRRI/issues/83
 
+**Strict-constraints audit:** [detailed findings](docs/strict-constraints-audit.md)
+distinguish verified runtime compliance from the current CommonJS-tooling and
+retained-vendor exceptions. The issue does not explicitly approve those exceptions;
+passing CI must not be described as literal repository-wide compliance.
+
 ## Review gates
 
 Each phase has its own branch and pull request. Run the applicable unit,
@@ -200,8 +205,16 @@ are detected and produce useful diagnostics; neither baseline was rewritten.
 The council's final review confirmed all 81 original public API functions remain
 available. Locally, all browser checks and five zero-pixel-difference visual
 fixtures pass on pinned Playwright Chromium, and the standalone installed package
-passes with its stylesheet and licenses. The full suite has 266 passing tests,
-including 35 architecture cases; 132 authored files and 86 native modules pass
+passes with its stylesheet and licenses. After the strict-constraints audit, the
+full suite has 294 passing tests, including 35 architecture cases; 134 authored
+files and 87 native modules pass
 the boundary checker. Each completed phase has a separate
 stacked PR; review and merge them in order, retargeting subsequent PRs to main as
 their dependencies land.
+
+The follow-up audit narrows model operations to serializable `modelState`,
+separate from the renderer session, and fixes grouped-range/CSS-color URL round
+trips. Browser verification blocks build/npm/legacy-script runtime dependencies
+and inspects real D3 nodes for Vue proxies. The audit also records the unresolved
+CommonJS-tooling and retained-vendor exceptions to the issue's literal wording;
+these are implementation choices, not approvals from Martin.

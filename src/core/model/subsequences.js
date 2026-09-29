@@ -110,8 +110,8 @@ export function createSubsequenceHighlight(input, sequenceContext = {}, colors =
  * @param {{'1'?:{offset:number, length:number}, '2'?:{offset:number, length:number}}=} sequenceContext
  * @returns {Object}
  */
-export function registerSubsequenceHighlight(session, input, sequenceContext = {}) {
-  return registerRegistryItem(session.annotations.subsequences, createSubsequenceHighlight(input, sequenceContext, session.colors), cloneSubsequenceHighlight);
+export function registerSubsequenceHighlight(modelState, input, sequenceContext = {}) {
+  return registerRegistryItem(modelState.annotations.subsequences, createSubsequenceHighlight(input, sequenceContext, modelState.colors), cloneSubsequenceHighlight);
 }
 
 /**
@@ -122,15 +122,15 @@ export function registerSubsequenceHighlight(session, input, sequenceContext = {
  * @param {{'1'?:{offset:number, length:number}, '2'?:{offset:number, length:number}}=} sequenceContext
  * @returns {Object}
  */
-export function updateSubsequenceHighlight(session, id, patch, sequenceContext = {}) {
-  const target = getRegistryItem(session.annotations.subsequences, id);
+export function updateSubsequenceHighlight(modelState, id, patch, sequenceContext = {}) {
+  const target = getRegistryItem(modelState.annotations.subsequences, id);
   const normalized = createSubsequenceHighlight({
     id,
     sequence: patch.sequence !== undefined ? patch.sequence : target.sequence,
     range: patch.range !== undefined ? patch.range : target.range,
     color: patch.color !== undefined ? patch.color : target.color,
     alpha: patch.alpha !== undefined ? patch.alpha : target.alpha
-  }, sequenceContext, session.colors);
+  }, sequenceContext, modelState.colors);
   Object.assign(target, normalized);
   return cloneSubsequenceHighlight(target);
 }
@@ -141,15 +141,15 @@ export function updateSubsequenceHighlight(session, id, patch, sequenceContext =
  * @param {number} id
  * @returns {boolean}
  */
-export function removeSubsequenceHighlight(session, id) {
-  return removeRegistryItem(session.annotations.subsequences, id);
+export function removeSubsequenceHighlight(modelState, id) {
+  return removeRegistryItem(modelState.annotations.subsequences, id);
 }
 
 /**
  * Remove all registered subsequence highlights.
  */
-export function clearSubsequenceHighlights(session) {
-  clearRegistry(session.annotations.subsequences);
+export function clearSubsequenceHighlights(modelState) {
+  clearRegistry(modelState.annotations.subsequences);
 }
 
 /**
@@ -157,6 +157,6 @@ export function clearSubsequenceHighlights(session) {
  *
  * @returns {Array<Object>}
  */
-export function getSubsequenceHighlights(session) {
-  return listRegistryItems(session.annotations.subsequences, cloneSubsequenceHighlight);
+export function getSubsequenceHighlights(modelState) {
+  return listRegistryItems(modelState.annotations.subsequences, cloneSubsequenceHighlight);
 }

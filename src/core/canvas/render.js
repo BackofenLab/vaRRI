@@ -114,7 +114,7 @@ export function render(session, containerId, v, options = {}) {
     setIndexLabels(session, v);
 
     // Highlighting (only for 2-molecule input)
-    clearGeneratedRegionHighlights(session);
+    clearGeneratedRegionHighlights(session.modelState);
     if (v.molecules === '2') {
       if (v.highlighting === 'region') highlightRegion(session, v);
       if (v.highlighting === 'basepairs') highlightBasepairs(session, v);
