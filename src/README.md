@@ -1,20 +1,38 @@
 # vaRRI JavaScript API
 
-`src/vaRRI.js` exposes one global object, `window.vaRRI`. In CommonJS test
-code, `require('./src/vaRRI.js')` returns the same object.
-
-Load Fornac and D3 before vaRRI:
+`src/vaRRI.js` and `src/core/index.js` expose native ES modules. The model can
+be imported without a DOM, and the canvas loads its own pinned D3 runtime when
+rendered. Vue is not a core dependency.
 
 ```html
-<link rel="stylesheet" href="fornac/fornac.css" />
-<script src="fornac/d3.js"></script>
-<script src="fornac/fornac.js"></script>
-<script src="dist/vaRRI.min.js"></script>
+<link rel="stylesheet" href="fornac/fornac.css">
+<script type="module">
+  import vaRRI, { createVaRRI } from './src/core/index.js';
+  const viewer = createVaRRI(); // independent colors, annotations, and canvas
+  const input = viewer.validate({ sequence: 'ACGU', structure: '(..)' });
+  await viewer.render('rendering-canvas', input);
+</script>
 ```
 
-Use `src/vaRRI.js` instead of the minified file while developing.
+Serve source files over HTTP. No compilation or Node.js environment is needed.
+`createVaRRI()` creates an independent instance; the default export preserves
+the historical singleton methods. Call `cancelActiveRender()` before discarding
+a viewer to stop its force and pending work.
+
+For external embedding, `npm run build` produces `dist/varri.min.js`, which
+exposes `window.vaRRI` and includes D3. No separate Fornac/D3 scripts are needed.
+The old `dist/vaRRI.min.js` URL remains an alias. The npm package provides native
+ESM imports and `require('varri-js')` through a generated CommonJS entry.
 
 ## Core workflow
+
+### Serializable URL state
+
+`decodeUrlState(search)` reads the established viewer query parameters into plain
+fields and annotation data. `encodeUrlState(state)` returns `URLSearchParams` for
+sharing that state. Generated region annotations are excluded. Both functions
+are available on the default API, as named core exports, and from the DOM-free
+`varri-js/model` entry. They do not initialize a canvas or depend on Vue.
 
 ### `vaRRI.validate(args)`
 
@@ -48,7 +66,7 @@ const validated = vaRRI.validate({
 
 ### `vaRRI.render(containerId, validated, options?)`
 
-Creates a Fornac visualization, then applies labels, coloring, annotations,
+Creates an independent D3 visualization, then applies labels, coloring, annotations,
 profiles, and link styling. It returns a promise resolving to
 `{ cancelled: boolean }`. Starting a newer render cancels pending
 post-processing from the previous render.
@@ -58,7 +76,7 @@ linear-layout listeners, and resolves any pending render as cancelled.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `forceLayout` | `boolean` | `false` | Enable Fornac force-layout animation. |
+| `forceLayout` | `boolean` | `false` | Enable D3 force-layout animation. |
 | `forceLayoutLinearStructure` | `boolean` | `false` | Apply a rigid two-rail constraint independently to intramolecular stems containing bulges or interior loops. Requires `forceLayout`. |
 | `forceLayoutLinearRRI` | `boolean` | `false` | Keep a noncrossing RRI helix on two parallel rails and rotate the complete two-molecule interaction so its axis is horizontal. Requires `forceLayout`. |
 | `freeTrailingEnds` | `boolean` | `false` | Relax the external-loop closure scaffold when force layout is active. |
@@ -158,9 +176,9 @@ const sequenceContext = {
 |---|---|
 | `checkStructureInputSimple(structure)` | Check bracket balance for `()`, `[]`, `{}`, and `<>`. |
 | `findBasePairs(structure)` | Return zero-based matched bracket pairs. |
-| `formatSequence(sequence)` | Return Fornac-ready sequence fields for one or two molecules. |
-| `formatStructure(structure)` | Return Fornac-ready structure fields for one or two molecules. |
-| `getIndexDictionary(validated)` | Map Fornac node IDs to molecule IDs and biological positions. |
+| `formatSequence(sequence)` | Return Canvas-ready sequence fields for one or two molecules. |
+| `formatStructure(structure)` | Return Canvas-ready structure fields for one or two molecules. |
+| `getIndexDictionary(validated)` | Map canvas node IDs to molecule IDs and biological positions. |
 | `getMolecules(validated)` | Return `"1"` or `"2"`. |
 | `getSequenceIndices(seqId, offset, length)` | Generate biological indices while skipping zero. |
 | `parseSubsequences(input, startIndex?, sequenceLength?)` | Parse and optionally bounds-check range strings. |
@@ -186,14 +204,14 @@ const sequenceContext = {
 
 ## DOM modification helpers
 
-These advanced functions operate on the current Fornac SVG. Normal consumers
+These advanced functions operate on the current canvas SVG. Normal consumers
 should call `render()` and let it coordinate them.
 
 | Function | Purpose |
 |---|---|
 | `addElement(elementType, attributes)` | Insert an SVG element in the plot. |
 | `addStyleToNodes(nodeIds, style)` | Append inline style to nucleotide nodes. |
-| `applyLinearHelixSprings(container, validated, options?)` | Apply requested RRI and/or intramolecular two-rail constraints to an active Fornac force layout. |
+| `applyLinearHelixSprings(container, validated, options?)` | Apply requested RRI and/or intramolecular two-rail constraints to an active D3 force layout. |
 | `applyPointMutations(validated)` | Apply validated mutation overlays. |
 | `applyRegionHighlights(validated)` | Draw registered or validated region polygons. |
 | `applySubsequenceHighlights(validated)` | Draw validated subsequence overlays. |
@@ -206,12 +224,12 @@ should call `render()` and let it coordinate them.
 | `highlightRegion(validated)` | Highlight the intermolecular region. |
 | `highlightSubsequence(validated, sequence, ranges, color, alpha)` | Draw a subsequence overlay. |
 | `polyline(indices, style, attributes?)` | Draw an SVG polyline through node IDs. |
-| `removeDummyNodes(sequence)` | Remove Fornac gap nodes. |
-| `removeSecondLink()` | Remove duplicate intermolecular links. |
+| `removeDummyNodes(sequence)` | Compatibility no-op; the graph contains no gap nucleotides. |
+| `removeSecondLink()` | Compatibility helper; the default graph already deduplicates pairs. |
 | `setAttributeForElements(targetAttr, targetValue, attr, value)` | Update matching DOM elements. |
 | `setIndexLabels(validated)` | Configure biological index labels. |
-| `setLabelsId()` | Assign stable IDs to Fornac labels. |
-| `setLinksId()` | Assign endpoint metadata to Fornac links. |
+| `setLabelsId()` | Assign stable IDs to index labels. |
+| `setLinksId()` | Assign endpoint metadata to graph links. |
 | `styleBasepairs(validated)` | Apply base-pair colors and G-U dashing. |
 | `updateLinkTooltips(validated)` | Add biological positions to link tooltips. |
 | `updateNodeToolTips(validated)` | Add biological positions to node tooltips. |

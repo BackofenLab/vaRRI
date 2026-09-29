@@ -50,8 +50,9 @@ Use cases include
 
 
 Given two sequences and the RRI secondary-structure encoding in dot-bracket notation, vaRRI renders
-them with the [Fornac](https://github.com/ViennaRNA/fornac) library, and then
-applies all of vaRRI's annotations and tweaks.
+them with a native D3 canvas and applies vaRRI's annotations. RNA layout
+algorithms extracted from [Fornac](https://github.com/ViennaRNA/fornac) retain
+their attribution; the viewer does not load the Fornac runtime.
 
 [![vaRRI example visualization](doc/vaRRI-UI-example.png)](https://backofenlab.github.io/vaRRI/)
 
@@ -68,26 +69,23 @@ The examples can be loaded directly in the input website via the **Example** dro
 
 ## Project Structure
 
-```
+```text
 vaRRI/
-│
-├── fornac/
-│   ├── fornac.js        # Fornac library (vaRRI dependency)
-│   ├── fornac.css       # Fornac styles
-│   └── d3.js            # D3.js (fornac dependency)
-│
 ├── src/
-│   ├── vaRRI.js         # JavaScript library (vaRRI API)
-│   └── README.md        # JavaScript library documentation
-├── tests/
-│   └── vaRRI.test.js    # Jest unit tests for the vaRRI library
-│
-├── index.html           # Input website (vaRRI graphical user interface)
-├── style.css            # Input website styles
-├── index.js             # Input website JavaScript (GUI logic)
-│
-├── README.md            # Documentation (this file)
-└── README.html          # Documentation in HTML format (generated from README.md)
+│   ├── main.js             # Native browser entry
+│   ├── vaRRI.js            # Public native-module compatibility entry
+│   ├── core/
+│   │   ├── model/          # DOM-free validation, indexing, annotations, URL state
+│   │   ├── canvas/         # Instance-scoped D3 rendering, layout, export
+│   │   └── vendor/         # Pinned D3 runtime and license
+│   └── ui/                 # UI modules; Vue migration tracked in protocol
+├── docs/                   # Force graph and architecture documentation
+├── tests/                  # Model/UI/force tests and original visual fixtures
+├── scripts/                # Distribution and verification tools
+├── index.html              # Source viewer and native import map
+├── style.css               # Viewer styles
+├── fornac/                 # Compatible CSS and retained upstream source/license
+└── MIGRATION_PROTOCOL.md   # Phase gates, decisions, and verification evidence
 ```
 
 ---
@@ -115,14 +113,19 @@ python3 -m http.server 8080
 # Open http://localhost:8080/index.html
 ```
 
-To use the library in your own HTML page, include the dependencies in the following order:
+To use the native library in another served page:
 
 ```html
-<link rel="stylesheet" href="fornac/fornac.css" />
-<script src="fornac/d3.js"></script>
-<script src="fornac/fornac.js"></script>
-<script src="src/vaRRI.js"></script>  <!-- or use a minified version for deployment -->
+<link rel="stylesheet" href="fornac/fornac.css">
+<div id="rna"></div>
+<script type="module">
+  import { createVaRRI } from './src/core/index.js';
+  const viewer = createVaRRI();
+  await viewer.render('rna', viewer.validate({ sequence: 'ACGU', structure: '(..)' }));
+</script>
 ```
+
+The core has no Vue dependency and initializes its D3 runtime only when rendering.
 
 ## npm Package
 
@@ -161,8 +164,8 @@ Use HTTP rather than `file://` for native module loading and packaged help/citat
 
 The architecture migration is tracked in [MIGRATION_PROTOCOL.md](MIGRATION_PROTOCOL.md).
 
-The JavaScript `main` and root export intentionally remain `src/vaRRI.js`: `require('varri-js')`
-and ESM default imports return the library API. The viewer has a separate public entry:
+ESM imports resolve to the native source API. `require('varri-js')` resolves to
+the generated CommonJS core bundle; both expose the same library methods. The viewer has a separate public entry:
 
 ```javascript
 const viewerPath = require.resolve('varri-js/index.html');
@@ -179,15 +182,12 @@ network access must provide those assets locally and update the HTML references/
 Opening the help or citation page through `file://` can additionally fetch fallback content
 from `raw.githubusercontent.com`; serving the package over HTTP uses the local files.
 
-The package exports the CommonJS-compatible API as `varri-js` and ships the browser assets under
-`varri-js/fornac/` and `varri-js/dist/`. For a static page served from an npm-based application,
-load the browser files in this order:
+For classic-script embedding, the distribution includes a standalone core bundle
+with its own D3 engine. For a page served from an npm-based application:
 
 ```html
 <link rel="stylesheet" href="node_modules/varri-js/fornac/fornac.css" />
-<script src="node_modules/varri-js/fornac/d3.js"></script>
-<script src="node_modules/varri-js/fornac/fornac.js"></script>
-<script src="node_modules/varri-js/dist/vaRRI.min.js"></script>
+<script src="node_modules/varri-js/dist/varri.min.js"></script>
 ```
 
 Applications with a bundler can also consume the API entry point:
@@ -196,8 +196,8 @@ Applications with a bundler can also consume the API entry point:
 const vaRRI = require('varri-js');
 ```
 
-Fornac and its D3 runtime must be available globally before calling DOM-rendering functions. Copy
-or serve the package's `fornac` browser assets as part of the application's normal asset pipeline.
+The core bundle installs `window.vaRRI` and includes D3. Serve the compatible
+`fornac/fornac.css` stylesheet alongside it; no Fornac runtime is required.
 
 
 > [!NOTE]

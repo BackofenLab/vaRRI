@@ -11,8 +11,8 @@ only that phase's changes. Do not merge or publish releases automatically.
 
 | Phase | Deliverable | Status |
 | --- | --- | --- |
-| 1 | Native ESM entry/import map, original visual baseline, this protocol | Complete; PR gate opened before phase 2 |
-| 2 | DOM-free model, independent D3 canvas, strand-boundary fix, architecture docs | Pending |
+| 1 | Native ESM entry/import map, original visual baseline, this protocol | [PR #87](https://github.com/BackofenLab/vaRRI/pull/87) |
+| 2 | DOM-free model, independent D3 canvas, strand-boundary fix, architecture docs | In progress |
 | 3 | Native Vue 3 JS components, complete legacy URL compatibility | Pending |
 | 4 | Standalone core bundle workflow and enforced contributor rules | Pending |
 
@@ -121,3 +121,30 @@ changed pixels). The browser also dynamically imports `src/main.js` and resolves
 
 Run `npm run test:visual`; see [baseline provenance and instructions](tests/visual-baseline/README.md).
 The phase-1 PR links this protocol, and later phase records link preceding PRs.
+
+### Phase 2
+
+The public API now delegates to focused native model/canvas modules. The
+`createVaRRI()` factory isolates colors, annotation registries, DOM queries, and
+render cancellation per viewer. Default/named exports retain the singleton
+interface. The core imports headlessly and initializes its pinned D3 runtime
+only when rendering into a document.
+
+The graph directly models strand boundaries and builds real nucleotide IDs
+without padding. It contains each base pair once and no cross-strand backbone
+link. Pinned polygon/loop algorithms retain license and source provenance.
+Exterior force hubs are explicitly tagged so free ends release only those
+constraints. See [force-field-graph.md](docs/force-field-graph.md) and
+[visualization-architecture.md](docs/visualization-architecture.md).
+
+All five prospective browser images were visually reviewed against the original
+fixtures. Colors, biological labels, mutations, profiles, and annotation counts
+remain present. Two-strand coordinate shifts follow the removal of three
+artificial polygon vertices; terminal bases and nearby labels consequently move.
+The original baseline remains unchanged, and a separate core baseline records
+this intentional geometry change. No renderer algorithm or D3 version upgrade
+is mixed into this migration.
+
+The npm package now resolves ESM imports to source and CommonJS to the standalone
+core artifact. The classic bundle includes D3 and retains the mixed-case URL as
+an alias. The source viewer does not load the old Fornac or D3 scripts.
