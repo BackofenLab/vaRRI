@@ -13,7 +13,7 @@ only that phase's changes. Do not merge or publish releases automatically.
 | --- | --- | --- |
 | 1 | Native ESM entry/import map, original visual baseline, this protocol | [PR #87](https://github.com/BackofenLab/vaRRI/pull/87) |
 | 2 | DOM-free model, independent D3 canvas, strand-boundary fix, architecture docs | [PR #88](https://github.com/BackofenLab/vaRRI/pull/88) |
-| 3 | Native Vue 3 JS components, complete legacy URL compatibility | In progress |
+| 3 | Native Vue 3 JS components, complete legacy URL compatibility | [PR #89](https://github.com/BackofenLab/vaRRI/pull/89) |
 | 4 | Standalone core bundle workflow and enforced contributor rules | Pending |
 
 ## Council decision
