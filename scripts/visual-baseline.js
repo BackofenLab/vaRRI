@@ -1,22 +1,23 @@
+import { pathToFileURL } from 'node:url';
 // Browser regression fixtures are recorded explicitly, never during a normal test.
 // npm run test:visual -- --update --root /tmp/varri-original --revision <git-sha>
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const http = require('node:http');
-const path = require('node:path');
-const { isDeepStrictEqual } = require('node:util');
-const { chromium } = require('playwright');
-const { createCanvas, loadImage } = require('canvas');
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
+import { chromium } from 'playwright';
+import { createCanvas, loadImage } from 'canvas';
 
 const args = process.argv.slice(2);
 const option = (name, fallback) => args.includes(name) ? args[args.indexOf(name) + 1] : fallback;
-const root = path.resolve(option('--root', path.join(__dirname, '..')));
-const baseline = path.resolve(option('--baseline', path.join(__dirname, '../tests/visual-core')));
-const output = path.resolve(option('--output', path.join(__dirname, '../output/playwright')));
+const root = path.resolve(option('--root', path.join(import.meta.dirname, '..')));
+const baseline = path.resolve(option('--baseline', path.join(import.meta.dirname, '../tests/visual-core')));
+const output = path.resolve(option('--output', path.join(import.meta.dirname, '../output/playwright')));
 const update = args.includes('--update');
 const revision = option('--revision', null);
 const fixtures = ['2mol', 'coronel-tellez-2022', 'wu-2024', 'IntaRNA-seeds', 'crossing-rri'];
-const catalog = require(path.join(root, 'example-data.js'));
+const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json' };

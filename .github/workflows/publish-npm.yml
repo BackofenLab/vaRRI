@@ -41,7 +41,7 @@ jobs:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           IS_PRERELEASE: ${{ github.event.release.prerelease }}
         id: release
-        run: node scripts/release-metadata.cjs
+        run: node scripts/release-metadata.js
 
       - name: Verify package contents
         run: npm run test:package

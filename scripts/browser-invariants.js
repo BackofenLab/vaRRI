@@ -1,11 +1,11 @@
 // Real-browser contract checks for native ESM and the standalone core bundle.
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const http = require('node:http');
-const path = require('node:path');
-const { chromium } = require('playwright');
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import { chromium } from 'playwright';
 
-const root = path.resolve(__dirname, '..');
+const root = path.resolve(import.meta.dirname, '..');
 const output = path.join(root, 'output/playwright/core-contract');
 const mime = { '.js': 'text/javascript', '.css': 'text/css', '.map': 'application/json' };
 const html = mode => `<!doctype html><meta charset="utf-8">

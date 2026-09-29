@@ -81,14 +81,15 @@
     "provenance": true
   },
   "scripts": {
-    "build": "node scripts/build-core.cjs",
-    "test": "jest",
-    "test:ci": "jest --runInBand",
-    "test:architecture": "node scripts/check-architecture.cjs",
-    "test:package": "node scripts/check-package.cjs",
-    "test:visual": "node scripts/visual-baseline.cjs",
-    "test:browser": "npm run build && node scripts/browser-invariants.cjs",
-    "test:ui": "node scripts/browser-ui.cjs",
+    "build": "node scripts/build-core.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:architecture": "node scripts/check-architecture.js",
+    "test:package": "node scripts/check-package.js",
+    "test:visual": "node scripts/visual-baseline.js",
+    "test:browser": "npm run build && node scripts/browser-invariants.js",
+    "test:ui": "node scripts/browser-ui.js",
+    "test:pages": "node scripts/browser-pages.js",
     "prepack": "npm run build"
   },
   "jest": {
@@ -97,9 +98,7 @@
     "testPathIgnorePatterns": [
       "/node_modules/"
     ],
-    "transform": {
-      "^.+\\.js$": "<rootDir>/tests/esm-transform.cjs"
-    },
+    "transform": {},
     "moduleNameMapper": {
       "^vue$": "<rootDir>/src/ui/vendor/vue.esm-browser.prod.js"
     }
@@ -112,5 +111,6 @@
     "jest-environment-jsdom": "^30.4.1",
     "marked": "^18.0.9",
     "playwright": "1.63.0"
-  }
+  },
+  "type": "module"
 }

@@ -4,12 +4,12 @@
 
 - Serve the checkout over HTTP and open `index.html`. Source development and
   GitHub Pages deployment require no build, transpiler, or Node runtime.
-- Write browser code as modern JavaScript native ES modules in `.js` files. Use explicit `.js`
+- Write authored code, including tests and tools, as native JavaScript ES modules in `.js` files. Use explicit `.js`
   extensions in local imports. Do not add TypeScript, JSX, Vue SFCs, bundler-only
   imports, or generated application source.
-  Existing Node-only test/distribution helpers use `.cjs`. This is an implementation
-  exception to issue #83's unqualified `.js`-only wording, not an approved waiver.
-  Do not introduce additional exceptions; see `docs/strict-constraints-audit.md`.
+  Root `package.json` uses `type: module`; Jest runs native ESM without a transform.
+  The legacy `fornac/` package scope retains upstream UMD compatibility only.
+  Generated `dist/varri.cjs` preserves the npm CommonJS consumer entry.
 - `src/core/model/` holds serializable data and algorithms. It must not reference
   DOM APIs, Vue, canvas, or a renderer session; its imports stay within model.
 - `src/core/canvas/` owns SVG, D3 nodes, forces, interaction, exports, and disposal.
@@ -26,12 +26,16 @@
 
 ## Maintainable files and compatibility
 
-- Keep authored code, HTML, and CSS files at or below 400 lines, with one coherent
-  responsibility. Split by behavior, never by numbered chunks or compressed code.
-  The current checker exempts pinned third-party runtimes and retained upstream
-  Fornac sources. Issue #83 does not explicitly grant these exceptions. Keep their
-  provenance and licenses, and do not interpret a passing checker as proof of
-  literal repository-wide compliance.
+- Keep authored code, documentation, configuration, HTML, and CSS at or below
+  400 lines per file, with one coherent responsibility. Split by behavior, never
+  by numbered chunks or compressed authored code. Pinned vendor executables also
+  obey the line limit; their checksums, licenses, and provenance are mandatory in
+  `scripts/vendor-manifest.js`. Keep vendor wrappers readable and checked as source.
+  Only generated artifacts and npm's generated `package-lock.json` data fall
+  outside this source-file rule. This is an explicit scope boundary, not a claim
+  that every generated data file has fewer than 400 lines.
+- All served pages use external native module controllers. Use event listeners,
+  not inline handlers; use pinned local dependencies, not unpinned script CDNs.
 - Preserve public API names and existing URL names/encodings, signed biological
   indices and skipped zero, annotation styles, profile coordinates, and exports.
   Generated region highlights must not become persistent user annotations.
@@ -53,6 +57,7 @@ Node is used for tests and distribution only. Install tools with `npm ci`.
 - `npm run test:browser`: native/core-bundle parity, topology, instance isolation,
   force cancellation and SVG/PNG exports.
 - `npm run test:ui`: real Vue forms, dialogs, examples, annotations and sharing.
+- `npm run test:pages`: composed help anchors and citation tabs/downloads.
 - `npm run test:visual`: seeded geometry and pixel comparisons for five examples.
 
 Run checks appropriate to the change, including required CI checks before a PR.

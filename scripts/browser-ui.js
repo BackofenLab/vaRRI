@@ -1,11 +1,12 @@
+import { pathToFileURL } from 'node:url';
 // Exercise real Vue controls and native modules, without a development build.
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const http = require('node:http');
-const path = require('node:path');
-const { chromium } = require('playwright');
-const root = path.resolve(__dirname, '..');
-const catalog = require(path.join(root, 'example-data.js'));
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import { chromium } from 'playwright';
+const root = path.resolve(import.meta.dirname, '..');
+const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
 const output = path.join(root, 'output/playwright/ui');
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',

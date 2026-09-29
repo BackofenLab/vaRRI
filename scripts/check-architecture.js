@@ -1,20 +1,18 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const { parse } = require('@babel/parser');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
+import { parse } from '@babel/parser';
+import { VENDOR_ASSETS } from './vendor-manifest.js';
 
-// Exact upstream assets only: new files placed in a vendor directory are authored.
-const VENDORS = new Map([
-  ['fornac/d3.js', ['fornac/d3.LICENSE.txt', 'fornac/README.md']],
-  ['fornac/fornac.js', ['fornac/fornac.LICENSE.txt', 'fornac/README.md']],
-  ['fornac/fornac.css', ['fornac/fornac.LICENSE.txt', 'fornac/README.md']],
-  ['src/core/vendor/d3.js', ['src/core/vendor/D3-LICENSE.txt', 'src/core/vendor/README.md']],
-  ['src/ui/vendor/vue.esm-browser.prod.js', ['src/ui/vendor/VUE-LICENSE.txt', 'src/ui/vendor/README.md']],
-  ['src/ui/vendor/marked.js', ['src/ui/vendor/MARKED-LICENSE.txt', 'src/ui/vendor/README.md']],
-]);
 const SKIP_DIRECTORIES = new Set(['.git', 'node_modules']);
 const GENERATED_DIRECTORIES = new Set(['dist', 'output']);
-const AUTHORED_EXTENSIONS = new Set(['.js', '.mjs', '.cjs', '.css', '.html']);
-const FORBIDDEN_EXTENSIONS = new Set(['.ts', '.tsx', '.jsx', '.vue']);
+// npm owns its lockfile format; this is an explicit generated-data boundary.
+const GENERATED_FILES = new Set(['package-lock.json']);
+const BINARY_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.ico', '.webp', '.pdf']);
+const TEXT_EXTENSIONS = new Set(['.js', '.html', '.css', '.json', '.md', '.txt', '.yml', '.yaml', '.cff', '.bib', '.map', '.svg']);
+const FORBIDDEN_EXTENSIONS = new Set(['.mjs', '.cjs', '.ts', '.tsx', '.jsx', '.vue',
+  '.py', '.pyw', '.sh', '.bash', '.rb', '.go', '.rs', '.java', '.c', '.cpp', '.h', '.cs', '.php']);
 const DOM_NAMES = new Set([
   'document', 'window', 'globalThis', 'self', 'navigator', 'location',
   'HTMLElement', 'SVGElement', 'Element', 'Node', 'DOMParser', 'XMLSerializer',
@@ -50,7 +48,7 @@ function propertyName(node) {
 }
 
 /** Check source architecture without compiling, executing, or modifying it. */
-function checkArchitecture(root = path.resolve(__dirname, '..')) {
+export function checkArchitecture(root = fileURLToPath(new URL('..', import.meta.url)), { vendorAssets = VENDOR_ASSETS } = {}) {
   root = path.resolve(root);
   const files = listFiles(root);
   const errors = [];
@@ -59,6 +57,23 @@ function checkArchitecture(root = path.resolve(__dirname, '..')) {
   const read = file => fs.readFileSync(path.join(root, file), 'utf8');
   let filesChecked = 0, nativeModules = 0;
   const imports = {};
+  const vendors = new Map(vendorAssets.map(asset => [asset.path, asset]));
+
+  function verifyRecord(record, owner, label) {
+    const target = record?.path;
+    if (!target || path.isAbsolute(target) || target.split('/').includes('..') || !exists(target)) {
+      fail(owner, `Pinned vendor ${label} is missing: ${target || '(unspecified)'}`);
+      return;
+    }
+    const digest = createHash('sha256').update(fs.readFileSync(path.join(root, target))).digest('hex');
+    if (digest !== record.sha256) fail(owner, `Pinned vendor ${label} checksum changed: ${target}`);
+  }
+  for (const asset of vendorAssets) {
+    verifyRecord(asset, asset.path, 'asset');
+    if (!asset.licenses?.length) fail(asset.path, 'Pinned vendor requires a license record.');
+    for (const license of asset.licenses || []) verifyRecord(license, asset.path, 'license');
+    verifyRecord(asset.provenance, asset.path, 'provenance');
+  }
 
   function resolveLocal(file, specifier, extension) {
     if (typeof specifier !== 'string' || !specifier.startsWith('.')) {
@@ -80,38 +95,54 @@ function checkArchitecture(root = path.resolve(__dirname, '..')) {
       fail(file, `Import resolves outside the repository: ${specifier}`);
       return null;
     }
-    if (realTarget.startsWith('dist/')) fail(file, `Source must not depend on generated dist files: ${specifier}`);
+    if (realTarget.startsWith('dist/') || realTarget.startsWith('node_modules/')) {
+      fail(file, `Source must not depend on generated dist files or node_modules: ${specifier}`);
+    }
     return realTarget;
   }
 
-  if (!exists('src/package.json')) fail('src/package.json', 'Native source requires type: module.');
-  else {
-    try { if (JSON.parse(read('src/package.json')).type !== 'module') fail('src/package.json', 'Native source requires type: module.'); }
-    catch { fail('src/package.json', 'Invalid JSON.'); }
+  for (const file of ['package.json', 'src/package.json']) {
+    if (!exists(file)) fail(file, 'Native source requires type: module.');
+    else {
+      try {
+        const config = JSON.parse(read(file));
+        if (config.type !== 'module') fail(file, 'Native source requires type: module.');
+        if (file === 'package.json' && Object.keys(config.jest?.transform || {}).length) {
+          fail(file, 'Tests must execute native ES modules without source transforms.');
+        }
+      }
+      catch { fail(file, 'Invalid JSON.'); }
+    }
   }
   if (!exists('index.html')) fail('index.html', 'The native application entry is missing.');
-  else {
+  for (const file of files.filter(file => file.endsWith('.html'))) {
     let mainFound = false, importMapCount = 0;
-    for (const match of read('index.html').matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
+    const html = read(file).replace(/<!--[\s\S]*?-->/g, '');
+    if (/<[a-z][^>]*\s+on[\w-]+\s*=/i.test(html) || /\b(?:href|src)\s*=\s*["']\s*javascript:/i.test(html)) {
+      fail(file, 'Use native module event listeners, not inline JavaScript handlers.');
+    }
+    for (const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
       const attrs = attributes(match[1]);
       if (attrs.type === 'importmap') {
         importMapCount++;
         try {
           const map = JSON.parse(match[2]);
           for (const [name, target] of Object.entries(map.imports || {})) {
-            const resolved = resolveLocal('index.html', target, '.js');
-            if (resolved) imports[name] = resolved;
+            const resolved = resolveLocal(file, target, '.js');
+            if (resolved && file === 'index.html') imports[name] = resolved;
           }
-        } catch { fail('index.html', 'Invalid import map JSON.'); }
+        } catch { fail(file, 'Invalid import map JSON.'); }
       } else if (attrs.type === 'module' && attrs.src && !match[2].trim()) {
         const specifier = attrs.src.startsWith('.') ? attrs.src : './' + attrs.src;
-        const entry = resolveLocal('index.html', specifier, '.js');
+        const entry = resolveLocal(file, specifier, '.js');
         if (entry === 'src/main.js') mainFound = true;
-        else fail('index.html', 'The application must enter through src/main.js.');
-      } else fail('index.html', 'Application scripts must be an import map or an external native module.');
+        else if (file === 'index.html') fail(file, 'The application must enter through src/main.js.');
+      } else fail(file, 'Application scripts must be an import map or an external native module.');
     }
-    if (importMapCount !== 1) fail('index.html', 'Exactly one native import map is required.');
-    if (!mainFound) fail('index.html', 'The native src/main.js module entry is missing.');
+    if (file === 'index.html') {
+      if (importMapCount !== 1) fail(file, 'Exactly one native import map is required.');
+      if (!mainFound) fail(file, 'The native src/main.js module entry is missing.');
+    }
   }
 
   function checkDependency(file, specifier, node) {
@@ -134,19 +165,20 @@ function checkArchitecture(root = path.resolve(__dirname, '..')) {
 
   for (const file of files) {
     const extension = path.extname(file);
-    if (FORBIDDEN_EXTENSIONS.has(extension)) fail(file, 'Use native JavaScript modules, not TypeScript, JSX, or Vue SFCs.');
-    if (VENDORS.has(file)) {
-      for (const record of VENDORS.get(file)) if (!exists(record)) fail(file, `Pinned vendor asset is missing license/provenance: ${record}`);
+    if (FORBIDDEN_EXTENSIONS.has(extension)) fail(file, 'Authored code must use native .js ES modules, not other source extensions.');
+    if (GENERATED_FILES.has(file) || BINARY_EXTENSIONS.has(extension)) continue;
+    const bytes = fs.readFileSync(path.join(root, file));
+    if (bytes.includes(0)) {
+      if (TEXT_EXTENSIONS.has(extension)) fail(file, 'Source and text files must not contain NUL bytes.');
       continue;
     }
-    if (!AUTHORED_EXTENSIONS.has(extension)) continue;
     filesChecked++;
-    const source = read(file);
+    const source = bytes.toString('utf8');
     const lines = source.split(/\r?\n/).length - (source.endsWith('\n') ? 1 : 0);
-    if (lines > 400) fail(file, `Authored files must have at most 400 lines; found ${lines}.`);
+    if (lines > 400) fail(file, `Text files must have at most 400 lines; found ${lines}.`);
+    // Pinned distributions still obey the file limit; only source syntax differs.
+    if (vendors.has(file)) continue;
     const browserSource = file.startsWith('src/') || !file.includes('/');
-    if (!browserSource) continue;
-    if (file.startsWith('src/') && ['.mjs', '.cjs'].includes(extension)) fail(file, 'Browser source uses native .js modules.');
     if (extension === '.css') {
       const css = source.replace(/\/\*[\s\S]*?\*\//g, '');
       for (const match of css.matchAll(/@import\s+(?:url\(\s*)?["']([^"']+)["']/g)) resolveLocal(file, match[1], '.css');
@@ -159,9 +191,10 @@ function checkArchitecture(root = path.resolve(__dirname, '..')) {
     catch (error) { fail(file, `Invalid native JavaScript: ${error.message}`); continue; }
     walk(ast, (node, parent, key) => {
       if (['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration'].includes(node.type) && node.source) {
-        checkDependency(file, node.source.value, node);
+        if (browserSource) checkDependency(file, node.source.value, node);
+        else if (node.source.value.startsWith('.')) resolveLocal(file, node.source.value, '.js');
       }
-      if (node.type === 'ImportExpression' || node.type === 'CallExpression' && node.callee.type === 'Import') {
+      if (browserSource && (node.type === 'ImportExpression' || node.type === 'CallExpression' && node.callee.type === 'Import')) {
         const source = node.source || node.arguments[0];
         if (source?.type !== 'StringLiteral') fail(file, 'Dynamic imports must use a literal, checkable module path.', node);
         else checkDependency(file, source.value, node);
@@ -190,12 +223,10 @@ function checkArchitecture(root = path.resolve(__dirname, '..')) {
   return { filesChecked, nativeModules, errors };
 }
 
-module.exports = { checkArchitecture };
-
-if (require.main === module) {
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   const result = checkArchitecture();
   if (result.errors.length) {
     console.error(result.errors.join('\n'));
     process.exitCode = 1;
-  } else console.log(`Architecture passed: ${result.filesChecked} authored files, ${result.nativeModules} native modules.`);
+  } else console.log(`Architecture passed: ${result.filesChecked} text files, ${result.nativeModules} native modules.`);
 }

@@ -1,18 +1,30 @@
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
-const { checkArchitecture } = require('../scripts/check-architecture.cjs');
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { checkArchitecture } from '../scripts/check-architecture.js';
 
-let root;
+let root, vendorAssets;
 function write(file, contents) {
   const target = path.join(root, file);
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(target, contents);
 }
-function failures() { return checkArchitecture(root).errors.join('\n'); }
+function failures() { return checkArchitecture(root, { vendorAssets }).errors.join('\n'); }
+function record(file) {
+  return { path: file, sha256: createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex') };
+}
+function pin(file, contents = '/* pinned distribution */') {
+  write(file, contents);
+  write('vendor/LICENSE.txt', 'Original license');
+  write('vendor/README.md', 'Pinned upstream URL, version and adaptation provenance');
+  vendorAssets.push({ ...record(file), licenses: [record('vendor/LICENSE.txt')], provenance: record('vendor/README.md') });
+}
 
 beforeEach(() => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'varri-architecture-'));
+  vendorAssets = [];
+  write('package.json', '{"type":"module"}');
   write('src/package.json', '{"type":"module"}');
   write('index.html', `<script type="importmap">{"imports":{"varri":"./src/core/index.js","vue":"./src/ui/framework.js"}}</script>
 <script type="module" src="src/main.js"></script>`);
@@ -25,28 +37,38 @@ beforeEach(() => {
 
 afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 
-test('accepts native source, standard URL data APIs, and ancillary classic document pages', () => {
-  write('README.html', '<script>document.title = "README";</script>');
+test('accepts native source, standard URL data APIs, and native ancillary document pages', () => {
+  write('src/ui/pages/readme.js', 'document.title = "README";');
+  write('README.html', '<script type="module" src="src/ui/pages/readme.js"></script>');
   write('src/core/model/prose.js', '// window.document is a forbidden dependency, not an actual one here.\nexport const description = "document";');
   expect(failures()).toBe('');
 });
 
-test.each(['src/ui/large.js', 'src/ui/styles/large.css', 'citation.html', 'fornac/custom.js', 'src/core/dist/hidden.js', 'src/ui/output/hidden.js'])(
+test.each(['src/ui/large.js', 'src/ui/styles/large.css', 'citation.html', 'fornac/custom.js', 'src/core/dist/hidden.js',
+  'src/ui/output/hidden.js', 'README.md', 'docs/guide.md', 'settings.json', '.github/workflows/test.yml'])(
   'rejects an oversized authored file: %s', file => {
     write(file, '// line\n'.repeat(401));
-    expect(failures()).toContain(`${file}: Authored files must have at most 400 lines; found 401.`);
+    expect(failures()).toContain(`${file}: Text files must have at most 400 lines; found 401.`);
   }
 );
 
-test('excludes only the root generated distribution and browser diagnostic directories', () => {
+test('identifies generated output and npm lock data explicitly', () => {
   write('dist/varri.js', '// generated\n'.repeat(401));
   write('output/playwright/failure.html', '<!-- generated -->\n'.repeat(401));
+  write('package-lock.json', '\n'.repeat(401));
   expect(failures()).toBe('');
 });
 
-test.each(['ts', 'tsx', 'jsx', 'vue'])('rejects unsupported authored .%s source', extension => {
-  write(`src/ui/component.${extension}`, '');
-  expect(failures()).toContain('not TypeScript, JSX, or Vue SFCs');
+test.each(['src/ui/hidden.js', 'README.md', 'settings.json'])(
+  'known source/text files cannot evade checks by containing NUL: %s', file => {
+    write(file, '\0' + '// hidden code\n'.repeat(401));
+    expect(failures()).toContain(`${file}: Source and text files must not contain NUL bytes`);
+  }
+);
+
+test.each(['ts', 'tsx', 'jsx', 'vue', 'cjs', 'mjs', 'py', 'sh'])('rejects unsupported authored .%s source', extension => {
+  write(`scripts/component.${extension}`, '');
+  expect(failures()).toContain('Authored code must use native .js ES modules');
 });
 
 test.each([
@@ -117,13 +139,68 @@ test('the application entry requires a module declaration and an import map', ()
   expect(failures()).toContain('Native source requires type: module');
 });
 
-test('only exact vendor assets with license and provenance are exempt', () => {
-  write('src/ui/vendor/marked.js', '// upstream\n'.repeat(401));
-  write('src/ui/vendor/MARKED-LICENSE.txt', 'License');
-  write('src/ui/vendor/README.md', 'Provenance');
+test('pinned distributions skip authored syntax checks but obey the same line limit', () => {
+  pin('vendor/runtime.js', 'module.exports = {};');
   expect(failures()).toBe('');
-  write('src/ui/vendor/custom.js', '// authored\n'.repeat(401));
-  expect(failures()).toContain('custom.js: Authored files must have at most 400 lines');
-  fs.unlinkSync(path.join(root, 'src/ui/vendor/MARKED-LICENSE.txt'));
-  expect(failures()).toContain('Pinned vendor asset is missing license/provenance');
+  pin('vendor/oversized.js', '// upstream\n'.repeat(401));
+  expect(failures()).toContain('oversized.js: Text files must have at most 400 lines');
+});
+
+test.each(['asset', 'license', 'provenance'])('rejects a changed pinned %s even at the approved path', kind => {
+  pin('vendor/runtime.js');
+  const file = kind === 'asset' ? 'vendor/runtime.js' : kind === 'license' ? 'vendor/LICENSE.txt' : 'vendor/README.md';
+  write(file, 'Changed bytes');
+  expect(failures()).toContain(`Pinned vendor ${kind} checksum changed: ${file}`);
+});
+
+test.each(['asset', 'license', 'provenance'])('requires every pinned %s record to exist', kind => {
+  pin('vendor/runtime.js');
+  const file = kind === 'asset' ? 'vendor/runtime.js' : kind === 'license' ? 'vendor/LICENSE.txt' : 'vendor/README.md';
+  fs.unlinkSync(path.join(root, file));
+  expect(failures()).toContain(`Pinned vendor ${kind} is missing: ${file}`);
+});
+
+test('new files in vendor directories remain authored code', () => {
+  pin('vendor/runtime.js');
+  write('vendor/custom.js', 'module.exports = {};');
+  expect(failures()).toContain('vendor/custom.js:1: Native source must not use CommonJS exports');
+});
+
+test.each(['scripts/helper.js', 'tests/helper.js'])('requires genuine ESM in authored Node tooling: %s', file => {
+  write(file, 'const fs = require("node:fs"); module.exports = fs;');
+  expect(failures()).toContain('CommonJS or custom code loaders');
+  expect(failures()).toContain('CommonJS exports');
+  write(file, 'import fs from "node:fs"; export default fs;');
+  expect(failures()).toBe('');
+});
+
+test('the repository root must declare native ESM for authored Node helpers', () => {
+  write('package.json', '{"type":"commonjs"}');
+  expect(failures()).toContain('package.json: Native source requires type: module');
+});
+
+test('Jest cannot conceal a CommonJS source transformation behind an ESM helper', () => {
+  write('package.json', JSON.stringify({ type: 'module', jest: { transform: { '^.+\\.js$': './transform.js' } } }));
+  expect(failures()).toContain('Tests must execute native ES modules without source transforms');
+});
+
+test.each([
+  '<script>document.title = "README";</script>',
+  '<script src="https://example.test/runtime.js"></script>',
+])('ancillary HTML cannot retain classic or inline authored scripts: %s', html => {
+  write('README.html', html);
+  expect(failures()).toContain('README.html: Application scripts must be an import map or an external native module');
+});
+
+test.each(['<button onclick="copy()">Copy</button>', '<a href="javascript:copy()">Copy</a>'])(
+  'ancillary controls must use module event listeners: %s', html => {
+    write('citation.html', html);
+    expect(failures()).toContain('citation.html: Use native module event listeners');
+  }
+);
+
+test('an authored helper cannot hide CommonJS inside a local package scope', () => {
+  write('fornac/package.json', '{"type":"commonjs"}');
+  write('fornac/helper.js', 'exports.value = 1;');
+  expect(failures()).toContain('fornac/helper.js:1: Native source must not use CommonJS exports');
 });

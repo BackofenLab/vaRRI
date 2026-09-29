@@ -1,4 +1,5 @@
-const { mountViewer } = require('./helpers/vue-viewer.cjs');
+import { jest } from '@jest/globals';
+import { mountViewer } from './helpers/vue-viewer.js';
 
 test('boots through bound UI actions without inline handlers', async () => {
   const { dom, api: vaRRI, renderSpy, examples: catalog, flush, close } = await mountViewer();

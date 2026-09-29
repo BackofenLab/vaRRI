@@ -1,6 +1,6 @@
 // Distribution only: the source viewer imports the native ES modules directly.
-const { build } = require('esbuild');
-const fs = require('node:fs');
+import { build } from 'esbuild';
+import fs from 'node:fs';
 
 function verifyCoreOnly(result) {
   const unexpected = Object.keys(result.metafile.inputs).filter(file => !file.startsWith('src/core/'));

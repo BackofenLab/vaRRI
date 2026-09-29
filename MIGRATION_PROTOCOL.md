@@ -3,9 +3,10 @@
 Tracking issue: https://github.com/BackofenLab/vaRRI/issues/83
 
 **Strict-constraints audit:** [detailed findings](docs/strict-constraints-audit.md)
-distinguish verified runtime compliance from the current CommonJS-tooling and
-retained-vendor exceptions. The issue does not explicitly approve those exceptions;
-passing CI must not be described as literal repository-wide compliance.
+record the model/URL corrections and the unanimous three-agent follow-up review.
+Authored tooling, tests, and page controllers now use native `.js` ESM. Vendor
+assets have enforced line limits, hashes, and license/provenance records. The
+remaining scope distinction is generated data and distribution output.
 
 ## Review gates
 
@@ -195,26 +196,39 @@ rules, Vue reactivity boundary, 400-line limit, compatibility contracts, and
 verification commands. The architecture checker parses native imports and
 rejects reverse dependencies, browser state in the model, unsupported source
 formats, missing import targets, generated runtime dependencies, and oversized
-authored files. Vendor exemptions name specific licensed assets.
+authored files. Every pinned vendor asset also obeys the line limit and has
+verified license/provenance checksums; only its upstream syntax is exempt.
 
 PR CI now runs architecture, unit, installed-package, core-browser, Vue-browser,
 and visual checks. Failures retain screenshots, page HTML, scene data, and browser
 metadata. A deliberately corrupted temporary baseline confirmed that failures
 are detected and produce useful diagnostics; neither baseline was rewritten.
 
-The council's final review confirmed all 81 original public API functions remain
-available. Locally, all browser checks and five zero-pixel-difference visual
-fixtures pass on pinned Playwright Chromium, and the standalone installed package
-passes with its stylesheet and licenses. After the strict-constraints audit, the
-full suite has 294 passing tests, including 35 architecture cases; 134 authored
-files and 87 native modules pass
-the boundary checker. Each completed phase has a separate
-stacked PR; review and merge them in order, retargeting subsequent PRs to main as
-their dependencies land.
-
-The follow-up audit narrows model operations to serializable `modelState`,
-separate from the renderer session, and fixes grouped-range/CSS-color URL round
+The original council confirmed all 81 public API functions remain available.
+The first strict audit narrowed model operations to serializable `modelState`,
+separate from the renderer session, and fixed grouped-range/CSS-color URL round
 trips. Browser verification blocks build/npm/legacy-script runtime dependencies
-and inspects real D3 nodes for Vue proxies. The audit also records the unresolved
-CommonJS-tooling and retained-vendor exceptions to the issue's literal wording;
-these are implementation choices, not approvals from Martin.
+and inspects real D3 nodes for Vue proxies.
+
+A follow-up council reviewed language, vendors, and compatibility independently,
+then all three agreed to the following corrections before implementation:
+
+- Convert authored tools and tests to `.js` ESM and run Jest without transforms.
+- Replace the legacy D3 export with the exact official D3 3.4.13 production asset,
+  preserving the engine version and correcting both historical BSD license files.
+- Separate the authored D3 document cache from the pinned factory runtime and
+  enforce asset, license, and provenance hashes, including vendor file limits.
+- Move help/citation controllers to native modules, remove unpinned script CDNs,
+  and split the README into coherent guides composed by the browser help page.
+- Add negative architecture checks and browser checks for help links, citation
+  formats/downloads, legacy package exports, and vendor integrity.
+
+No baseline or engine upgrade is part of this correction. Each completed phase
+has a separate stacked PR; review and merge them in order, retargeting subsequent
+PRs to main as their dependencies land. The follow-up is recorded in phase 4.
+
+Follow-up validation: 325 tests in 26 suites pass, including 62 architecture
+cases and four vendor runtime regressions. The checker covers 198 text files
+and 130 native modules. Native/standalone rendering, Vue controls, help/citation
+pages, and the migrated smoke helper pass. The final packed-package check also passes. All five visual fixtures retain exact
+SVG scenes and zero changed pixels; committed baselines are unchanged.

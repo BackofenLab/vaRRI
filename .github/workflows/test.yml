@@ -41,6 +41,7 @@ jobs:
         run: |
           npm run test:browser
           npm run test:ui
+          npm run test:pages
           npm run test:visual
 
       - name: Upload browser diagnostics
