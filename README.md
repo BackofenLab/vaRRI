@@ -1,6 +1,6 @@
 # vaRRI - Visual Annotation of RNA–RNA Interactions
 
-![vaRRI](logo/vaRRI.logo.40x40.png) Visualise and annotate RNA–RNA interactions directly in the browser — no server or no command-line tools required.
+![vaRRI](logo/vaRRI.logo.40x40.png) Visualise and annotate RNA–RNA interactions directly in the browser — no backend processing or build tools required.
 
 ---
 
@@ -32,7 +32,8 @@ RNA-RNA interactions (RRIs) as 2D diagrams with additional annotation like
 - point mutation information or 
 - probability profile representations.
 
-It is intended to be used in web applications, but can also be used in local HTML files without any server or build step.
+It can be used in web applications or served locally with any static HTTP server,
+without a build step.
 
 Use cases include 
 
@@ -104,15 +105,14 @@ The easiest way to [**use vaRRI is via the GitHub pages website**](https://Backo
 - [https://BackofenLab.github.io/vaRRI](https://BackofenLab.github.io/vaRRI)
 
 If you want to run the website locally or use the library in your own HTML page, clone the repository or download a ZIP of the project via the [Releases](https://github.com/BackofenLab/vaRRI/releases) section.
-Afterwards, open `index.html` directly in a browser — no build step or server needed:
+Serve the checkout over HTTP and open it in a modern browser. Native ES modules
+need HTTP; no Node.js environment, compilation, or build step is required:
 
 ```bash
 git clone https://github.com/BackofenLab/vaRRI.git
 cd vaRRI
-# simply open index.html in your browser, e.g.:
-open index.html          # macOS
-xdg-open index.html      # Linux
-start index.html         # Windows
+python3 -m http.server 8080
+# Open http://localhost:8080/index.html
 ```
 
 To use the library in your own HTML page, include the dependencies in the following order:
@@ -143,12 +143,12 @@ After installation via npm, you find the vaRRI user interface `index.html` in th
 node_modules/varri-js/index.html
 ```
 
-You can open it with any recent browser and start working
+Serve this directory over HTTP, then open it with any recent browser.
 
 
-### Local Webserver (optional)
+### Local Webserver
 
-Alternatively, serving the installed viewer locally using a local webserver requires e.g. Python 3:
+Serving the installed viewer requires any static webserver, for example Python 3:
 
 ```bash
 python3 -m http.server 8080 --bind 127.0.0.1 --directory node_modules/varri-js
@@ -157,7 +157,9 @@ python3 -m http.server 8080 --bind 127.0.0.1 --directory node_modules/varri-js
 Open `http://localhost:8080/index.html`. Applications can serve or copy the whole package
 directory using their own static-file server, retaining the relative directory layout.
 The viewer includes example inputs, SVG/PNG export controls, help, citation data and local logos.
-Use HTTP rather than `file://` so the help and citation pages can load their packaged data.
+Use HTTP rather than `file://` for native module loading and packaged help/citation data.
+
+The architecture migration is tracked in [MIGRATION_PROTOCOL.md](MIGRATION_PROTOCOL.md).
 
 The JavaScript `main` and root export intentionally remain `src/vaRRI.js`: `require('varri-js')`
 and ESM default imports return the library API. The viewer has a separate public entry:

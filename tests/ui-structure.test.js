@@ -13,16 +13,14 @@ const packageConfig = require('../package.json');
 
 describe('UI document structure', () => {
 
-  test('uses source locally and the minified library on GitHub Pages', () => {
-    const minifyCommand = 'npx esbuild src/vaRRI.js --minify --sourcemap --outfile=dist/vaRRI.min.js';
-    const swapCommand = "sed -i 's|src/vaRRI.js|dist/vaRRI.min.js|g' index.html";
-    const uploadStep = 'uses: actions/upload-pages-artifact@v5';
-
-    expect(html).toContain('<script src="src/vaRRI.js"></script>');
-    expect(pagesWorkflow).toContain(minifyCommand);
-    expect(pagesWorkflow).toContain(swapCommand);
-    expect(pagesWorkflow.indexOf(minifyCommand)).toBeLessThan(pagesWorkflow.indexOf(swapCommand));
-    expect(pagesWorkflow.indexOf(swapCommand)).toBeLessThan(pagesWorkflow.indexOf(uploadStep));
+  test('serves native modules without compiling the viewer', () => {
+    expect(html).toContain('<script type="module" src="src/main.js"></script>');
+    const map = JSON.parse(html.match(/<script type="importmap">([\s\S]*?)<\/script>/)[1]);
+    expect(map.imports.varri).toBe('./src/core/index.js');
+    expect(map.imports.vue).toContain('/vue@3.5.22/dist/vue.esm-browser.prod.js');
+    expect(pagesWorkflow).toContain('uses: actions/upload-pages-artifact@v5');
+    expect(pagesWorkflow).not.toContain('esbuild');
+    expect(pagesWorkflow).not.toContain('sed -i');
   });
 
   test('runs the complete test suite with an environment diagnostic', () => {

@@ -1,0 +1,123 @@
+# Issue #83: zero-build architecture migration
+
+Tracking issue: https://github.com/BackofenLab/vaRRI/issues/83
+
+## Review gates
+
+Each phase has its own branch and pull request. Run the applicable unit,
+installed-package, and browser checks before opening that PR and starting the
+next phase. Later PRs are stacked on the preceding phase so each review shows
+only that phase's changes. Do not merge or publish releases automatically.
+
+| Phase | Deliverable | Status |
+| --- | --- | --- |
+| 1 | Native ESM entry/import map, original visual baseline, this protocol | Complete; PR gate opened before phase 2 |
+| 2 | DOM-free model, independent D3 canvas, strand-boundary fix, architecture docs | Pending |
+| 3 | Native Vue 3 JS components, complete legacy URL compatibility | Pending |
+| 4 | Standalone core bundle workflow and enforced contributor rules | Pending |
+
+## Council decision
+
+The core, UI, and regression reviewers agreed to preserve the existing D3
+version and RNA layout algorithms during extraction. Upgrading the force engine
+at the same time would make visual differences harder to diagnose. Vue owns
+forms and serializable presentation state; the core owns nodes, SVG elements,
+force simulations, event listeners, and disposal. No D3 object enters a Vue
+reactive container.
+
+Phase 1 is explicitly transitional: its ESM entry imports the old implementation
+through short compatibility bridges. It does not claim that the legacy files
+already satisfy the final modular architecture. Subsequent phases remove those
+bridges, the raw Fornac dependency, and the monolithic UI implementation.
+
+## Development without a build
+
+Serve the repository with any static HTTP server and open `index.html` in a
+modern browser. For example, `python3 -m http.server 8080` is sufficient. Node,
+npm, bundling, and transpilation are not required to run the source. Browsers
+restrict native module loading from `file://`, so double-clicking the viewer is
+no longer the supported development workflow. This is zero-build, not zero-HTTP.
+
+`index.html` contains the import map. `src/main.js` is the module entry point.
+Vue is pinned to its full browser ESM distribution, which supports JS component
+objects with template strings. No `.vue` files or TypeScript are introduced.
+The distributable bundle is for external embedding only.
+
+## Old-to-new path map
+
+| Existing responsibility | Destination |
+| --- | --- |
+| `src/vaRRI.js` public API | `src/core/index.js`, compatibility entry |
+| Constants, colors, registries | `src/core/model/` state modules |
+| Input validation, dot-bracket pairs | `src/core/model/` validation and structure modules |
+| Sequence formatting, cropping, biological indices | `src/core/model/` sequence and indexing modules |
+| Annotation definitions and registry operations | `src/core/model/` annotation modules |
+| Intermolecular pairs and helix groups | `src/core/model/` interaction modules |
+| Fornac graph/layout internals | `src/core/canvas/` graph and layout modules, with attribution |
+| SVG setup, styles, labels, tooltips | `src/core/canvas/` drawing modules |
+| Highlights, mutations, probability overlays | `src/core/canvas/` annotation modules |
+| Linear helix projection and force lifecycle | `src/core/canvas/` force modules |
+| Rendering, cancellation, rotation, export | `src/core/canvas/` lifecycle and export modules |
+| `index.js` defaults and serializable UI state | `src/ui/` state module |
+| FASTA/profile/color parsing | `src/ui/` focused services |
+| Legacy share-link parsing and serialization | `src/core/model/` URL state and `src/ui/` URL adapter |
+| Sequence, layout, profile, annotation controls | `src/ui/` Vue JS components |
+| Dialogs, examples, export, event wiring | `src/ui/` controllers and bootstrap |
+| Browser startup | `src/main.js` |
+| `index.html` form markup | Vue component templates in `src/ui/` |
+| `style.css` | Focused stylesheet imports retaining existing presentation |
+
+Modules must have a coherent responsibility and stay within 400 lines. Do not
+hide an oversized source file behind generated line compression or numbered
+chunks. Preserve third-party license notices when extracting existing code.
+
+## Compatibility and strand boundaries
+
+Preserve the namespace API, default import, embedding use, annotation semantics,
+examples, export, and biological numbering (including negative positions and
+the skipped zero). Maintain all existing URL names and encodings, including
+annotation styles, profiles, rotation, force options, and render-only mode.
+Generated region highlights must not become persisted user annotations.
+
+The current implementation inserts three gap nucleotides because Fornac's
+strand-break conversion otherwise hides real nucleotides. Phase 2 represents
+strand boundaries directly, excludes cross-strand backbone links, and builds
+each base pair once. Internal contiguous node IDs can change; biological indices
+in the model and URLs must not. Removing the artificial gap can legitimately
+change initial polygon geometry. Such differences need explicit review against
+the phase-1 baseline and must never be accepted by silently replacing it.
+
+## Verification
+
+The starting point is upstream commit `4cc97df`. Its five Jest suites contain
+203 passing tests. Keep meaningful behavior assertions as modules move; adapt
+tests that specifically describe padded internal node IDs when that contract
+is deliberately replaced.
+
+- Run `npm run test:ci` for model, annotation, UI, and publication behavior.
+- Run `npm run test:package` against the packed and installed distribution.
+- Run the browser visual baseline against a static server: fixed viewport,
+  seeded randomness, animation disabled, checked SVG geometry and PNG output.
+- Exercise animated force layouts separately for finite positions, correct
+  nucleotide/base-pair counts, constraints, and cancellation.
+- Exercise the actual native ESM graph; a CommonJS-only test is not proof of
+  zero-build browser operation.
+- Compare native source and standalone core embedding without loading Vue.
+- Enforce module size and dependency boundaries in the final CI phase.
+
+## Phase records
+
+### Phase 1
+
+The viewer now enters through native `src/main.js`; an import map resolves the
+core and the pinned Vue browser ESM distribution. Existing scripts are imported
+in dependency order. The npm package includes the new source paths. Fornac and
+D3 remain unchanged for the baseline, and Vue UI migration starts in phase 3.
+
+Validation: all 203 Jest tests pass; the packed/installed npm consumer passes;
+all five original browser fixtures match exactly (SVG scene equality and zero
+changed pixels). The browser also dynamically imports `src/main.js` and resolves
+`varri` through the import map to verify the live native module graph.
+
+Run `npm run test:visual`; see [baseline provenance and instructions](tests/visual-baseline/README.md).
+The phase-1 PR links this protocol, and later phase records link preceding PRs.
