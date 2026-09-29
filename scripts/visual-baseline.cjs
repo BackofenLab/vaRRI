@@ -10,7 +10,7 @@ const { createCanvas, loadImage } = require('canvas');
 const args = process.argv.slice(2);
 const option = (name, fallback) => args.includes(name) ? args[args.indexOf(name) + 1] : fallback;
 const root = path.resolve(option('--root', path.join(__dirname, '..')));
-const baseline = path.resolve(option('--baseline', path.join(__dirname, '../tests/visual-baseline')));
+const baseline = path.resolve(option('--baseline', path.join(__dirname, '../tests/visual-core')));
 const output = path.resolve(option('--output', path.join(__dirname, '../output/playwright')));
 const update = args.includes('--update');
 const revision = option('--revision', null);

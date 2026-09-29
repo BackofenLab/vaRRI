@@ -1,6 +1,6 @@
 'use strict';
 
-const vaRRI = require('../src/vaRRI.js');
+const vaRRI = require('../src/vaRRI.js').default;
 const examples = require('../example-data.js');
 
 describe('shared example catalog', () => {

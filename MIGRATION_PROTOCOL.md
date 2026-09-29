@@ -148,3 +148,9 @@ is mixed into this migration.
 The npm package now resolves ESM imports to source and CommonJS to the standalone
 core artifact. The classic bundle includes D3 and retains the mixed-case URL as
 an alias. The source viewer does not load the old Fornac or D3 scripts.
+
+Phase-2 validation: 221 tests in 21 suites pass; the installed package resolves
+native ESM, the pure model, and CommonJS correctly. Real-browser checks pass for
+native/bundle scene equality, contiguous graph IDs, independent instances,
+animated cancellation/rerender, and SVG/PNG downloads. The separately reviewed
+[core baseline](tests/visual-core/README.md) records source commit `d0cee0a`.

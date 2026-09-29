@@ -85,6 +85,7 @@
     "test:ci": "jest --runInBand",
     "test:package": "node scripts/check-package.cjs",
     "test:visual": "node scripts/visual-baseline.cjs",
+    "test:browser": "npm run build && node scripts/browser-invariants.cjs",
     "prepack": "npm run build"
   },
   "jest": {

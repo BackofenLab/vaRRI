@@ -31,7 +31,7 @@ function installDomGlobals(dom) {
 
 test('boots through bound UI actions without inline handlers', async () => {
   jest.resetModules();
-  const vaRRI = require('../src/vaRRI.js');
+  const vaRRI = require('../src/vaRRI.js').default;
   const dom = new JSDOM(html, { url: 'http://localhost/' });
   installDomGlobals(dom);
   global.vaRRI = vaRRI;
@@ -165,7 +165,7 @@ test('boots through bound UI actions without inline handlers', async () => {
 
 test('linear layout controls enable force, survive example loading, share, and forward render flags', async () => {
   jest.resetModules();
-  const vaRRI = require('../src/vaRRI.js');
+  const vaRRI = require('../src/vaRRI.js').default;
   const dom = new JSDOM(html, { url: 'http://localhost/' });
   installDomGlobals(dom);
   global.vaRRI = vaRRI;
@@ -278,7 +278,7 @@ test.each([
   'forceLayoutLinearRRI',
 ])('URL-loaded %s enables force layout before the initial render', async optionId => {
   jest.resetModules();
-  const vaRRI = require('../src/vaRRI.js');
+  const vaRRI = require('../src/vaRRI.js').default;
   const url = `http://localhost/?sequence=AAAA&structure=....&forceLayout=0&${optionId}=1`;
   const dom = new JSDOM(html, { url });
   installDomGlobals(dom);

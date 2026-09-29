@@ -31,9 +31,14 @@ try {
     const specifier = key === '.' ? manifest.name : manifest.name + key.slice(1);
     assert.ok(fs.statSync(installedRequire.resolve(specifier)).isFile(), specifier);
   }
+  const exportTargets = value => typeof value === 'string' ? [value]
+    : Object.values(value).flatMap(exportTargets);
+  for (const target of exportTargets(manifest.exports)) {
+    assert.ok(fs.statSync(path.join(installed, target)).isFile(), `Missing conditional export: ${target}`);
+  }
   assert.equal(typeof installedRequire('varri-js').render, 'function');
   execFileSync(process.execPath, ['--input-type=module', '-e',
-    "import v from 'varri-js'; if (typeof v.render !== 'function') throw Error('ESM API missing')"], { cwd: consumer });
+    "import v, { createVaRRI } from 'varri-js'; if (typeof v.render !== 'function' || typeof createVaRRI !== 'function') throw Error('ESM API missing'); const a = createVaRRI(); const b = createVaRRI(); a.setColors({ sequence1: 'red' }); if (b.getColors().sequence1 === 'red') throw Error('Instances share colors')"], { cwd: consumer });
 
   const origin = 'https://installed-package.invalid/';
   for (const name of ['index.html', 'README.html', 'citation.html']) {
@@ -45,6 +50,14 @@ try {
       if (url.origin !== new URL(origin).origin) continue;
       const target = path.join(installed, decodeURIComponent(url.pathname));
       assert.ok(fs.existsSync(target), `${name} references missing packaged file ${value}`);
+    }
+    for (const element of dom.window.document.querySelectorAll('script[type="importmap"]')) {
+      for (const value of Object.values(JSON.parse(element.textContent).imports || {})) {
+        const url = new URL(value, origin + name);
+        if (url.origin === new URL(origin).origin) {
+          assert.ok(fs.existsSync(path.join(installed, decodeURIComponent(url.pathname))), `${name} import map references missing ${value}`);
+        }
+      }
     }
     dom.window.close();
   }

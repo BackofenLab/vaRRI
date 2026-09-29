@@ -5,11 +5,11 @@ const path = require('path');
 
 const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
 const css = fs.readFileSync(path.resolve(__dirname, '../style.css'), 'utf8');
-const library = fs.readFileSync(path.resolve(__dirname, '../src/vaRRI.js'), 'utf8');
 const apiDocs = fs.readFileSync(path.resolve(__dirname, '../src/README.md'), 'utf8');
 const pagesWorkflow = fs.readFileSync(path.resolve(__dirname, '../.github/workflows/pages.yml'), 'utf8');
 const testWorkflow = fs.readFileSync(path.resolve(__dirname, '../.github/workflows/test.yml'), 'utf8');
 const packageConfig = require('../package.json');
+import vaRRI from '../src/vaRRI.js';
 
 describe('UI document structure', () => {
 
@@ -79,11 +79,7 @@ describe('UI document structure', () => {
   });
 
   test('documents every public API function', () => {
-    const apiBlock = library.match(/const vaRRI = \{([\s\S]*?)\n    \};/);
-    expect(apiBlock).not.toBeNull();
-
-    const exportedFunctions = [...apiBlock[1].matchAll(/^\s{8}([A-Za-z][A-Za-z0-9]*),/gm)]
-      .map(match => match[1]);
+    const exportedFunctions = Object.keys(vaRRI).filter(key => typeof vaRRI[key] === 'function');
     expect(exportedFunctions.length).toBeGreaterThan(0);
 
     exportedFunctions.forEach(functionName => {

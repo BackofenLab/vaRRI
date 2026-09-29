@@ -15,20 +15,19 @@ describe('npm package publication', () => {
         expect(lock.packages[''].version).toBe(packageJson.version);
         expect(packageJson.license).toBe('MIT');
         expect(packageJson.repository.url).toBe('git+https://github.com/BackofenLab/vaRRI.git');
-        expect(packageJson.main).toBe('src/vaRRI.js');
-        expect(packageJson.exports['.']).toBe('./src/vaRRI.js');
+        expect(packageJson.main).toBe('dist/varri.cjs');
+        expect(packageJson.exports['.']).toMatchObject({
+            import: './src/vaRRI.js', require: './dist/varri.cjs',
+        });
         expect(packageJson.exports['./fornac/fornac.css']).toBe('./fornac/fornac.css');
         expect(packageJson.publishConfig.access).toBe('public');
     });
 
     test('all non-generated exported files exist in a clean checkout', () => {
-        const generatedExports = new Set([
-            './dist/vaRRI.min.js',
-            './dist/vaRRI.min.js.map',
-        ]);
-
-        Object.values(packageJson.exports)
-            .filter(exportPath => !generatedExports.has(exportPath))
+        const targets = value => typeof value === 'string' ? [value]
+            : Object.values(value).flatMap(targets);
+        targets(packageJson.exports)
+            .filter(exportPath => !exportPath.startsWith('./dist/'))
             .forEach(exportPath => {
                 expect(fs.existsSync(path.join(root, exportPath))).toBe(true);
             });

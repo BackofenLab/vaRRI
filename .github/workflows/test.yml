@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - issue-83-*
 
 jobs:
   test:
