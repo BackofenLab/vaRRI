@@ -4,12 +4,24 @@ const fs = require('fs');
 const path = require('path');
 
 const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
-const css = fs.readFileSync(path.resolve(__dirname, '../style.css'), 'utf8');
+const stylesDirectory = path.resolve(__dirname, '../src/ui/styles');
+const css = fs.readFileSync(path.resolve(__dirname, '../style.css'), 'utf8') +
+  fs.readdirSync(stylesDirectory).filter(name => name.endsWith('.css'))
+    .map(name => fs.readFileSync(path.join(stylesDirectory, name), 'utf8')).join('\n');
 const apiDocs = fs.readFileSync(path.resolve(__dirname, '../src/README.md'), 'utf8');
 const pagesWorkflow = fs.readFileSync(path.resolve(__dirname, '../.github/workflows/pages.yml'), 'utf8');
 const testWorkflow = fs.readFileSync(path.resolve(__dirname, '../.github/workflows/test.yml'), 'utf8');
 const packageConfig = require('../package.json');
 import vaRRI from '../src/vaRRI.js';
+const { mountViewer } = require('./helpers/vue-viewer.cjs');
+let viewer;
+let mountedHtml;
+
+beforeAll(async () => {
+  viewer = await mountViewer();
+  mountedHtml = viewer.dom.window.document.body.innerHTML;
+});
+afterAll(async () => { await viewer?.close(); });
 
 describe('UI document structure', () => {
 
@@ -17,7 +29,7 @@ describe('UI document structure', () => {
     expect(html).toContain('<script type="module" src="src/main.js"></script>');
     const map = JSON.parse(html.match(/<script type="importmap">([\s\S]*?)<\/script>/)[1]);
     expect(map.imports.varri).toBe('./src/core/index.js');
-    expect(map.imports.vue).toContain('/vue@3.5.22/dist/vue.esm-browser.prod.js');
+    expect(map.imports.vue).toBe('./src/ui/vendor/vue.esm-browser.prod.js');
     expect(pagesWorkflow).toContain('uses: actions/upload-pages-artifact@v5');
     expect(pagesWorkflow).not.toContain('esbuild');
     expect(pagesWorkflow).not.toContain('sed -i');
@@ -35,30 +47,30 @@ describe('UI document structure', () => {
   });
 
   test('keeps example options out of the static HTML', () => {
-    expect(html).toContain('<details id="exampleDropdown" class="example-dropdown">');
-    expect(html).toMatch(/<summary[^>]+aria-labelledby="exampleDropdownLabel selectedExampleName"/);
-    expect(html).toContain('id="exampleDropdownOptions"');
+    expect(html).toContain('id="app"');
+    expect(mountedHtml).toMatch(/<summary[^>]+aria-labelledby="exampleDropdownLabel selectedExampleName"/);
+    expect(mountedHtml).toContain('id="exampleDropdownOptions"');
     expect(html).not.toMatch(/\bdata-example=/);
   });
 
   test('uses unique element IDs', () => {
-    const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
+    const ids = [...mountedHtml.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   test('gives every repeated landmark a unique accessible name', () => {
-    const asideLabels = [...html.matchAll(/<aside\b[^>]*\baria-label="([^"]+)"/g)]
+    const asideLabels = [...mountedHtml.matchAll(/<aside\b[^>]*\baria-label="([^"]+)"/g)]
       .map(match => match[1]);
-    const asideCount = (html.match(/<aside\b/g) || []).length;
+    const asideCount = (mountedHtml.match(/<aside\b/g) || []).length;
 
     expect(asideLabels).toHaveLength(asideCount);
     expect(new Set(asideLabels).size).toBe(asideLabels.length);
   });
 
   test('uses standards-compliant form and void-element markup', () => {
-    expect(html).not.toMatch(/<(?:input|img|link|meta)\b[^>]*\/>/i);
-    expect(html).not.toMatch(/<input\b[^>]*type="number"[^>]*\bsize=/i);
-    expect(html).not.toMatch(/<textarea\b[^>]*\bwrap="?off/i);
+    expect(mountedHtml).not.toMatch(/<(?:input|img|link|meta)\b[^>]*\/>/i);
+    expect(mountedHtml).not.toMatch(/<input\b[^>]*type="number"[^>]*\bsize=/i);
+    expect(mountedHtml).not.toMatch(/<textarea\b[^>]*\bwrap="?off/i);
   });
 
   test('defines the extracted utility classes', () => {
@@ -68,14 +80,14 @@ describe('UI document structure', () => {
   });
 
   test('exposes the linear layout controls in their requested order', () => {
-    expect(html).toMatch(
+    expect(mountedHtml).toMatch(
       /id="forceLayoutLinearStructure"[\s\S]*?<label for="forceLayoutLinearStructure">Linear intramolecular stem layout<\/label>/
     );
-    expect(html).toMatch(
+    expect(mountedHtml).toMatch(
       /id="forceLayoutLinearRRI"[\s\S]*?<label for="forceLayoutLinearRRI">Linear horizontal RRI layout<\/label>/
     );
-    expect(html.indexOf('id="forceLayoutLinearRRI"'))
-      .toBeLessThan(html.indexOf('id="forceLayoutLinearStructure"'));
+    expect(mountedHtml.indexOf('id="forceLayoutLinearRRI"'))
+      .toBeLessThan(mountedHtml.indexOf('id="forceLayoutLinearStructure"'));
   });
 
   test('documents every public API function', () => {

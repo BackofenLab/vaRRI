@@ -15,7 +15,8 @@ const output = path.resolve(option('--output', path.join(__dirname, '../output/p
 const update = args.includes('--update');
 const revision = option('--revision', null);
 const fixtures = ['2mol', 'coronel-tellez-2022', 'wu-2024', 'IntaRNA-seeds', 'crossing-rri'];
-const examples = require(path.join(root, 'example-data.js'));
+const catalog = require(path.join(root, 'example-data.js'));
+const examples = catalog.default || catalog;
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json' };
 

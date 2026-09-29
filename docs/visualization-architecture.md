@@ -50,10 +50,16 @@ Reactive state contains input values and serializable annotation data only.
 Renderer services hold their core instance in an ordinary closure, outside
 Vue's reactive graph.
 
-Phase 2 still uses a documented temporary adapter for the existing UI controller.
-Phase 3 removes that adapter and replaces control ownership with Vue components.
-The phase status in [MIGRATION_PROTOCOL.md](../MIGRATION_PROTOCOL.md) is the
-authoritative record of what has landed.
+`createViewerApp()` mounts the component tree and connects focused controllers
+for sequence validation, FASTA, profiles, annotations, dialogs, sharing, and
+rendering. Inputs, errors, lists, and dialogs read the same plain Vue state.
+The canvas is an imperative child owned by the core; Vue does not render its SVG.
+Unmounting cancels rendering and removes observers, timers, and UI listeners.
+
+Vue's full browser ESM runtime and the example-caption Markdown parser are pinned
+local assets, so the viewer needs no CDN connection. Existing URL names and
+encodings pass through the pure model codec. Rendering-only links and full-page
+links use the same component tree and state.
 
 ## Source, distribution, and verification
 

@@ -12,8 +12,8 @@ only that phase's changes. Do not merge or publish releases automatically.
 | Phase | Deliverable | Status |
 | --- | --- | --- |
 | 1 | Native ESM entry/import map, original visual baseline, this protocol | [PR #87](https://github.com/BackofenLab/vaRRI/pull/87) |
-| 2 | DOM-free model, independent D3 canvas, strand-boundary fix, architecture docs | In progress |
-| 3 | Native Vue 3 JS components, complete legacy URL compatibility | Pending |
+| 2 | DOM-free model, independent D3 canvas, strand-boundary fix, architecture docs | [PR #88](https://github.com/BackofenLab/vaRRI/pull/88) |
+| 3 | Native Vue 3 JS components, complete legacy URL compatibility | In progress |
 | 4 | Standalone core bundle workflow and enforced contributor rules | Pending |
 
 ## Council decision
@@ -154,3 +154,25 @@ native ESM, the pure model, and CommonJS correctly. Real-browser checks pass for
 native/bundle scene equality, contiguous graph IDs, independent instances,
 animated cancellation/rerender, and SVG/PNG downloads. The separately reviewed
 [core baseline](tests/visual-core/README.md) records source commit `d0cee0a`.
+
+### Phase 3
+
+The viewer now mounts native Vue 3 JavaScript components. Vue owns form values,
+errors, messages, annotation lists, dialogs, and example selection. Focused
+controllers preserve FASTA parsing, biological profile indices, validation,
+annotation editing, and URL synchronization. The renderer remains an ordinary
+core instance outside reactive state. The legacy global bridge is removed.
+
+The full Vue browser ESM runtime and Markdown caption parser are pinned local
+assets with licenses and provenance. Styles are split by responsibility without
+changing their cascade. Owned UI modules remain below 400 lines. Mount/unmount
+and Clear cancel rendering and pending UI work and clean up listeners and timers.
+
+Phase-3 validation: 231 tests in 23 suites cover the mounted Vue controls,
+serializable state, validation errors on their corresponding fields, and queued
+example cancellation. Real-browser checks cover all five
+examples, sequence edits, FASTA import, all three annotation editors, profiles,
+force controls, rotation, share-link restoration, rendering-only mode, and
+SVG/PNG downloads. All five visual fixtures preserve exact SVG scene equality
+and zero changed pixels against the unchanged phase-2 core baseline. The packed
+package and native/standalone renderer parity checks also pass.

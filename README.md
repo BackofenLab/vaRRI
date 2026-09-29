@@ -78,7 +78,7 @@ vaRRI/
 │   │   ├── model/          # DOM-free validation, indexing, annotations, URL state
 │   │   ├── canvas/         # Instance-scoped D3 rendering, layout, export
 │   │   └── vendor/         # Pinned D3 runtime and license
-│   └── ui/                 # UI modules; Vue migration tracked in protocol
+│   └── ui/                 # Native Vue components, controllers, and plain form state
 ├── docs/                   # Force graph and architecture documentation
 ├── tests/                  # Model/UI/force tests and original visual fixtures
 ├── scripts/                # Distribution and verification tools
@@ -288,7 +288,7 @@ Open the **Example** dropdown to choose another RNA-RNA interaction. Each open m
 | **Base pair color** | Chose the color used for all base pairs (intra- and intermolecular). |
 | **Color Choice** | Use the color pickers to customize the highlighting colors. |
 | **G-U basepairs dashed** | When checked, G-U basepairs are drawn with a dashed stroke. |
-| **Fornac force-layout** | When checked, the rendered structure is shown in an interactive force-directed layout. When unchecked, the structure is drawn in a fixed layout. |
+| **Force layout** | When checked, the rendered structure is shown in an interactive force-directed layout. When unchecked, the structure is drawn in a fixed layout. |
 | - **Linear horizontal RRI layout** | Keeps all noncrossing intermolecular helixes on straight linear layout and rotates the complete two-molecule interaction so its RRI axis is horizontal. Enabling it also enables the force layout. |
 | - **Free trailing ends** | When checked, the trailing ends of the sequences are not fixed in the force-directed layout and can move freely. |
 | - **Pull Pseudoknot Basepairs** | When checked, pseudoknot basepairs are pulled together in the force-directed layout. |
@@ -459,7 +459,7 @@ See descriptions above and the [Input Format Reference](#input-format-reference)
 | **`highlighting` / `backgroundhighlighting`** | RRI highlight targets (`region`, `basepairs`, or `nothing`). |
 | **`colorRriNodes` / `colorRriRegion` / `colorBasepair`** | Hex color codes for nucleotide highlights, background highlights, and base pairs. |
 | **`distinctBpTypes`** | Toggle display of G-U Wobble base pairs as dashed lines (`true` / `false`). |
-| **`forceLayout`** | Enable or disable Fornac force-layout physics simulation (`true` / `false`). |
+| **`forceLayout`** | Enable or disable the force-layout physics simulation (`true` / `false`). |
 | **`forceLayoutLinearRRI`** | Enforce a linear horizontal layout of all noncrossing RRI helices. Enabling it also enables `forceLayout`. |
 | **`forceLayoutLinearStructure`** | Enforce a linear layout of intramolecular stems containing bulges or interior loops. Enabling it also enables `forceLayout`. |
 
@@ -625,8 +625,9 @@ position-based annotations, including highlightings, point mutations, and probab
 
 ## JavaScript Library API
 
-Include `src/vaRRI.js` after the Fornac dependencies.  
-The library exposes a single global object `vaRRI` with the a set of respective functions.
+Import `src/vaRRI.js` as a native ES module, or load `dist/varri.min.js` as a classic
+script to expose the global `vaRRI` API. Both include an independent canvas core;
+the classic bundle includes D3, and neither entry requires Vue or Fornac scripts.
 
 The `src` directory provides a [detailed vaRRI Library API documentation](src/README.md)
 
