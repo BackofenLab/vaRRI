@@ -1,6 +1,5 @@
 import { findBasePairs } from '../../model/brackets.js';
-import { simpleXyCoordinates } from './coordinates.js';
-import { classifyElements } from './elements.js';
+import { createVirtualLayout, addVirtualNodes } from './virtual-layout.js';
 import { addLabels } from './labels.js';
 import { addScaffolds } from './scaffold.js';
 
@@ -68,12 +67,12 @@ export function createRnaGraph(structure, options = {}) {
   allPairs[0] = dotbracket.length;
   pairs.forEach(([a, b]) => { allPairs[a] = b; allPairs[b] = a; });
   const pairtable = planarize(allPairs);
-  const elements = classifyElements(pairtable, 0, 1, dotbracket.length, breaks);
+  const layout = createVirtualLayout(pairtable, breaks, options.positions);
+  const { elements, realPositions: positions } = layout;
   const elemTypes = {};
   [...elements].sort().forEach(([type, , members]) => {
     members.forEach(num => { elemTypes[num] = type; });
   });
-  const positions = options.positions?.length ? options.positions : simpleXyCoordinates(pairtable);
   const graph = {
     nodes: [], links: [], elements, pairtable, allPairs, breaks,
     rnaLength: dotbracket.length, dotbracket, seq: sequence,
@@ -97,6 +96,7 @@ export function createRnaGraph(structure, options = {}) {
     graph.links.push(makeLink(graph.nodes[a - 1], graph.nodes[b - 1],
       pairtable[a] === b ? 'basepair' : 'pseudoknot'));
   });
+  addVirtualNodes(graph, layout);
   addLabels(graph, options.labelInterval ?? 1);
   addScaffolds(graph, options.circularizeExternal !== false);
   return graph;

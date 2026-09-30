@@ -130,7 +130,7 @@ async function main() {
         freeTrailingEnds: '0', pullPseudoknotBasepairs: '0' });
       await page.goto(`${origin}/index.html?${parameters}`, { waitUntil: 'networkidle' });
       await page.waitForFunction(() => document.querySelector('#rendering-canvas circle[node_num]') &&
-        document.getElementById('msg')?.textContent.includes('Visualisation ready'));
+        document.getElementById('rendering-canvas')?.style.visibility !== 'hidden');
       if (await page.locator('script[type="module"][src="src/main.js"]').count()) {
         assert.equal(await page.evaluate(async () => {
           const entry = await import('./src/main.js');

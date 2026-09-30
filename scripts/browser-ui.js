@@ -29,7 +29,7 @@ async function serve() {
 }
 
 const ready = page => page.waitForFunction(() =>
-  document.getElementById('msg')?.textContent.includes('Visualisation ready') &&
+  document.getElementById('rendering-canvas')?.style.visibility !== 'hidden' &&
   document.querySelector('#rendering-canvas circle[node_type="nucleotide"]'));
 
 async function openPanel(page, selector) {

@@ -5,7 +5,7 @@ test('boots through bound UI actions without inline handlers', async () => {
   const { dom, api: vaRRI, renderSpy, examples: catalog, flush, close } = await mountViewer();
 
   expect(renderSpy).toHaveBeenCalled();
-  expect(document.getElementById('msg').textContent).toContain('Visualisation ready');
+  expect(document.getElementById('msg').textContent).toBe('');
   expect(document.getElementById('sequence').value).not.toBe('');
   expect(document.getElementById('subseqCounterUI').textContent).toBe('(2)');
   expect(document.getElementById('regionCounterUI').textContent).toBe('(1)');

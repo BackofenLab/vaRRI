@@ -232,3 +232,13 @@ cases and four vendor runtime regressions. The checker covers 198 text files
 and 130 native modules. Native/standalone rendering, Vue controls, help/citation
 pages, and the migrated smoke helper pass. The final packed-package check also passes. All five visual fixtures retain exact
 SVG scenes and zero changed pixels; committed baselines are unchanged.
+
+### Phase 4 review corrections
+
+Martin's [30 September review](https://github.com/BackofenLab/vaRRI/pull/90#issuecomment-5912123406)
+requests two virtual strand-break vertices, Fornac's exterior closure radius and
+hidden constraints, and removal of the ready message. These corrections precede
+any D3 upgrade. The [layout audit](docs/review-90-layout-audit.md) records the
+upstream comparison, intentional differences, force measurements, and visual
+review. Earlier visual fixtures remain intact; `tests/visual-review-90` records
+the reviewed geometry with source provenance. D3 remains 3.4.13 in phase 4.

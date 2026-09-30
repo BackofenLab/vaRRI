@@ -18,6 +18,10 @@ Fornac's conversion of break-adjacent nucleotides into invisible nodes. That
 padding and the later DOM removal are gone. Biological positions are computed
 by `model/indexing.js`, including negative offsets and skipping zero. Internal
 IDs are not biological positions and should not be persisted in share links.
+Two explicitly typed, invisible layout vertices now separate each strand break.
+They have no nucleotide ID or biological position. A temporary polygon pair
+table includes them; its coordinates are mapped back to the real nodes. They
+also participate in loop forces, so enabling animation retains the gap.
 
 ## Coordinates and crossings
 
@@ -40,9 +44,16 @@ not fake nucleotides; they never appear in the SVG or biological index map.
 Each hub records its members and `scaffoldType`, and each chord records its
 owning `scaffoldUid`.
 
-`freeTrailingEnds` removes exterior hubs and their constraints while retaining
+Fornac's two outer closure helpers are included when sizing exterior springs.
+As upstream, they receive incoming chords but do not originate spokes. Stem
+rectangles and loops retain reciprocal hidden chords as separate springs;
+deduplicating these chords weakens the constraints. Real base pairs remain
+unique. The independent legacy-browser oracle tests hidden endpoints,
+multiplicity, and spring lengths against the pinned Fornac runtime.
+
+`freeTrailingEnds` removes exterior hubs, virtual vertices, and their constraints while retaining
 real nucleotides and interior-loop constraints, including constraints that share
-a nucleotide with an exterior loop. No synthetic closure nucleotide is needed.
+a nucleotide with an exterior loop. Real nucleotide identity never changes.
 
 Linear RRI and intramolecular options construct two-rail helix templates from
 the validated pair structure. Projection preserves handedness, handles bulges

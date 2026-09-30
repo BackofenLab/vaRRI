@@ -63,7 +63,6 @@ export function createRenderActions({ api, state, actions, document }) {
       canvas.style.visibility = '';
       actions.syncAnnotations();
       applySliderRotation();
-      actions.showMsg('Visualisation ready. Use the export buttons to save.', 'success');
     } catch (error) {
       if (run !== latestRun) return;
       canvas.style.visibility = '';
