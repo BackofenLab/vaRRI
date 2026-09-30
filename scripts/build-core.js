@@ -20,9 +20,10 @@ async function main() {
   fs.copyFileSync('dist/varri.min.js', 'dist/vaRRI.min.js');
   fs.copyFileSync('dist/varri.min.js.map', 'dist/vaRRI.min.js.map');
   fs.mkdirSync('dist/licenses', { recursive: true });
+  fs.rmSync('dist/licenses/D3-BSD.txt', { force: true });
   for (const [source, target] of [
     ['LICENSE', 'licenses/vaRRI-MIT.txt'],
-    ['src/core/vendor/D3-LICENSE.txt', 'licenses/D3-BSD.txt'],
+    ['src/core/vendor/D3-LICENSE.txt', 'licenses/D3-ISC.txt'],
     ['src/core/canvas/graph/LICENSE.txt', 'licenses/Fornac-Apache-2.0.txt'],
     ['src/core/canvas/graph/NOTICE.md', 'licenses/Fornac-NOTICE.md'],
     ['fornac/fornac.css', 'fornac.css'], ['fornac/fornac.css.map', 'fornac.css.map'],

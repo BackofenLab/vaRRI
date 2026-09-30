@@ -84,7 +84,7 @@ try {
     assert.ok(fs.statSync(path.join(installed, name)).size > 0, `${name} must be packaged`);
   }
   for (const name of ['README.md', 'fornac.css', 'fornac.css.map',
-    'licenses/vaRRI-MIT.txt', 'licenses/D3-BSD.txt',
+    'licenses/vaRRI-MIT.txt', 'licenses/D3-ISC.txt',
     'licenses/Fornac-Apache-2.0.txt', 'licenses/Fornac-NOTICE.md']) {
     assert.ok(fs.statSync(path.join(installed, 'dist', name)).size > 0, `Missing embedding asset: ${name}`);
   }

@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { exerciseInteractions } from './browser-interactions.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const output = path.join(root, 'output/playwright/core-contract');
@@ -129,6 +130,9 @@ async function main() {
         else assert.ok(bytes.toString().includes('<svg'));
       }
       assert.deepEqual(errors, [], mode + ': browser errors');
+      phase = mode + ' dragging, zooming and interaction disposal';
+      await exerciseInteractions(page);
+      assert.deepEqual(errors, [], mode + ': interaction browser errors');
       assert.ok(!requests.some(url => /vue|fornac\.js/.test(url)), mode + ': UI-free core dependency graph');
       await page.evaluate(() => window.exportApi.cancelActiveRender());
       await page.close();

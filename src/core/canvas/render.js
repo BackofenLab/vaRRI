@@ -29,9 +29,8 @@ export function cancelActiveRender(session) {
     }
   }
 
-  // D3 v3 dispatches `end` synchronously from force.stop(). Remove the
-  // helix lifecycle listeners first so a cancelled render cannot refit
-  // a detached/cleared SVG container.
+  // Remove helix listeners before stopping or disposing the simulation so
+  // cancellation cannot refit a detached/cleared SVG container.
   if (session.runtime.activeContainer) {
     clearLinearHelixConstraintState(session.runtime.activeContainer);
   }

@@ -21,14 +21,25 @@ export function createGraphCanvas(target, options = {}) {
   const layers = createSvg(element);
   const container = {
     element, layers, svg: layers.svg, plot: layers.plot,
+    destroyed: false,
     options: { ...DEFAULT_OPTIONS, ...options }, graph: { nodes: [], links: [] },
     linkStrengths: { pseudoknot: 0, intermolecule: 10, external: 0, other: 10 },
   };
   let destroyed = false;
   const svg = d3.select(layers.svg);
   const plot = d3.select(layers.plot);
-  const zoom = d3.behavior.zoom().on('zoom.graph', () => {
-    plot.attr('transform', `translate(${d3.event.translate}) scale(${d3.event.scale})`);
+  const zoom = d3.zoom().on('start.graph', event => {
+    const source = event.sourceEvent;
+    if (source?.type !== 'mousedown' || !source.view) return;
+    container.cancelZoom = () => {
+      d3.select(source.view).on('mousemove.zoom mouseup.zoom', null);
+      d3.dragEnable(source.view);
+      container.cancelZoom = null;
+    };
+  }).on('end.graph', () => { container.cancelZoom = null; }).on('zoom.graph', event => {
+    if (destroyed) return;
+    const { x, y, k } = event.transform;
+    plot.attr('transform', `translate(${x},${y}) scale(${k})`);
   });
   if (container.options.zoomable) svg.call(zoom);
 
@@ -39,7 +50,7 @@ export function createGraphCanvas(target, options = {}) {
     container.options.svgH = height;
     svg.attr('viewBox', `0 0 ${width} ${height}`);
     d3.select(layers.background).attr('width', width).attr('height', height);
-    container.force?.size([width, height]);
+    zoom.extent([[0, 0], [width, height]]);
   }
   sizeCanvas();
   container.force = createForce(container, d3);
@@ -55,8 +66,7 @@ export function createGraphCanvas(target, options = {}) {
       maxNodeRadius / maxRadius) * 0.8;
     const translate = [svgW / 2 - (minX + maxX) * scale / 2,
       svgH / 2 - (minY + maxY) * scale / 2];
-    plot.attr('transform', `translate(${translate}) scale(${scale})`);
-    zoom.translate(translate).scale(scale);
+    svg.call(zoom.transform, d3.zoomIdentity.translate(...translate).scale(scale));
   };
   container.update = () => {
     if (destroyed) return;
@@ -85,6 +95,9 @@ export function createGraphCanvas(target, options = {}) {
   container.destroy = () => {
     if (destroyed) return;
     destroyed = true;
+    container.destroyed = true;
+    container.cancelDrag?.();
+    container.cancelZoom?.();
     observer?.disconnect();
     container.force.on('tick.graph', null).on('end.graph', null).stop();
     svg.on('.zoom', null);
