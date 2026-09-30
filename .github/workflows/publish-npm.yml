@@ -32,14 +32,16 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm run test:ci
+        run: |
+          npm run test:architecture
+          npm run test:ci
 
       - name: Set package version from release tag
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           IS_PRERELEASE: ${{ github.event.release.prerelease }}
         id: release
-        run: node scripts/release-metadata.cjs
+        run: node scripts/release-metadata.js
 
       - name: Verify package contents
         run: npm run test:package

@@ -1,0 +1,236 @@
+/* ------------------------------------------------------------------ */
+/* Result panel                                                         */
+/* ------------------------------------------------------------------ */
+.result-panel {
+  display: flex;
+  flex-direction: column;
+  resize: both;
+  overflow: auto;
+  min-width: 0;
+  max-width: calc(50vw +350px);
+
+  min-height: 520px;
+  height: max(520px, calc(100vh - 260px));;
+}
+
+.highlight-list {
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  background: #fcfdff;
+}
+
+.highlight-empty {
+  padding: .6rem .7rem;
+  color: #5d6f81;
+  font-size: .84rem;
+}
+
+.highlight-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .4rem;
+  padding: .3rem;
+  border-bottom: 1px solid #e4ecf4;
+}
+
+.highlight-item:last-child {
+  border-bottom: none;
+}
+
+.highlight-item-main {
+  text-align: left;
+  border: 1px solid #d7e2ee;
+  border-radius: 5px;
+  background: #fff;
+  color: #1f3144;
+  padding: .42rem .52rem;
+  font-size: .79rem;
+  font-family: "Courier New", monospace;
+  cursor: pointer;
+}
+
+.highlight-item.active .highlight-item-main {
+  background: #eaf2f8;
+  border-color: #9fb9d4;
+}
+
+.highlight-delete {
+  border: 1px solid #d9c5c5;
+  border-radius: 5px;
+  background: #fff2f2;
+  color: #9a2e2e;
+  padding: .35rem .5rem;
+  font-size: .73rem;
+  cursor: pointer;
+}
+
+.highlight-delete:hover {
+  background: #ffe3e3;
+}
+
+.highlightInput {
+  display: grid;
+  grid-template-columns: minmax(0, 0.5fr) minmax(0, 2fr) 1.5em 4em;
+  gap: .45rem;
+  align-items: end;
+}
+
+.regionInput {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 1.5em 4em;
+  gap: .45rem;
+  align-items: start;
+}
+
+.regionInput > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.regionInput label {
+  margin: 0 0 .25rem;
+}
+
+.regionInput .input-wrap {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+}
+
+.regionInput input[type="text"] {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+
+#subseqColor,#regionColor {
+  width: 100%;
+  height: 34px;
+  padding: 2px;
+  margin-bottom: .75rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  background: #fcfdff;
+}
+
+
+.mutationInput {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr) 3.25rem 2rem;
+  gap: .45rem;
+  align-items: end;
+}
+
+.mutationInput > div {
+  min-width: 0;
+}
+
+.mutationInput #mutationSequence,
+.mutationInput #mutationPosition,
+.mutationInput #mutationBase,
+.mutationInput #mutationColor {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.mutationInput #mutationColor {
+  height: 34px;
+  padding: 2px;
+}
+
+
+#rendering-canvas {
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(15, 46, 74, .12);
+  flex: 1;
+  min-height: 450px;
+  overflow: hidden;
+  position: relative;
+}
+
+#rendering-canvas svg {
+  width: 100%;
+  height: 100%;
+}
+
+#rendering-caption {
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(15, 46, 74, .12);
+  padding: .6rem 1.2rem;
+  margin-top: .75rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  font-size: smaller;
+  color: var(--text-muted);
+}
+
+.viz-control {
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(15, 46, 74, .12);
+  padding: .6rem 1.2rem;
+  margin-top: .75rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.viz-control label {
+  margin: 0;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--brand-blue-dark);
+  white-space: nowrap;
+}
+.viz-control input[type="range"] {
+  flex: 1;
+  margin: 0;
+  min-width: 50;
+}
+
+
+.export-bar {
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(15, 46, 74, .12);
+  padding: .8rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  margin-top: .75rem;
+  flex-wrap: wrap;
+}
+.export-bar span { font-size: .85rem; font-weight: 600; color: var(--brand-blue-dark); }
+.cite-note {
+  margin-left: auto;
+  color: #666;
+  font-size: .8em;
+  text-align: right;
+}
+
+.cropping-value {
+  margin-left: .3em;
+  color: var(--text-primary);
+  font-weight: 600;
+  display: inline-block;
+  width: 1.5em;
+}
+
+.rotation-value {
+  margin-left: .3em;
+  color: var(--text-primary);
+  font-weight: 600;
+  display: inline-block;
+  width: 2.5em;
+}
+

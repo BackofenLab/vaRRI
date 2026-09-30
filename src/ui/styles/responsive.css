@@ -1,0 +1,137 @@
+/* ------------------------------------------------------------------ */
+/* Inline field validation — error highlight + hover tooltip           */
+/* ------------------------------------------------------------------ */
+.input-wrap {
+  position: relative !important;
+  display: block;
+  width: 100%;
+}
+.input-wrap.has-error > textarea,
+.input-wrap.has-error > input {
+  border-color: #e74c3c !important;
+  background: #fff5f5 !important;
+}
+.start-index-label-row.has-error > input[type="number"] {
+  border-color: #e74c3c;
+  background: #fff5f5;
+}
+.start-index-label-row.has-error > .field-tooltip {
+  display: block;
+}
+.field-tooltip {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 3px);
+  background: #2c2c2c;
+  color: #fff;
+  font-size: .76rem;
+  font-family: "Segoe UI", Tahoma, Geneva, sans-serif;
+  font-weight: 400;
+  padding: .4rem .65rem;
+  border-radius: 4px;
+  white-space: normal;
+  width: auto;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  z-index: 200;
+  pointer-events: none;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.field-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 12px;
+  border: 5px solid transparent;
+  border-bottom-color: #2c2c2c;
+}
+.input-wrap.has-error:hover .field-tooltip {
+  display: block;
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive                                                           */
+/* ------------------------------------------------------------------ */
+@media (max-width: 780px) {
+  main {
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+  }
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .group-logo {
+    height: 57px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Hide header and footer for content-only embedding mode. */
+/* ------------------------------------------------------------------ */
+
+body.hide-footer-and-header header,
+body.hide-footer-and-header footer {
+  display: none !important;
+}
+
+body.hide-footer-and-header main {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  max-width: none;
+  grid-template-columns: minmax(360px, 380px) 1fr;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+body.hide-footer-and-header .controls-column {
+  min-height: 0;  
+  height: 100%;  
+  max-height: 100vh;
+}
+
+/* 3. Sicherstellen, dass <aside> im normalen Dokumentenfluss bleibt */
+body.hide-footer-and-header .controls-column aside {
+  position: relative;  /* Darf NICHT position: absolute sein! */
+  box-sizing: border-box;
+}
+
+body.hide-footer-and-header .result-panel {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Rendering-only embedding mode. */
+/* ------------------------------------------------------------------ */
+
+body.rendering-only header,
+body.rendering-only footer,
+body.rendering-only .controls-column {
+  display: none !important;
+}
+
+body.rendering-only main {
+  display: block;
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+body.rendering-only .result-panel {
+  width: 100%;
+  height: 100%;
+}
+
+/* Keep exports and embedded rendering backgrounds transparent. */
+body.rendering-only {
+  background: transparent;
+}
