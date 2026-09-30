@@ -1,0 +1,284 @@
+/* ------------------------------------------------------------------ */
+/* Input panel                                                          */
+/* ------------------------------------------------------------------ */
+.panel {
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(15, 46, 74, .12);
+  padding: .8rem;
+}
+
+.panel h2 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--brand-blue-dark);
+  border-bottom: 2px solid #dbe6f0;
+  padding-bottom: .5rem;
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  font-size: .85rem;
+  font-weight: 600;
+  color: #2c4259;
+  margin-bottom: .25rem;
+}
+
+label small {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.list-counter {
+  color: #57606a;
+  font-size: 0.9em;
+  font-weight: normal;
+}
+
+.start-index-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .4rem;
+}
+
+.start-index-item {
+  min-width: 0;
+}
+
+.start-index-label-row {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin-bottom: .2rem;
+  position: relative;
+}
+
+.start-index-label-row .legend-color {
+  margin-bottom: 0;
+  vertical-align: middle;
+}
+
+.start-index-label-row label {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+}
+
+.start-index-label-row > input[type="number"] {
+  width: 4.7rem;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.start-index-label-row > .field-tooltip {
+  align-self: center;
+}
+
+.start-index-item .input-wrap input,
+.start-index-item > input {
+  margin-bottom: 0;
+}
+
+textarea, input[type="text"], input[type="number"], select {
+  width: 100%;
+  padding: .45rem .6rem;
+  border: 1px solid var(--border-soft);
+  background: #fcfdff;
+  border-radius: 4px;
+  font-family: "Courier New", monospace;
+  line-height: 1;
+  font-size: .85rem;
+  margin-bottom: .75rem;
+  transition: border-color .2s;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-all;
+  letter-spacing: normal;
+}
+textarea:focus, input:focus, select:focus {
+  outline: none;
+  border-color: var(--brand-blue);
+}
+
+textarea { resize: vertical; }
+
+/* enable textarea highlighting by overlaying a backdrop div with identical text and highlights*/
+.backdropable {
+  /* Typography - MUST BE IDENTICAL */
+  font-family: "Courier New", Courier, monospace !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  letter-spacing: normal !important;
+  
+  /* Dimensions & Spacing - MUST BE IDENTICAL */
+  border: 1px solid var(--border-soft) !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  padding-left: 8px !important;
+  padding-right: 8px;
+
+  /* Line wrapping rules */
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* 4. Backdrop Positioning */
+div.backdropable {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden !important; /* Hide backdrop scrollbar; JS controls scroll */
+  pointer-events: none;
+  z-index: 1;
+  background: #fcfdff; /* Background moves to backdrop */
+}
+
+/* 5. Highlight span text layer */
+.highlights {
+  font-family: "Courier New", Courier, monospace !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  word-break: break-all !important;
+  color: transparent;
+}
+
+/* 6. Textarea Layer */
+textarea.backdropable {
+  position: relative;
+  z-index: 2;
+  background-color: transparent !important; /* Transparent so highlights show through */
+  resize: vertical;
+  display: block;
+  white-space: nowrap;
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+}
+
+/* error handling */
+.input-wrap.has-error > textarea.backdropable  {
+  border-color: #e74c3c !important;
+}
+.input-wrap.has-error > div.backdropable  {
+  background-color: #fff5f5 !important;
+  border-color: #e74c3c !important;
+}
+
+/* Highlight-Klassen für die Abschnitte */
+.hl-seq1, .hl-seq2, .hl-basepair {
+  display: inline;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+
+textarea.profileData {
+  overflow-wrap: normal;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+
+textarea.drag-over {
+  border-color: var(--brand-blue);
+  background-color: var(--brand-blue-soft);
+  box-shadow: 0 0 0 2px rgba(20, 90, 150, 0.25);
+}
+
+
+.row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+}
+
+.profile-label-with-color {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.profile-label-with-color > label {
+  margin: 0;
+}
+
+.profile-color-picker {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #7e92a4;
+  border-radius: 2px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.profile-color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.profile-color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 1px;
+}
+
+.profile-color-mode-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: .22rem;
+  margin-left: .1rem;
+}
+
+.profile-color-mode-checkbox {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.profile-color-mode-text {
+  font-size: .72rem;
+  font-weight: 600;
+  color: #4f6478;
+  line-height: 1;
+}
+
+.label-dropdown-col-row {
+  display: grid;
+  grid-template-columns: 1.15fr 0.9fr 0.2fr;
+  gap: .6rem;
+  align-items: center;
+  margin-bottom: .55rem;
+}
+
+.label-dropdown-col-row > label {
+  margin: 0;
+}
+
+.label-dropdown-col-row > select {
+  margin-bottom: 0;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin-bottom: .75rem;
+  font-size: .85rem;
+}
+.checkbox-row input { width: auto; margin: 0; }
+.checkbox-row label { margin: 0; }
+.checkbox-row-nested { margin-left: 1.5em; }
+

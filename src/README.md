@@ -6,6 +6,7 @@ rendered. Vue is not a core dependency.
 
 ```html
 <link rel="stylesheet" href="fornac/fornac.css">
+<div id="rendering-canvas" style="width: 800px; height: 600px"></div>
 <script type="module">
   import vaRRI, { createVaRRI } from './src/core/index.js';
   const viewer = createVaRRI(); // independent colors, annotations, and canvas
@@ -33,6 +34,13 @@ fields and annotation data. `encodeUrlState(state)` returns `URLSearchParams` fo
 sharing that state. Generated region annotations are excluded. Both functions
 are available on the default API, as named core exports, and from the DOM-free
 `varri-js/model` entry. They do not initialize a canvas or depend on Vue.
+
+Multi-range subsequence highlights retain their ranges as one annotation when
+shared and restored. Existing hex-color URL tokens are unchanged. For model
+annotations with other CSS color strings, the codec uses a `css~` token followed
+by the URI-encoded color value. This additive encoding preserves names and
+functional colors without requiring the DOM; existing links still decode as
+before. CSS color interpretation remains the renderer's responsibility.
 
 ### `vaRRI.validate(args)`
 

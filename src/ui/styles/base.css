@@ -1,0 +1,155 @@
+:root {
+  --brand-blue: #145a96;
+  --brand-blue-dark: #0f4676;
+  --brand-blue-soft: #eaf2f8;
+  --brand-accent: #f4bb44;
+  --surface: #ffffff;
+  --surface-muted: #f3f7fb;
+  --text-primary: #1c2b39;
+  --text-muted: #4f6478;
+  --border-soft: #ccd9e5;
+}
+
+/* ------------------------------------------------------------------ */
+/* Layout & base                                                        */
+/* ------------------------------------------------------------------ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, sans-serif;
+  background: linear-gradient(180deg, #f8fbff 0%, #eef3fb 45%, #ffffff 100%);
+  color: var(--text-primary);
+}
+
+header {
+  background: #344a9a;
+  color: #f7fbff;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1.25rem;
+  border-bottom: none;
+  height: 100px;
+}
+.header-title {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+header h1 { font-size: 1.6rem; }
+header p  { font-size: 0.9rem; opacity: 0.88; color: #d9e8f6; }
+.group-logo-link {
+  display: inline-block;
+  text-decoration: none;
+}
+.group-logo {
+  height: 60px;
+  width: auto;
+  display: block;
+}
+.varri-logo {
+  height: 50px;
+  width: auto;
+  display: block;
+}
+.uni-logo-wrap {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+.uni-logo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: #f7fbff;
+  text-decoration: none;
+  line-height: 1;
+}
+.uni-logo-link:visited,
+.uni-logo-link:hover,
+.uni-logo-link:focus,
+.uni-logo-link:active {
+  color: #f7fbff;
+  text-decoration: none;
+}
+.uni-logo-text {
+  color: #f7fbff;
+  font-size: .95rem;
+  white-space: nowrap;
+}
+.uni-logo {
+  height: 52px;
+  width: auto;
+  display: block;
+}
+
+main {
+  width: 100%;
+  max-width: 1300px;
+  padding: 15px;
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  margin: 0 auto;
+  justify-content: start;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.controls-column {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: auto;
+  
+  height: 100%;  
+  min-height: 520px;
+  max-height: max(520px, calc(100vh - 260px));
+}
+
+.control-panel {
+  padding: .45rem;
+}
+
+.control-group {
+  border: 1px solid #dbe6f0;
+  border-radius: 8px;
+  background: #fbfdff;
+  overflow: visible;
+}
+
+.control-group > summary {
+  cursor: pointer;
+  padding: .6rem .8rem;
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--brand-blue-dark);
+  user-select: none;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.control-group > summary::-webkit-details-marker {
+  margin-right: .35rem;
+}
+
+.control-group[open] > summary {
+  border-bottom: 1px solid #dbe6f0;
+  background: #f3f8fd;
+}
+
+.control-group-body {
+  padding: .4rem .8rem .35rem;
+}
+
+#full-screen-menu {
+  display: inline-flex;
+  align-items: sub;
+  gap: 6px;
+  vertical-align: middle;
+  margin-left: auto;
+  padding-left: 2rem;
+}
+
+

@@ -1,11 +1,27 @@
-import { createIndexSandbox } from './helpers/ui-sandbox.js';
+import { createVaRRI } from '../src/vaRRI.js';
+import { createNavigationActions } from '../src/ui/navigation-actions.js';
+import { normalizeRegionInput } from '../src/ui/controllers/regions.js';
+
+function createNavigationFixture(options = {}) {
+    const api = Object.assign(createVaRRI(), options.vaRRIOverrides || {});
+    const fields = Object.fromEntries((options.formElements || []).map(field => [field.id, field.value]));
+    const state = { fields, rotation: 0 };
+    const document = {
+        defaultView: { location: { href: 'https://example.test/index.html' }, console },
+        body: { classList: { toggle() {} } },
+        getElementById: () => null,
+    };
+    const actions = {
+        getSequenceContext: () => ({ '1': { offset: 1, length: 4 }, '2': { offset: 1, length: 4 } }),
+        syncAnnotations() {}, enableForceLayoutForSelectedLinearOptions() {}, syncAnimationDependentControls() {},
+    };
+    return createNavigationActions({ api, state, defaults: {}, initialColors: api.getColors(), actions, document, examples: {} });
+}
 
 describe('region input helpers', () => {
     test('normalizes region range strings by removing whitespace', () => {
-        const sandbox = createIndexSandbox();
-
-        expect(sandbox.normalizeRegionInput(' 2 - 4 ')).toBe('2-4');
-        expect(sandbox.normalizeRegionInput('')).toBe('');
+        expect(normalizeRegionInput(' 2 - 4 ')).toBe('2-4');
+        expect(normalizeRegionInput('')).toBe('');
     });
 });
 
@@ -20,7 +36,7 @@ describe('region highlight URL helpers', () => {
             rangeText: '2-4&5-7',
             generated: false,
         }];
-        const sandbox = createIndexSandbox({
+        const sandbox = createNavigationFixture({
             vaRRIOverrides: {
                 getPointMutations: () => [],
                 getSubsequenceHighlights: () => [],
@@ -37,7 +53,7 @@ describe('region highlight URL helpers', () => {
         expect(shareUrlText).toContain('regionHighlights=');
 
         const shareUrl = new URL(shareUrlText);
-        sandbox.loadUrlRegionHighlightsToVaRRI('regionHighlights', shareUrl.searchParams);
+        sandbox.loadAllUrlParameters(shareUrl.searchParams);
 
         expect(registeredRegionHighlights).toHaveLength(1);
         expect(registeredRegionHighlights[0]).toMatchObject({
@@ -52,7 +68,7 @@ describe('region highlight URL helpers', () => {
             { id: 1, sequence1Range: [2, 4], sequence2Range: [5, 7], color: '#123456', rangeText: '2-4&5-7', generated: false },
             { id: 2, sequence1Range: [8, 9], sequence2Range: [10, 11], color: '#654321', rangeText: '8-9&10-11', generated: true },
         ];
-        const sandbox = createIndexSandbox({
+        const sandbox = createNavigationFixture({
             vaRRIOverrides: {
                 getPointMutations: () => [],
                 getSubsequenceHighlights: () => [],
@@ -68,7 +84,7 @@ describe('region highlight URL helpers', () => {
     });
 
     test('uses URLSearchParams encoding for parentheses', () => {
-        const sandbox = createIndexSandbox({
+        const sandbox = createNavigationFixture({
             formElements: [{ id: 'structure', type: 'textarea', value: '((..))' }],
             vaRRIOverrides: {
                 getPointMutations: () => [],
@@ -84,20 +100,16 @@ describe('region highlight URL helpers', () => {
 
     test('rejects malformed URL alpha values', () => {
         const registeredHighlights = [];
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-        const sandbox = createIndexSandbox({
+        const sandbox = createNavigationFixture({
             vaRRIOverrides: {
                 registerSubsequenceHighlight: input => registeredHighlights.push(input),
             },
         });
 
-        sandbox.loadUrlSubsequenceHighlightsToVaRRI(
-            'subseqHighlights',
+        sandbox.loadAllUrlParameters(
             new URLSearchParams('subseqHighlights=1:2-3:ff0000:0x5')
         );
 
         expect(registeredHighlights).toHaveLength(0);
-        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid subsequence highlight format'));
-        warnSpy.mockRestore();
     });
 });

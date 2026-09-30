@@ -8,6 +8,7 @@ export * from './helix-groups.js';
 export * from './region-paths.js';
 export * from './labels.js';
 export * from './url-state.js';
+export { createModelState } from './state.js';
 export { DEFAULT_COLORS } from './colors.js';
 export { validate } from './validate.js';
 export { createSubsequenceHighlight } from './subsequences.js';
