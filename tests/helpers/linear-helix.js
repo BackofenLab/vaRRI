@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import vaRRI from '../../src/vaRRI.js';
 
 export function validateLinearHelixFixture(sequence, structure, overrides = {}) {

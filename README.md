@@ -11,10 +11,10 @@
 3. [Project Structure](#project-structure)
 4. [Quick Start](#quick-start)
 5. [npm Package](#npm-package)
-6. [Input Website](#input-website)
-7. [URL Parameters & Sharing](#url-parameters--sharing)
-8. [Embedding / Web Integration](#-embedding--web-integration)
-9. [Input Format Reference](#input-format-reference)
+6. [Input Website](docs/viewer-guide.md#input-website)
+7. [URL Parameters & Sharing](docs/sharing-and-input.md#url-parameters--sharing)
+8. [Embedding / Web Integration](docs/sharing-and-input.md#-embedding--web-integration)
+9. [Input Format Reference](docs/sharing-and-input.md#input-format-reference)
 10. [JavaScript Library API](#javascript-library-api)
 11. [Release Process](#release-process)
 12. [License](#license)
@@ -174,13 +174,12 @@ const viewerPath = require.resolve('varri-js/index.html');
 Resolving this path does not start a server; serve its containing directory to make the viewer
 and its assets available. HTML is a browser document, not a JavaScript module.
 
-**Network requirements:** the existing viewer uses jsDelivr for `marked` and external
-university logos from `www.bioinf.uni-freiburg.de`. The help page also uses cdnjs for its
-Markdown stylesheet, and the citation page loads Citation.js from jsDelivr. These URLs
-are retained, so this is not a fully offline distribution. Deployments with restricted
-network access must provide those assets locally and update the HTML references/CSP.
-Opening the help or citation page through `file://` can additionally fetch fallback content
-from `raw.githubusercontent.com`; serving the package over HTTP uses the local files.
+**Network requirements:** the viewer and help page serve Vue, Markdown parsing,
+D3, and application modules locally. University logos come from
+`www.bioinf.uni-freiburg.de`, and the help page uses an external stylesheet and
+an embedded online example. The citation page can fetch citation data from
+`raw.githubusercontent.com` if local files cannot be read. Serve the package
+over HTTP to load its native modules and local help/citation data.
 
 For classic-script embedding, the distribution includes a standalone core bundle
 with its own D3 engine. For a page served from an npm-based application:
@@ -198,6 +197,8 @@ const vaRRI = require('varri-js');
 
 The core bundle installs `window.vaRRI` and includes D3. Serve the compatible
 `fornac/fornac.css` stylesheet alongside it; no Fornac runtime is required.
+The [standalone embedding guide](docs/standalone-embedding.md) explains the
+downloadable core artifact built by GitHub Actions on every push and release.
 
 
 > [!NOTE]
@@ -212,416 +213,15 @@ npm test
 
 ---
 
-## Input Website
-
-### Table of Content
-
-- [Usage](#usage)
-- [Sequence and Structure Input Fields](#sequence-and-structure-input-fields)
-- [Example Input](#example-input)
-- [Visualisation Settings](#visualisation-settings)
-- [Region Highlights](#region-highlights)
-- [Subsequence Highlights](#subsequence-highlights)
-- [Probability Profiles](#probability-profiles)
-- [Point Mutations](#point-mutations)
-- [Additional Features](#additional-features)
-- [Export](#export)
-
-
-### Usage
-
-1. **Open `index.html`** in a modern browser (Chrome, Firefox, Edge, Safari).
-2. The page loads with a pre-filled 2-molecule example automatically.
-3. Fill in or modify the fields in the left panel:
-
-
-### Sequence and Structure Input Fields
-
-| Field | Description |
-|---|---|
-| **Sequence** | RNA sequence (IUPAC characters). Separate two molecules with `&`. |
-| **Start index mol. 1/2** | The number assigned to the first nucleotide of each molecule. Defaults to 1. 0 is not valid; negative indices are supported. |
-| **Color Choice** | Use the color pickers to customize the colors for each sequence. |
-| **Structure** | Dot-bracket structure string. Separate two molecules with `&`. |
-
-### FASTA Sequence (and Structure) Input
-
-The **Sequence** field content can be automatically generated from **FASTA input**.
-The `FASTA` button opens a dialog, in which the provided FASTA encoding is automatically parsed and split into the sequence and structure fields.
-**Fasta files can also be dragged and dropped** into the dialog's FASTA input field to load.
-
-Multiline FASTA sequence input is supported, and the trimmed subsequences are concatenated into a single sequence string. The **FASTA header line is ignored**, and the structure field is left unchanged unless the FASTA input contains a **second line with a dot-bracket structure string**. Note, if structure information is provided, each FASTA record must contain a single sequence line and a single structure line; no multi-line support in this case!
-
-> ![IMPORTANT]
-> Only if *all* FASTA records contain a structure line, the structure field is updated with the concatenated structures. Otherwise, the structure field remains unchanged.
-
-```text
-> bla
-ACGAUCAUGGAUUAGAGCAUUCGACAGCAG
-..<<<<...>>>>...((..(((...((..
-> blub
-ACGAAAAAAAGAGCAUACGACAGUAG
-............))...)))..))..
-```
-
-Details about supported sequence and dot-bracket structure encodings are provided in the [Input Format Reference](#input-format-reference) section.
-
-### Example Input
-
-When loading the page, a feature-overview RNA-RNA interaction is automatically rendered.
-Open the **Example** dropdown to choose another RNA-RNA interaction. Each open menu item shows the example name and a short use-case description; after selection, the control shows only the chosen name.
-
-| Control | Description |
-|---|---|
-| **Example dropdown** | Loads the feature overview or an existing literature example demonstrating SHAPE profiles, cropping and highlights, or mutations and sequence context. |
-| **✕ Clear** | Clears all input fields, resets the visualisation, and clears the example selection. |
-
-
-### Visualisation Settings
-
-| Field | Description |
-|---|---|
-| **Full screen UI** | When checked, the header and footer sections are hidden, and the visualisation canvas is maximized. |
-| **Nucleotide color** | `by sequence` — use the defined colors. `by loop type` — Fornac default loop-type coloring. |
-| **Highlighting ..** |  |
-| **.. RRI Nucleotides** | `region` — highlight all nodes in the entire intermolecular region. `basepairs` — highlight only RRI-basepair nucleotides. `nothing` — no nucleotide highlighting. |
-| **Base pair color** | Chose the color used for all base pairs (intra- and intermolecular). |
-| **Color Choice** | Use the color pickers to customize the highlighting colors. |
-| **G-U basepairs dashed** | When checked, G-U basepairs are drawn with a dashed stroke. |
-| **Force layout** | When checked, the rendered structure is shown in an interactive force-directed layout. When unchecked, the structure is drawn in a fixed layout. |
-| - **Linear horizontal RRI layout** | Keeps all noncrossing intermolecular helixes on straight linear layout and rotates the complete two-molecule interaction so its RRI axis is horizontal. Enabling it also enables the force layout. |
-| - **Free trailing ends** | When checked, the trailing ends of the sequences are not fixed in the force-directed layout and can move freely. |
-| - **Pull Pseudoknot Basepairs** | When checked, pseudoknot basepairs are pulled together in the force-directed layout. |
-| - **Linear intramolecular stem layout** | Keeps intramolecular stems (i.e. helices containing bulges or interior loops) on straight linear layout. Stems stop at multiloops or crossing pairs. Enabling it also enables the force layout. |
-
-### Region Highlights
-
-Add colored highlightings to paired regions of the two input sequences via the following fields and using "Add" button.
-This will open a respective input dialog, which registers the highlighting on confirmation.
-All registered region highlightings are shown in a list above the input fields.
-User-created entries can be removed by clicking the "🗑️" icon, and selecting a listed entry will populate the input fields with its values for editing.
-
-In addition to manually added entries, the **RRI Background** control can create an automatically generated region entry that represents the currently selected global background-highlighting mode.
-These generated entries are shown in the same list but are **not removable or editable directly**, because they are derived from the current visualisation settings and updated automatically whenever the structure or highlighting mode changes.
-
-| Field | Description |
-|---|---|
-| **RRI Background** | `basepairs` — translucent background behind stacked intermolecular basepairs. `region` — translucent background covering the whole intermolecular region. `nothing` — no automatically generated background region highlight. |
-| **Region 1** | The start and end indices of the highlighted region in sequence 1, in the form `start-end`. |
-| **Region 2** | The start and end indices of the highlighted region in sequence 2, in the form `start-end`. |
-| **Color** | The color to use for the highlighted region pair. |
-
-Behaviour of generated list entries:
-
-- When **RRI Background** is set to `nothing`, no generated region entry is shown.
-- When set to `region`, vaRRI computes the overall intermolecular interaction region and displays it as a generated, non-removable region entry.
-- When set to `basepairs`, vaRRI computes one or more generated region entries that correspond to intermolecular basepair stacks and displays them as non-removable entries.
-- Generated entries are refreshed automatically from the current structure and settings; they are not exported as user-defined region highlights in share links.
-
-
-
-### Subsequence Highlights
-
-Add colored highlightings to subsequences of the input sequences via the following fields and use the "Add" button to register them.
-All registered highlightings are shown in a list above the input fields, and can be removed by clicking the "🗑️" icon.
-Selecting a listed highlighting will populate the input fields with its values for editing.
-
-| Field | Description |
-|---|---|
-| **Sequence** | The sequence (1 or 2) within which the subsequence is located. |
-| **Range** | The start and end indices of the subsequence to highlight in the form `start-end`. |
-| **Color** | The color to use for highlighting the subsequence. |
-
-### Probability Profiles
-
-Sometimes no homogenous coloring is desired, but rather a gradient of colors to represent the weight or importance of nucleotides w.r.t. a certain property. 
-This can be achieved by providing a probability profile for each molecule, which is a list of numbers between 0 and 1 (inclusive) along with the index of the respective nucleotide.
-Such probability profiles can be used to represent e.g.
-
-- the probability of a nucleotide being unpaired, i.e. accessibility for interaction,
-- phylogenetic conservation scores of a nucleotide, e.g. from multiple sequence alignments,
-- measured or predicted binding probabilities of a nucleotide to a certain ligand, or
-- structure probing data, e.g. SHAPE reactivities.
-
-Note, that the probability profiles are not required to sum up to 1, but rather represent a normalized value for each nucleotide.
-Furthermore, incomplete probability profiles are supported, i.e. not all nucleotides need to have a value assigned.
-
-The probability profiles are provided in a space-separated CSV format, where each line contains the nucleotide index and the respective probability value.
-As separator, either space and tab is supported, and lines starting with `#` are ignored as comments.
-
-```csv
-# positions upstream of start codon
--6 0.1
--5 0.5
-# start codon
-1 0.9
-2 0.8
-3 0.7
-# positions downstream of start codon
-4 0.6
-23 0.2
-```
-
-> [!TIP]
-> - For convenience, respective text *files can be dragged and dropped* into the input fields to load the probability profiles.
-> - vaRRI also supports CSV files with a header line, where the first column contains the nucleotide indices and the second column contains the probability values. Such data is automatically converted to the space-separated format above, and the header line is ignored.
-
-Finally, the following fields are available to define the visualization of the probability profiles:
-
-| Field | Description |
-|---|---|
-| **Color** | The color to use for the probability profile. |
-| **=1** | When checked, a value of 1 is mapped to the selected color, and a value of 0 is mapped to white. Otherwise, vice versa. |
-| **Index wrt.** | `1st nt` — the nucleotide indices in the probability profile are interpreted as relative indices w.r.t. the first nucleotide of the molecule's sequence. `Start` — the nucleotide indices in the probability profile are absolute indices following the indexing defined by the start index of the molecule's sequence. |
-
-> [!IMPORTANT] 
-> The indices of the given probability profile are validated against the sequence and start index of the respective molecule, and a warning is shown if any indices are invalid.
-
-### Point Mutations
-
-RNA-RNA interaction visualizations are often used to discuss the effect of point mutations on the interaction. 
-To support this, vaRRI allows to define point mutations in the input sequences and visualizes them in the rendered structure.
-A point mutation is defined by the sequence (1 or 2), the index of the nucleotide to mutate, and the new nucleotide (or letter) to use for the mutation.
-This information is provided in the following fields, and the "Add" button registers the mutation.
-
-| Field | Description |
-|---|---|
-| **Sequence** | The sequence (1 or 2) within which the mutation is located. |
-| **Position** | The index of the nucleotide to mutate. |
-| **To** | The new nucleotide (or letter) to use for the mutation annotation. |
-| **Color** | The color to use for highlighting the mutated nucleotide. |
-
-> [!TIP]  
-> vaRRI allows to define arbitrary letters as mutations, i.e. the mutated nucleotide does not need to be a valid IUPAC character.
-> That way, any kind of annotation can be added to the sequence, e.g. a letter representing a chemical modification, symbols for a certain type of mutation, or even a short word.
-
-All registered mutations are shown in a list above the input fields, and can be removed by clicking the "🗑️" icon.
-The list shows the mutations in the standard mutation notation, e.g. `A23G` for a mutation from A to G at position 23, extracting the original nucleotide from the input sequence to avoid mistakes.
-Selecting a listed mutation will populate the input fields with its values for editing.
-
-
-4. Changing selects and checkboxes rerenders immediately. Typed fields rerender when you commit the edit by leaving the field, and single-line inputs also rerender when you press Enter.
-
-
-### Additional Features
-
-- **Zooming**: Use the mouse wheel to zoom in and out.
-- **Panning**: Click and drag the visualisation to pan around. This is useful when zoomed in to focus on a certain region of the structure.
-- **Rotation**: Use the *Rotation* slider below the visualisation to rotate the structure. Rotation preserves text orientation and is useful to align the structure for better visibility or to match a certain orientation in a publication figure.
-- **Cropping**: Use the *Crop* slider to reduce the unpaired nucleotides at the ends of each sequence to the given number. This is useful to focus on the interaction region and reduce the size of the visualisation. A value of `-1` disables cropping and shows the full sequences.
-- **Nucleotide Nodes**
-  - .. can be dragged to new positions in the force-directed layout mode.
-  - .. show a tooltip with the nucleotide index and probability value (if present) when hovered over.
-- **Resize Canvas**: The visualisation canvas size can be adjusted by dragging the bottom-right corner of the canvas. This is useful when visualizing large interactions on large screens, or when preparing figures for publication. The canvas size is preserved when exporting the visualisation.
-
-### Export
-
-The rendered visualisation can be exported using the buttons in the export bar below the visualisation.
-
-**SVG graphics** are vector graphics and can be scaled to any size without loss of quality.
-Thus, they are ideal for publication figures, and can be postprocessed in vector graphics editors like Inkscape or Adobe Illustrator.
-
-**PNG graphics** are raster graphics and have a fixed resolution. They are ideal for web applications, presentations, or when a quick image is needed.
-Also PNG images can be used in documents that do not support SVG graphics, e.g. Microsoft Word or PowerPoint.
-Further annotations can be added to the exported PNG images in image editors like GIMP or Photoshop.
-
-**URL/LINK** Instead of storing the image, you can also generate a URL encoding of the input for sharing or embedding in other web applications. 
-The URL is copied to the clipboard when clicking the **🔗 Share Link** button.
-That way, many different visualizations can be shared without the need to store the images, and the input can be easily modified by changing the URL parameters.
-Details about URL encoding are given in the following section [URL Parameters & Sharing](#url-parameters--sharing).
-
-
-| Button | Description |
-|---|---|
-| **⬇ SVG** | Downloads a self-contained SVG file with embedded Fornac CSS. |
-| **⬇ PNG** | Rasterises the SVG to a canvas (2× resolution) and downloads a PNG. |
-| **🔗 Share Link** | Generate URL encoding of the input for sharing or embedding in other web applications; copied to clipboard. | 
-
----
-
-
-## URL Parameters & Sharing
-
-**vaRRI** supports state persistence directly via URL parameters, allowing you to pre-fill inputs or share specific visualization configurations using the **🔗 Share Link** button in the export panel. Most parameter names map directly to their corresponding HTML element IDs.
-
-### Key Parameters
-
-In the following, the most important URL parameters are listed with their expected values. 
-See descriptions above and the [Input Format Reference](#input-format-reference) section for details on valid input values.
-
-| Parameter | Description |
-| --- | --- |
-| **`sequence`** | IUPAC nucleotide sequence. Use `&` as a separator for two interacting molecules (*e.g., `GCAUGGCGGGCAA&CCCGCAU*`). |
-| **`structure`** | Secondary structure in dot-bracket notation. Separate two molecules with `&` (*e.g., `((...))..<<..&...>>..*`). |
-| **`startIndex1` / `startIndex2`** | Starting sequence indices for strand 1 and strand 2 (default: `1`). |
-| **`colorSeq1` / `colorSeq2`** | Custom color hex codes for sequence strands 1 and 2 (*e.g., `%23ff0000` for `#ff0000*`). |
-| **`coloring`** | Nucleotide color scheme (`strand` or `loop`). |
-| **`highlighting` / `backgroundhighlighting`** | RRI highlight targets (`region`, `basepairs`, or `nothing`). |
-| **`colorRriNodes` / `colorRriRegion` / `colorBasepair`** | Hex color codes for nucleotide highlights, background highlights, and base pairs. |
-| **`distinctBpTypes`** | Toggle display of G-U Wobble base pairs as dashed lines (`true` / `false`). |
-| **`forceLayout`** | Enable or disable the force-layout physics simulation (`true` / `false`). |
-| **`forceLayoutLinearRRI`** | Enforce a linear horizontal layout of all noncrossing RRI helices. Enabling it also enables `forceLayout`. |
-| **`forceLayoutLinearStructure`** | Enforce a linear layout of intramolecular stems containing bulges or interior loops. Enabling it also enables `forceLayout`. |
-
-To simplify sequence and structure input validation, sequence and structure inputs are highlighted with the chosen strand-specific colors.
-
-> [!IMPORTANT]
-> - All URL parameters are case-sensitive. 
-> - Use proper URL encoding for special characters (e.g., `&` as `%26`, parentheses as `%28` and `%29`) when encoding yourself.
-
-
----
-
-## 🔗 Embedding / Web Integration
-
-You can embed the visualization directly into external web pages (e.g., in documentation, blogs, or web tools) using an `<iframe>`.
-
-### Embeddings in Existing Web Applications
-
-Currently, vaRRI is already available as an RRI visualizer in the the following web applications:
-
-- Freiburg RNA Tools: [https://rna.informatik.uni-freiburg.de/](https://rna.informatik.uni-freiburg.de/)
-  - IntaRNA - RNA-RNA interaction prediction server
-    - [Example visualization](https://rna.informatik.uni-freiburg.de/IntaRNA/Result.jsp?toolName=IntaRNA&jobID=4267751)
-  - CopomuS - Compensatory Mutation Designer for RNA-RNA interactions
-    - [Example visualization](https://rna.informatik.uni-freiburg.de/CopomuS/Result.jsp?toolName=CopomuS&jobID=1595284)
-- Galaxy Visualizer: [https://usegalaxy.eu/](https://usegalaxy.eu/)
-  - vaRRI is available as a visualization tool for RNA-RNA interactions in the Galaxy workflow system
-    - [Example Galaxy history](https://usegalaxy.eu/u/videmp/h/varri-galaxy-visualization) visualizing RRIs from different tools
-
-
-### Query Parameter
-
-Use the `showRenderingOnly=true` URL parameter to hide all surrounding UI elements (header, controls panel, footer) and display only the visualization result panel.
-
-```text
-https://backofenlab.github.io/vaRRI/index.html?showRenderingOnly=true&<remaining_parameters...>
-```
-
-For embedding without header and footer, you can also use the `hideFooterAndHeader=true` parameter, which will hide the header and footer but keep the controls panel visible, i.e. this checks the "Full screen UI" checkbox in the controls panel.
-
-### HTML Example
-
-```html
-<iframe 
-  src="https://backofenlab.github.io/vaRRI/?sequence=ACGAUCAUGGAUUAGAGCAUUCGACAGCAG%26ACGAAAAAAAGAGCAUACGACAGUAG&colorSeq1=%23add8e6&startIndex1=-6&colorSeq2=%23f4bb44&startIndex2=100&structure=..%3C%3C%3C%3C...%3E%3E%3E%3E...%28%28..%28%28%28...%28%28..%26............%29%29...%29%29%29..%29%29..&coloring=strand&highlighting=region&colorRriNodes=%23ff0000&backgroundhighlighting=basepairs&colorRriRegion=%23ff0000&colorBasepair=%23ff0000&distinctBpTypes=on&forceLayout=on&profileColor1=%23800080&profileColorRepresentsOne1=on&profileColor2=%23ff0000&profileData1=%23+unpaired+probabilities%0A1+0.9%0A2+0.7%0A3+0.3%0A4+0.1%0A7+0.3%0A8+0.7%0A9+0.6&profileIdxRef1=1&profileIdxRef2=1&cropping=2&mutations=1%3A16G%3A338a29%2C2%3A118C%3A338a29&highlights=1%3A18-20%3A338a29%2C2%3A114-116%3A338a29&showRenderingOnly=true" 
-  width="100%" 
-  height="600" 
-  style="border: none;"
-  title="vaRRI Visualization">
-</iframe>
-```
-
-> [!IMPORTANT] 
-> Ensure special characters in URL parameters (such as `&` separating two RNA strands) are properly URL-encoded as `%26` when constructing embedding links manually. Also `()` have to be encoded using `%28` and `%29` respectively, as they are not encoded by default by URL encoders following RFC 3986.
-
-Valid embedding links can be generated using the "🔗 Share Link" button in the vaRRI interface but have to extended with `&showRenderingOnly=true`.
-
-----
-
-<iframe 
-  src="https://backofenlab.github.io/vaRRI/?showRenderingOnly=true&sequence=ACGAUCAUGGAUUAGAGCAUUCGACAGCAG%26ACGAAAAAAAGAGCAUACGACAGUAG&colorSeq1=%23add8e6&startIndex1=-6&colorSeq2=%23f4bb44&startIndex2=100&structure=..%3C%3C%3C%3C...%3E%3E%3E%3E...%28%28..%28%28%28...%28%28..%26............%29%29...%29%29%29..%29%29..&coloring=strand&highlighting=region&colorRriNodes=%23ff0000&backgroundhighlighting=basepairs&colorRriRegion=%23ff0000&colorBasepair=%23ff0000&distinctBpTypes=on&forceLayout=on&profileColor1=%23800080&profileColorRepresentsOne1=on&profileColor2=%23ff0000&profileData1=%23+unpaired+probabilities%0A1+0.9%0A2+0.7%0A3+0.3%0A4+0.1%0A7+0.3%0A8+0.7%0A9+0.6&profileIdxRef1=1&profileIdxRef2=1&cropping=2&mutations=1%3A16G%3A338a29%2C2%3A118C%3A338a29&highlights=1%3A18-20%3A338a29%2C2%3A114-116%3A338a29" 
-  width="100%" 
-  height="600" 
-  style="border: 2px solid #333333; border-radius: 6px;"
-  title="vaRRI Visualization">
-</iframe>
-
-----
-
-> [!NOTE] 
-> GitHub repository preview strips embedded `<iframe>` elements as above for security reasons. 
-> * If you are viewing [this page on **GitHub Pages**](https://backofenlab.github.io/vaRRI/README.html), the live widget will render directly below.
-
-
-## Input Format Reference
-
-### Table of Contents
-
-- [Dot-Bracket Notation](#dot-bracket-notation)
-- [Two-Molecule Input](#two-molecule-input)
-- [IUPAC Sequence Characters](#iupac-sequence-characters)
-- [Start Index](#start-index)
-
-
-### Dot-Bracket Notation
-
-vaRRI accepts standard dot-bracket secondary structure notation with the following characters:
-
-| Character | Meaning |
-|---|---|
-| `.` | Unpaired nucleotide |
-| `(` `)` | Basepair (parentheses) |
-| `[` `]` | Basepair (square brackets) |
-| `{` `}` | Basepair (curly brackets) |
-| `<` `>` | Basepair (angled brackets) |
-| `&` | Separator between two molecules |
-
-You can use any of the four bracket types to represent basepairs, and they can be nested arbitrarily.  
-The only restriction is that the brackets must be balanced, i.e. every opening bracket must have a corresponding closing bracket of the same type.
-
-> [!IMPORTANT] 
-> Since vaRRI is based on the fornac library, its underlying layout algorithm does not support pseudoknots, i.e. basepairs that cross each other.
-> In that case, the primary layout will be based on a reduced set of basepairs that do not cross each other, and the remaining basepairs are added subsequently.
-> Therefore, the layout of pseudoknotted structures may not be optimal, and the visualisation may be less clear than for non-pseudoknotted structures.
-
-### Two-Molecule Input
-
-To encode an RNA-RNA interaction, structures and sequences of both RNA molecules are separated by the `&` character.  
-
-The character positions before `&` belong to molecule 1; positions after `&`
-belong to molecule 2.  Intermolecular basepairs are identified automatically
-as unmatched brackets: an opening bracket in molecule 1 that has no partner in
-molecule 1 is paired to a closing bracket in molecule 2 (and vice-versa).
-
-For example, the following input encodes an RRI where the first molecule has an intra-molecular hairpin in front of the interaction region.:
-
-```
-Structure:  ..((((...))))...((...((...((..&............))...))...))..
-Sequence:   ACGAUCAGAGAUCAGAGCAUACGACAGCAG&ACGAAAAAAAGAGCAUACGACAGCAG
-```
-
-Alternatively, the structure encoding can also be done using different bracket types to distinguish (for the user) between intra- and intermolecular basepairs.:
-
-```
-Structure:  ..((((...))))...[[...[[...[[..&............]]...]]...]]..
-```
-
-But as discussed, the layout algorithm does not distinguish between different bracket types, and the visualisation will be the same.
-
-
-### IUPAC Sequence Characters
-
-Accepted characters (case-insensitive):
-
-| Character(s) | Meaning |
-|---|---|
-| `A` `C` `G` `U` `T` | Standard nucleotides |
-| `R` | A or G |
-| `Y` | C or T/U |
-| `S` | G or C |
-| `W` | A or T/U |
-| `K` | G or T/U |
-| `M` | A or C |
-| `B` | C, G or T/U |
-| `D` | A, G or T/U |
-| `H` | A, C or T/U |
-| `V` | A, C or G |
-| `N` | Any nucleotide |
-
-> [!TIP] 
-> Using *upper- and lower-case letters* is supported and can be used to encode and annote certain regions of the sequence, e.g. to distinguish between coding and non-coding regions, or to highlight certain motifs.
-
-
-### Start Index
-
-Molecule positions are displayed using a 1-based index by default.  You can
-change the start index to any integer except 0.  Negative start indices are
-supported (e.g. when counting upstream of a start codon).  The start index is used for all
-position-based annotations, including highlightings, point mutations, and probability profiles.
-
----
-
+## User guides
+
+The [viewer guide](docs/viewer-guide.md) covers inputs, annotation controls,
+probability profiles, navigation, and exports. The [sharing and input reference](docs/sharing-and-input.md)
+covers URL parameters, embedding, dot-bracket notation, and biological indices.
+[Open the complete browser help](README.html) to read these guides together.
+
+<!-- include: docs/viewer-guide.md -->
+<!-- include: docs/sharing-and-input.md -->
 
 ## JavaScript Library API
 

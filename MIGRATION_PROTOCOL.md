@@ -2,6 +2,12 @@
 
 Tracking issue: https://github.com/BackofenLab/vaRRI/issues/83
 
+**Strict-constraints audit:** [detailed findings](docs/strict-constraints-audit.md)
+record the model/URL corrections and the unanimous three-agent follow-up review.
+Authored tooling, tests, and page controllers now use native `.js` ESM. Vendor
+assets have enforced line limits, hashes, and license/provenance records. The
+remaining scope distinction is generated data and distribution output.
+
 ## Review gates
 
 Each phase has its own branch and pull request. Run the applicable unit,
@@ -14,7 +20,8 @@ only that phase's changes. Do not merge or publish releases automatically.
 | 1 | Native ESM entry/import map, original visual baseline, this protocol | [PR #87](https://github.com/BackofenLab/vaRRI/pull/87) |
 | 2 | DOM-free model, independent D3 canvas, strand-boundary fix, architecture docs | [PR #88](https://github.com/BackofenLab/vaRRI/pull/88) |
 | 3 | Native Vue 3 JS components, complete legacy URL compatibility | [PR #89](https://github.com/BackofenLab/vaRRI/pull/89) |
-| 4 | Standalone core bundle workflow and enforced contributor rules | Pending |
+| 4 | Standalone core bundle workflow and enforced contributor rules | [PR #90](https://github.com/BackofenLab/vaRRI/pull/90) |
+| 5 | D3 7 integration, compatibility audit, and interaction regressions | Stacked on phase 4; see [audit](docs/d3-upgrade.md) |
 
 ## Council decision
 
@@ -79,8 +86,8 @@ the skipped zero). Maintain all existing URL names and encodings, including
 annotation styles, profiles, rotation, force options, and render-only mode.
 Generated region highlights must not become persisted user annotations.
 
-The current implementation inserts three gap nucleotides because Fornac's
-strand-break conversion otherwise hides real nucleotides. Phase 2 represents
+Before phase 2, the implementation inserted three gap nucleotides because Fornac's
+strand-break conversion otherwise hid real nucleotides. Phase 2 represents
 strand boundaries directly, excludes cross-strand backbone links, and builds
 each base pair once. Internal contiguous node IDs can change; biological indices
 in the model and URLs must not. Removing the artificial gap can legitimately
@@ -176,3 +183,73 @@ force controls, rotation, share-link restoration, rendering-only mode, and
 SVG/PNG downloads. All five visual fixtures preserve exact SVG scene equality
 and zero changed pixels against the unchanged phase-2 core baseline. The packed
 package and native/standalone renderer parity checks also pass.
+
+### Phase 4
+
+The standalone bundle workflow runs on push and published release. It builds
+`dist/varri.min.js` from the core entry, rejects any non-core build input, and
+uploads the embedding distribution with source maps, compatible CSS, and all
+dependency licenses. Pages continues serving native source without a build.
+See [standalone-embedding.md](docs/standalone-embedding.md).
+
+[AGENTS.md](AGENTS.md) documents the module boundaries, JavaScript/native-ESM
+rules, Vue reactivity boundary, 400-line limit, compatibility contracts, and
+verification commands. The architecture checker parses native imports and
+rejects reverse dependencies, browser state in the model, unsupported source
+formats, missing import targets, generated runtime dependencies, and oversized
+authored files. Every pinned vendor asset also obeys the line limit and has
+verified license/provenance checksums; only its upstream syntax is exempt.
+
+PR CI now runs architecture, unit, installed-package, core-browser, Vue-browser,
+and visual checks. Failures retain screenshots, page HTML, scene data, and browser
+metadata. A deliberately corrupted temporary baseline confirmed that failures
+are detected and produce useful diagnostics; neither baseline was rewritten.
+
+The original council confirmed all 81 public API functions remain available.
+The first strict audit narrowed model operations to serializable `modelState`,
+separate from the renderer session, and fixed grouped-range/CSS-color URL round
+trips. Browser verification blocks build/npm/legacy-script runtime dependencies
+and inspects real D3 nodes for Vue proxies.
+
+A follow-up council reviewed language, vendors, and compatibility independently,
+then all three agreed to the following corrections before implementation:
+
+- Convert authored tools and tests to `.js` ESM and run Jest without transforms.
+- Replace the legacy D3 export with the exact official D3 3.4.13 production asset,
+  preserving the engine version and correcting both historical BSD license files.
+- Separate the authored D3 document cache from the pinned factory runtime and
+  enforce asset, license, and provenance hashes, including vendor file limits.
+- Move help/citation controllers to native modules, remove unpinned script CDNs,
+  and split the README into coherent guides composed by the browser help page.
+- Add negative architecture checks and browser checks for help links, citation
+  formats/downloads, legacy package exports, and vendor integrity.
+
+No baseline or engine upgrade is part of this correction. Each completed phase
+has a separate stacked PR; review and merge them in order, retargeting subsequent
+PRs to main as their dependencies land. The follow-up is recorded in phase 4.
+
+Follow-up validation: 325 tests in 26 suites pass, including 62 architecture
+cases and four vendor runtime regressions. The checker covers 198 text files
+and 130 native modules. Native/standalone rendering, Vue controls, help/citation
+pages, and the migrated smoke helper pass. The final packed-package check also passes. All five visual fixtures retain exact
+SVG scenes and zero changed pixels; committed baselines are unchanged.
+
+### Phase 4 review corrections
+
+Martin's [30 September review](https://github.com/BackofenLab/vaRRI/pull/90#issuecomment-5912123406)
+requests two virtual strand-break vertices, Fornac's exterior closure radius and
+hidden constraints, and removal of the ready message. These corrections precede
+any D3 upgrade. The [layout audit](docs/review-90-layout-audit.md) records the
+upstream comparison, intentional differences, force measurements, and visual
+review. Earlier visual fixtures remain intact; `tests/visual-review-90` records
+the reviewed geometry with source provenance. D3 remains 3.4.13 in phase 4.
+
+### Phase 5
+
+The separate D3 investigation finds 7.9.0 compatible after adapting simulation,
+quadtree, drag, zoom, and event APIs. The native core uses the locally vendored
+current engine with its ISC license; retained Fornac exports keep their original
+D3 3 compatibility runtime. The simulation adapter preserves rail projection,
+fixed nodes, force reconfiguration, and cancellation. The
+[upgrade audit](docs/d3-upgrade.md) records the API changes, geometric limits,
+upstream references, and verification. Animation-off fixtures remain unchanged.

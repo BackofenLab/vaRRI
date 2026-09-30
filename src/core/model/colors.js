@@ -33,8 +33,8 @@ export const DEFAULT_COLORS = Object.freeze({
  *
  * @param {Partial<typeof COLORS>} overrides  Key → CSS-colour-string map.
  */
-export function setColors(session, overrides) {
-  Object.assign(session.colors, overrides);
+export function setColors(modelState, overrides) {
+  Object.assign(modelState.colors, overrides);
 }
 
 /**
@@ -42,9 +42,9 @@ export function setColors(session, overrides) {
  *
  * @returns {typeof COLORS}
  */
-export function getColors(session) {
+export function getColors(modelState) {
   return {
-    ...session.colors
+    ...modelState.colors
   };
 }
 
@@ -58,6 +58,6 @@ export function getColors(session) {
  * @param {string} seq2
  * @returns {string[]}
  */
-export function sequenceColoring(session, seq1, seq2) {
-  return [...Array.from(seq1, () => session.colors.sequence1), ...Array.from(seq2, () => session.colors.sequence2)];
+export function sequenceColoring(modelState, seq1, seq2) {
+  return [...Array.from(seq1, () => modelState.colors.sequence1), ...Array.from(seq2, () => modelState.colors.sequence2)];
 }

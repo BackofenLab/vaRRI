@@ -2,31 +2,33 @@
 const TYPES = { e: 'exterior', h: 'hairpin', i: 'interior', m: 'multiloop', s: 'stem' };
 
 function addHub(graph, members, type, serial) {
-  const nucs = [...new Set(members)].filter(num => num > 0 && num <= graph.rnaLength);
+  const nucs = members.filter(num => num > 0 && graph.nodes[num - 1]);
   if (nucs.length < 3) return;
   const points = nucs.map(num => graph.nodes[num - 1]);
   const count = points.length;
   const radius = 18 / (2 * Math.tan(Math.PI / count));
-  const x = points.reduce((sum, node) => sum + node.x, 0) / count;
-  const y = points.reduce((sum, node) => sum + node.y, 0) / count;
-  const external = type === 'e' || (type !== 's' && graph.breaks.some(boundary =>
-    nucs.includes(boundary) && nucs.includes(boundary + 1)));
+  // Fornac counts closure helpers in the polygon but starts springs only at
+  // nucleotides (including the virtual strand-break positions).
+  const anchors = points.filter(node => node.layoutRole !== 'outer-closure');
+  const x = anchors.reduce((sum, node) => sum + node.x, 0) / anchors.length;
+  const y = anchors.reduce((sum, node) => sum + node.y, 0) / anchors.length;
+  const external = type === 'e' || points.some(node => node.layoutRole === 'strand-break');
   const hub = {
     uid: `hub${serial}`, name: '', num: -1, nodeType: 'middle', elemType: 'f',
     scaffoldType: external ? 'exterior' : TYPES[type], external, nucs,
     radius, rna: graph, x, y, px: x, py: y,
   };
   graph.nodes.push(hub);
-  const seen = new Set();
   const link = (source, target, value) => {
-    const endpoints = [source.uid, target.uid].sort().join(':');
-    if (source === target || seen.has(endpoints)) return;
-    seen.add(endpoints);
+    if (source === target) return;
+    // Reciprocal hidden chords are separate springs in Fornac, particularly
+    // the two diagonals of each stem rectangle. Do not deduplicate them.
     graph.links.push({ source, target, value, linkType: 'fake',
-      uid: `fake:${hub.uid}:${endpoints}`, scaffoldUid: hub.uid });
+      uid: `fake:${hub.uid}:${graph.links.length}`, scaffoldUid: hub.uid });
   };
   const spoke = 0.5 / Math.cos((count - 2) * Math.PI / (2 * count));
   points.forEach((node, index) => {
+    if (node.layoutRole === 'outer-closure') return;
     link(node, hub, spoke);
     if (count > 4) link(node, points[(index + Math.floor(count / 2)) % count], spoke * 2);
     link(node, points[(index + 2) % count], 2 * Math.cos(Math.PI / count));
@@ -35,18 +37,32 @@ function addHub(graph, members, type, serial) {
 
 export function addScaffolds(graph, circularizeExternal = true) {
   let serial = 0;
-  graph.elements.forEach(([type, , members]) => {
-    if (type === 's') {
-      const half = members.slice(0, members.length / 2);
-      for (let i = 0; i + 1 < half.length; i++) {
-        addHub(graph, [half[i], half[i + 1], graph.pairtable[half[i + 1]],
-          graph.pairtable[half[i]]], type, ++serial);
-      }
-    } else if (circularizeExternal || type !== 'e') {
-      addHub(graph, members, type, ++serial);
+  const elements = [...graph.elements].sort();
+  // Match Fornac's force order: stems first, then loops, then hub links.
+  elements.filter(([type]) => type === 's').forEach(([, , members]) => {
+    const half = members.slice(0, members.length / 2);
+    for (let i = 0; i + 1 < half.length; i++) {
+      addHub(graph, [half[i], half[i + 1], graph.pairtable[half[i + 1]],
+        graph.pairtable[half[i]]], 's', ++serial);
     }
   });
-  const hubs = graph.nodes.filter(node => node.nodeType === 'middle');
+  elements.filter(([type]) => type !== 's').forEach(([type, , members]) => {
+    if (!circularizeExternal && type === 'e') return;
+    const loop = members.filter(num => num > 0);
+    if (type === 'e') {
+      for (const [slot, anchor] of [graph.nodes[graph.rnaLength - 1], graph.nodes[0]].entries()) {
+        loop.push(graph.nodes.length + 1);
+        graph.nodes.push({
+          uid: `closure${slot}`, name: '', num: -3 + slot, radius: 0,
+          nodeType: 'middle', elemType: 'f', layoutRole: 'outer-closure', nucs: [],
+          scaffoldType: 'exterior', external: true,
+          rna: graph, x: anchor.x, y: anchor.y, px: anchor.x, py: anchor.y,
+        });
+      }
+    }
+    addHub(graph, loop, type, ++serial);
+  });
+  const hubs = graph.nodes.filter(node => node.nodeType === 'middle' && node.num === -1);
   for (let i = 0; i < hubs.length; i++) {
     for (let j = i + 1; j < hubs.length; j++) {
       const source = hubs[i], target = hubs[j];

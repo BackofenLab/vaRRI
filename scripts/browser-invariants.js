@@ -1,15 +1,16 @@
 // Real-browser contract checks for native ESM and the standalone core bundle.
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const http = require('node:http');
-const path = require('node:path');
-const { chromium } = require('playwright');
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import { chromium } from 'playwright';
+import { exerciseInteractions } from './browser-interactions.js';
 
-const root = path.resolve(__dirname, '..');
+const root = path.resolve(import.meta.dirname, '..');
 const output = path.join(root, 'output/playwright/core-contract');
 const mime = { '.js': 'text/javascript', '.css': 'text/css', '.map': 'application/json' };
 const html = mode => `<!doctype html><meta charset="utf-8">
-<link rel="stylesheet" href="/fornac/fornac.css">
+<link rel="stylesheet" href="${mode === 'native' ? '/fornac/fornac.css' : '/dist/fornac.css'}">
 <style>.canvas { width: 640px; height: 480px; } svg { width:100%; height:100%; }</style>
 <div id="first" class="canvas"></div><div id="second" class="canvas"></div>
 ${mode === 'native' ? '<script type="module">import api from "/src/core/index.js"; window.testApi = api;</script>'
@@ -88,43 +89,67 @@ async function exercise() {
 async function main() {
   fs.mkdirSync(output, { recursive: true });
   const server = await serve();
-  let browser;
+  let browser, activePage;
+  let phase = 'browser startup';
+  let browserErrors = [];
   try {
     browser = await chromium.launch({ headless: true,
       ...(process.env.VARRI_BROWSER_PATH ? { executablePath: process.env.VARRI_BROWSER_PATH } : {}) });
     const scenes = {};
     for (const mode of ['native', 'bundle']) {
-      const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
+      phase = mode + ' loading';
+      const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1, acceptDownloads: true });
+      activePage = page;
       const errors = [], requests = [];
+      browserErrors = errors;
       page.on('pageerror', error => errors.push(error.message));
       page.on('request', request => requests.push(request.url()));
       page.on('response', response => { if (response.status() >= 400) errors.push(response.url()); });
+      page.on('requestfailed', request => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
       await page.addInitScript(() => {
         let seed = 83;
         Math.random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
       });
       await page.goto(`http://127.0.0.1:${server.address().port}/__core_test?mode=${mode}`);
       await page.waitForFunction(() => window.testApi?.createVaRRI);
+      phase = mode + ' topology, isolation and cancellation';
       scenes[mode] = await page.evaluate(exercise);
+      fs.writeFileSync(path.join(output, mode + '-scene.json'), JSON.stringify(scenes[mode], null, 2) + '\n');
       for (const extension of ['svg', 'png']) {
-        const download = page.waitForEvent('download');
-        await page.evaluate(extension => {
-          window.exportApi[extension === 'svg' ? 'downloadSVG' : 'downloadPNG']('second');
-        }, extension);
+        phase = `${mode} ${extension} export`;
+        const [download] = await Promise.all([page.waitForEvent('download'),
+          page.evaluate(extension => {
+            window.exportApi[extension === 'svg' ? 'downloadSVG' : 'downloadPNG']('second');
+          }, extension),
+        ]);
         const target = path.join(output, `${mode}.${extension}`);
-        await (await download).saveAs(target);
+        await download.saveAs(target);
         const bytes = fs.readFileSync(target);
         assert.ok(bytes.length > 100, mode + ': nonempty ' + extension + ' download');
         if (extension === 'png') assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
         else assert.ok(bytes.toString().includes('<svg'));
       }
       assert.deepEqual(errors, [], mode + ': browser errors');
+      phase = mode + ' dragging, zooming and interaction disposal';
+      await exerciseInteractions(page);
+      assert.deepEqual(errors, [], mode + ': interaction browser errors');
       assert.ok(!requests.some(url => /vue|fornac\.js/.test(url)), mode + ': UI-free core dependency graph');
       await page.evaluate(() => window.exportApi.cancelActiveRender());
       await page.close();
     }
+    phase = 'native/bundle parity';
     assert.deepEqual(scenes.native, scenes.bundle, 'Native source and standalone bundle render the same scene');
-    console.log('Browser contracts passed: native/bundle parity, topology, instance isolation, force cancellation, SVG and PNG export.');
+    console.log(`Browser contracts passed (Chromium ${browser.version()}): native/bundle parity, topology, instance isolation, force cancellation, SVG and PNG export.`);
+  } catch (error) {
+    if (activePage && !activePage.isClosed()) {
+      await activePage.screenshot({ path: path.join(output, 'failure.png'), fullPage: true }).catch(() => {});
+      fs.writeFileSync(path.join(output, 'failure.html'), await activePage.content().catch(() => ''));
+    }
+    fs.writeFileSync(path.join(output, 'failure.json'), JSON.stringify({
+      phase, browser: browser?.version(), url: activePage?.url(), message: error.message, browserErrors,
+    }, null, 2) + '\n');
+    console.error(`Core browser regression failed during ${phase}; diagnostics: ${output}`);
+    throw error;
   } finally {
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));

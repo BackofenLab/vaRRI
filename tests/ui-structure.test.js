@@ -1,19 +1,17 @@
-'use strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import vaRRI from '../src/vaRRI.js';
+import { mountViewer } from './helpers/vue-viewer.js';
 
-const fs = require('fs');
-const path = require('path');
-
-const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
-const stylesDirectory = path.resolve(__dirname, '../src/ui/styles');
-const css = fs.readFileSync(path.resolve(__dirname, '../style.css'), 'utf8') +
+const html = fs.readFileSync(path.resolve(import.meta.dirname, '../index.html'), 'utf8');
+const stylesDirectory = path.resolve(import.meta.dirname, '../src/ui/styles');
+const css = fs.readFileSync(path.resolve(import.meta.dirname, '../style.css'), 'utf8') +
   fs.readdirSync(stylesDirectory).filter(name => name.endsWith('.css'))
     .map(name => fs.readFileSync(path.join(stylesDirectory, name), 'utf8')).join('\n');
-const apiDocs = fs.readFileSync(path.resolve(__dirname, '../src/README.md'), 'utf8');
-const pagesWorkflow = fs.readFileSync(path.resolve(__dirname, '../.github/workflows/pages.yml'), 'utf8');
-const testWorkflow = fs.readFileSync(path.resolve(__dirname, '../.github/workflows/test.yml'), 'utf8');
-const packageConfig = require('../package.json');
-import vaRRI from '../src/vaRRI.js';
-const { mountViewer } = require('./helpers/vue-viewer.cjs');
+const apiDocs = fs.readFileSync(path.resolve(import.meta.dirname, '../src/README.md'), 'utf8');
+const pagesWorkflow = fs.readFileSync(path.resolve(import.meta.dirname, '../.github/workflows/pages.yml'), 'utf8');
+const testWorkflow = fs.readFileSync(path.resolve(import.meta.dirname, '../.github/workflows/test.yml'), 'utf8');
+const packageConfig = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 let viewer;
 let mountedHtml;
 
@@ -37,7 +35,8 @@ describe('UI document structure', () => {
 
   test('runs the complete test suite with an environment diagnostic', () => {
     expect(packageConfig.jest.globalSetup).toBe('<rootDir>/tests/jest-global-setup.js');
-    expect(testWorkflow).toMatch(/run:\s+npm test -- --runInBand/);
+    expect(testWorkflow).toContain('npm run test:ci');
+    expect(packageConfig.scripts['test:ci']).toBe('node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand');
     expect(testWorkflow).not.toMatch(/jest\s+tests\/vaRRI\.test\.js/);
   });
 

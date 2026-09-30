@@ -1,7 +1,7 @@
 'use strict';
 
-const vaRRI = require('../src/vaRRI.js').default;
-const examples = require('../example-data.js').default;
+import vaRRI from '../src/vaRRI.js';
+import examples from '../example-data.js';
 
 describe('shared example catalog', () => {
   test('contains the feature overview and the two existing literature examples', () => {

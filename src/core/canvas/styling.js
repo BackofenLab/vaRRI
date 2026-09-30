@@ -8,7 +8,7 @@ import { getIntermolBasepairRegion } from '../model/region-paths.js';
  * @param {{sequence1: string, sequence2: string}} v
  */
 export function changeBackgroundColor(session, v) {
-  const coloring = sequenceColoring(session, v.sequence1, v.sequence2);
+  const coloring = sequenceColoring(session.modelState, v.sequence1, v.sequence2);
   if (coloring.length === 0) return;
   const nodes = session.dom.querySelectorAll('[r="5"]');
   nodes.forEach((node, index) => {

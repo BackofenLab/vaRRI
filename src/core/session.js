@@ -1,22 +1,18 @@
-import { DEFAULT_COLORS } from './model/colors.js';
-
-function createRegistry(label) {
-  return { items: [], nextId: 1, label };
-}
+import { createModelState } from './model/state.js';
 
 /**
  * Mutable state belongs to a single API instance. Pure model algorithms never
- * import this module; canvas functions receive it explicitly as their session.
+ * import this module; model operations receive only its plain modelState data.
+ * Canvas functions receive the complete session explicitly.
  * The document is resolved lazily so importing the library also works in Node.
  */
 export function createSession(options = {}) {
+  const modelState = createModelState();
   const session = {
-    colors: { ...DEFAULT_COLORS },
-    annotations: {
-      subsequences: createRegistry('Highlight'),
-      regions: createRegistry('Region highlight'),
-      mutations: createRegistry('Mutation'),
-    },
+    modelState,
+    // Canvas helpers share the model palette without passing their session back.
+    colors: modelState.colors,
+    annotations: modelState.annotations,
     runtime: {
       animationFrameId: null,
       renderTimeoutId: null,

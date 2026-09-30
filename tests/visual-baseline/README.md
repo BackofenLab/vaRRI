@@ -30,7 +30,7 @@ To deliberately record a reviewed baseline, export that revision into a separate
 directory and run:
 
 ```sh
-node scripts/visual-baseline.cjs --update --root /tmp/varri-original --revision FULL_COMMIT_SHA
+node scripts/visual-baseline.js --update --root /tmp/varri-original --revision FULL_COMMIT_SHA
 ```
 
 Do not update these fixtures merely to silence a regression. Record why any

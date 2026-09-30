@@ -1,8 +1,9 @@
-const { mountViewer } = require('./helpers/vue-viewer.cjs');
+import { jest } from '@jest/globals';
+import { mountViewer } from './helpers/vue-viewer.js';
 
 test('Vue state remains serializable and does not proxy the visualization API', async () => {
   const viewer = await mountViewer();
-  const { isReactive, isProxy } = require('vue');
+  const { isReactive, isProxy } = await import('vue');
   expect(isReactive(viewer.view.state)).toBe(true);
   expect(isProxy(viewer.api)).toBe(false);
   const state = JSON.parse(JSON.stringify(viewer.view.state));
