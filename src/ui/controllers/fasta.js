@@ -1,0 +1,74 @@
+import { parseFasta } from '../services/fasta-parser.js';
+
+/** FASTA form actions operate on the same fields that Vue renders. */
+export function createFastaController({ api, state, actions }) {
+  const fields = state.fields;
+  const formFields = ['fastaInput', 'fastaSequence', 'fastaStructure'];
+
+  function resetFastaForm() {
+    actions.resetFields(formFields);
+    actions.clearFieldErrors(formFields);
+  }
+
+  function processFastaTextarea(fastaId, sequenceId, structureId) {
+    const input = fields[fastaId];
+    if (typeof input !== 'string' || !input.trim().startsWith('>')) return false;
+    const records = parseFasta(input);
+    if (!records.length) return false;
+    fields[sequenceId] = records.map(record => record.sequence).join('&');
+    if (structureId && records.every(record => typeof record.structure === 'string' && record.structure.length > 0)) {
+      fields[structureId] = records.map(record => record.structure).join('&');
+    }
+    return true;
+  }
+
+  function validateFastaForm() {
+    actions.clearFieldErrors(formFields);
+    const text = String(fields.fastaInput || '').trim();
+    if (!text) {
+      actions.setFieldError('fastaInput', 'FASTA input cannot be empty.');
+      return false;
+    }
+    const lines = text.split(/\r?\n/);
+    if (!lines[0].startsWith('>')) {
+      actions.setFieldError('fastaInput', 'FASTA input must start with a header line beginning with ">".');
+      return false;
+    }
+    if (lines.length < 2 || lines.slice(1).every(line => !line.trim())) {
+      actions.setFieldError('fastaInput', 'FASTA input must contain at least one sequence line after the header.');
+      return false;
+    }
+    try {
+      if (!processFastaTextarea('fastaInput', 'fastaSequence', 'fastaStructure')) return false;
+    } catch (error) {
+      actions.setFieldError('fastaInput', error.message);
+      return false;
+    }
+    const sequence = String(fields.fastaSequence || '').trim();
+    const structure = String(fields.fastaStructure || '').trim();
+    try {
+      if (sequence) api.validateSequenceInput(sequence);
+    } catch (error) {
+      actions.setFieldError('fastaSequence', error.message);
+      return false;
+    }
+    try {
+      if (structure) api.validateStructureInput(structure, sequence);
+    } catch (error) {
+      actions.setFieldError('fastaStructure', error.message);
+      return false;
+    }
+    return true;
+  }
+
+  function submitFastaForm() {
+    if (!validateFastaForm()) return false;
+    fields.sequence = fields.fastaSequence;
+    if (String(fields.fastaStructure || '').trim()) fields.structure = fields.fastaStructure;
+    resetFastaForm();
+    actions.runVisualization();
+    return true;
+  }
+
+  return { parseFasta, processFastaTextarea, resetFastaForm, validateFastaForm, submitFastaForm };
+}
