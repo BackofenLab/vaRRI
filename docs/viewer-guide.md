@@ -10,6 +10,7 @@
 - [Subsequence Highlights](#subsequence-highlights)
 - [Probability Profiles](#probability-profiles)
 - [Point Mutations](#point-mutations)
+- [Text Annotations](#text-annotations)
 - [Additional Features](#additional-features)
 - [Export](#export)
 
@@ -184,6 +185,22 @@ This information is provided in the following fields, and the "Add" button regis
 All registered mutations are shown in a list above the input fields, and can be removed by clicking the "🗑️" icon.
 The list shows the mutations in the standard mutation notation, e.g. `A23G` for a mutation from A to G at position 23, extracting the original nucleotide from the input sequence to avoid mistakes.
 Selecting a listed mutation will populate the input fields with its values for editing.
+
+### Text Annotations
+
+Add free-position labels with **Text**, **Bold**, **Italic**, **Size** and **Color**.
+New labels show a **?** in the list until you drag them onto the drawing. The
+**⌖** symbol indicates a positioned label. Drag a label within the drawing to
+move it; this works with the force layout switched off as well as on.
+
+Select a list entry to edit it, then choose **Update**. **Clear inputs** resets
+the form. The trash button removes one entry, and **Remove all** clears the list.
+Labels stay horizontal when the drawing is rotated and follow its overall
+movement while the force layout runs.
+
+The initial **Seq. 1** and **Seq. 2** labels follow their sequence endpoints until
+you drag them. Positioned labels appear in SVG and PNG exports. Share links save
+both positioned and unpositioned labels, including their formatting.
 
 
 4. Changing selects and checkboxes rerenders immediately. Typed fields rerender when you commit the edit by leaving the field, and single-line inputs also rerender when you press Enter.

@@ -12,6 +12,7 @@ export function createModelState() {
       subsequences: createRegistry('Highlight'),
       regions: createRegistry('Region highlight'),
       mutations: createRegistry('Mutation'),
+      texts: { ...createRegistry('Text annotation'), defaultsSuppressed: false, initializedDefaultAnchors: [] },
     },
   };
 }

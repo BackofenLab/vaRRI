@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { exerciseTextAnnotationUI } from './browser-text-ui.js';
 const root = path.resolve(import.meta.dirname, '..');
 const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
@@ -214,9 +215,11 @@ async function main() {
     assert.equal(fullPage.searchParams.has('showRenderingOnly'), false);
     assert.equal(fullPage.searchParams.get('sequence'), 'ACGU&UGCA');
     await page.screenshot({ path: path.join(output, 'render-only.png') });
+    phase = 'text annotation defaults, editing, dragging and sharing';
+    await exerciseTextAnnotationUI(page, origin, output);
     assert.deepEqual(errors, [], 'Browser errors during Vue UI workflow');
     await page.close();
-    console.log(`Vue browser UI passed (Chromium ${browser.version()}): five examples, edits, FASTA, annotation CRUD, profiles, force, share roundtrip, export, render-only.`);
+    console.log(`Vue browser UI passed (Chromium ${browser.version()}): five examples, edits, FASTA, annotation CRUD, text drag/drop and sharing, profiles, force, export, render-only.`);
   } catch (error) {
     if (page && !page.isClosed()) {
       await page.screenshot({ path: path.join(output, 'failure.png'), fullPage: true }).catch(() => {});

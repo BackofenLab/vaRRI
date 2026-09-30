@@ -21,11 +21,13 @@ export function createViewerState(api, colors) {
     regionColor: hex(palette.backgroundHighlight), regionAlpha: '0.2',
     mutationEditId: '', mutationSequence: '1', mutationPosition: '', mutationBase: '',
     mutationColor: hex(palette.mutationColor),
+    textAnnotationEditId: '', textAnnotationText: '', textAnnotationBold: false,
+    textAnnotationItalic: false, textAnnotationSize: '16', textAnnotationColor: '#000000',
     fastaInput: '', fastaSequence: '', fastaStructure: '',
   };
   const state = reactive({
     fields: { ...defaults }, errors: {}, message: { text: '', type: '' },
-    annotations: { subsequences: [], regions: [], mutations: [] },
+    annotations: { subsequences: [], regions: [], mutations: [], texts: [] },
     selectedExample: null, exampleOpen: false, rotation: 0, rotationPreview: 0,
     renderingOnly: false, showFullPage: false, shareCopied: false,
     dialog: { id: '', title: '', value: '', left: '', top: '' },
@@ -52,6 +54,7 @@ export function createStateActions({ state, defaults, api }) {
       state.annotations.subsequences = api.getSubsequenceHighlights();
       state.annotations.regions = api.getRegionHighlights();
       state.annotations.mutations = api.getPointMutations();
+      state.annotations.texts = api.getTextAnnotations();
     },
   };
 }

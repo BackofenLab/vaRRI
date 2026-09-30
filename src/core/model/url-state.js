@@ -11,6 +11,8 @@ export const URL_UI_ONLY_FIELDS = Object.freeze([
   'regionEditId', 'region1', 'region2', 'regionColor', 'regionAlpha',
   'subseqEditId', 'subseqSequence', 'subseqRange', 'subseqColor', 'subseqAlpha',
   'mutationEditId', 'mutationSequence', 'mutationPosition', 'mutationBase', 'mutationColor',
+  'textAnnotationEditId', 'textAnnotationText', 'textAnnotationBold',
+  'textAnnotationItalic', 'textAnnotationSize', 'textAnnotationColor',
   'rotationSlider',
 ]);
 
@@ -19,7 +21,7 @@ const COLOR_DEFAULTS = {
   colorRriNodes: '#FF0000', colorRriRegion: '#FF0000', colorBasepair: '#FF0000',
   subseqColor: '#800080', regionColor: '#FF0000', mutationColor: '#006400',
 };
-const STRUCTURED_FIELDS = new Set(['mutations', 'subseqHighlights', 'regionHighlights', 'rotation', 'showRenderingOnly']);
+const STRUCTURED_FIELDS = new Set(['mutations', 'subseqHighlights', 'regionHighlights', 'textAnnotations', 'rotation', 'showRenderingOnly']);
 
 function toParams(input) {
   if (typeof input === 'string') {

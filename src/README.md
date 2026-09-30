@@ -62,6 +62,7 @@ object expected by `render()`.
 | `subsequenceHighlights` | `Array` | `[]` | Subsequence highlight definitions. |
 | `regionHighlights` | `Array` | `[]` | Region highlight definitions. |
 | `pointMutations` | `Array` | `[]` | Point-mutation definitions. |
+| `textAnnotations` | `Array` | instance state | Optional replacement text list; `[]` explicitly suppresses defaults. |
 
 ```javascript
 const validated = vaRRI.validate({
@@ -92,6 +93,7 @@ linear-layout listeners, and resolves any pending render as cancelled.
 | `accessData` | `Object<number, number>\|null` | `null` | Node-ID to probability map. |
 | `accessColors` | `Object\|null` | `null` | Optional `sequence1` and `sequence2` overlay colors. |
 | `accessColorMode` | `Object\|null` | `null` | Optional `sequence1RepresentsOne` and `sequence2RepresentsOne` flags. |
+| `onTextAnnotationsChange` | `function` | none | Receives copied text definitions after initial placement or user dragging. |
 
 ```javascript
 const state = await vaRRI.render('rendering-canvas', validated, {
@@ -168,6 +170,42 @@ A definition has `{ sequence, position, replacement, color? }`.
 - `vaRRI.removePointMutation(id)`
 - `vaRRI.clearPointMutations()`
 - `vaRRI.getPointMutations()`
+
+### Free-position text annotations
+
+Text annotations have `{ text, bold?, italic?, size?, color?, position? }`.
+`position: null` keeps an annotation in the registry without drawing it.
+Font size is measured in SVG units. Text is rendered literally, including
+characters such as `<` and `&`.
+
+- `vaRRI.createTextAnnotation(input)` validates a definition without registering it.
+- `vaRRI.registerTextAnnotation(input)` returns the added definition, including its ID.
+- `vaRRI.updateTextAnnotation(id, patch)` changes selected properties.
+- `vaRRI.removeTextAnnotation(id)` removes one annotation.
+- `vaRRI.clearTextAnnotations()` clears the list and suppresses automatic defaults.
+- `vaRRI.getTextAnnotations()` returns independent copies of the definitions.
+- `vaRRI.refreshTextAnnotations()` redraws the annotation layer after registry edits.
+- `vaRRI.placeTextAnnotation(id, clientX, clientY)` positions an annotation at
+  browser client coordinates on the current canvas and refreshes the layer.
+
+A positioned annotation stores `{ x, y }` relative to the centroid of the real
+nucleotides, in unrotated graph units. Pan, zoom and display rotation do not
+change these saved coordinates. The centroid moves with the force layout, so
+labels follow its overall translation without participating in the simulation.
+Use `placeTextAnnotation()` to convert a pointer's client coordinates correctly.
+
+Each strand first gets `Seq. 1` near the first strand's start or
+`Seq. 2` near the second strand's end when it appears in the figure. These defaults
+carry a serializable terminal `anchor` and follow the endpoint through layout
+changes. Dragging or explicitly updating `position` releases the anchor.
+`clearTextAnnotations({ resetDefaults: true })` enables fresh defaults on the
+next render, as used when loading a new example.
+
+Pass `onTextAnnotationsChange` to `render()` to synchronize a list after pointer
+placement. SVG dragging is available with animation off as well as on. Rotation
+keeps the text horizontal, and both SVG and PNG exports include positioned labels.
+Share links use the additive JSON `textAnnotations` query parameter; an explicit
+empty array preserves a cleared list. See [text annotations](../docs/text-annotations.md).
 
 A `sequenceContext` uses molecule keys and visible sequence metadata:
 

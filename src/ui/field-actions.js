@@ -1,6 +1,7 @@
 import { nextTick } from 'vue';
 
-const DRAFTS = { subseq: 'validateSubseqForm', region: 'validateRegionForm', mutation: 'validateMutationForm', fasta: 'validateFastaForm' };
+const DRAFTS = { subseq: 'validateSubseqForm', region: 'validateRegionForm', mutation: 'validateMutationForm',
+  textAnnotation: 'validateTextAnnotationForm', fasta: 'validateFastaForm' };
 
 export function createFieldActions({ state, actions, document, colors }) {
   const observers = [];

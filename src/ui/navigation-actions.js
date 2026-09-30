@@ -17,6 +17,8 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
     state.exampleOpen = false;
     actions.resetFields(Object.keys(defaults));
     api.clearSubsequenceHighlights(); api.clearRegionHighlights(); api.clearPointMutations();
+    api.clearTextAnnotations({ resetDefaults: true });
+    actions.endTextAnnotationDrag();
     actions.syncAnnotations();
     state.rotation = state.rotationPreview = 0;
     state.showFullPage = false;
@@ -46,6 +48,13 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
         catch (error) { window.console.warn(`Failed to register ${key} from URL: ${error.message}`); }
       });
     });
+    if (params.has('textAnnotations')) {
+      api.clearTextAnnotations();
+      decoded.annotations.textAnnotations.forEach(item => {
+        try { api.registerTextAnnotation(item); }
+        catch (error) { window.console.warn(`Failed to register textAnnotations from URL: ${error.message}`); }
+      });
+    }
     actions.syncAnnotations();
     actions.enableForceLayoutForSelectedLinearOptions();
     actions.syncAnimationDependentControls();
@@ -66,6 +75,7 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
     });
     loadAllUrlParameters(params, { revealProfilePanel: false });
     actions.resetFastaForm(); actions.resetSubseqForm(); actions.resetRegionForm(); actions.resetMutationForm();
+    actions.resetTextAnnotationForm();
     state.selectedExample = key;
     state.exampleOpen = false;
     await nextTick();
@@ -76,7 +86,8 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
   }
   function generateShareableURL() {
     const params = encodeUrlState({ fields: state.fields, rotation: state.rotation,
-      annotations: { pointMutations: api.getPointMutations(), subsequenceHighlights: api.getSubsequenceHighlights(), regionHighlights: api.getRegionHighlights() } });
+      annotations: { pointMutations: api.getPointMutations(), subsequenceHighlights: api.getSubsequenceHighlights(),
+        regionHighlights: api.getRegionHighlights(), textAnnotations: api.getTextAnnotations() } });
     const base = window.location.href.split('?')[0].split('#')[0];
     return `${base}?${params}`;
   }

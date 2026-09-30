@@ -1,7 +1,8 @@
 import { viewerComponent } from './context.js';
 
 export default viewerComponent('viewer-panel', `<section class="result-panel">
-    <div id="rendering-canvas" tabindex="0"></div>
+    <div id="rendering-canvas" tabindex="0" @dragover="actions.overTextAnnotationCanvas($event)"
+      @dragleave="actions.leaveTextAnnotationCanvas($event)" @drop="actions.dropTextAnnotation($event)"></div>
     <div id="rendering-caption" v-html="actions.exampleCaption()" v-show="state.selectedExample"></div>
     <div class="viz-control">
       <label for="rotationSlider">Rotate: <span id="rotation" class="rotation-value" v-on:click="actions.openNumberDialog('rotation', $event)">{{ state.rotationPreview }}°</span></label>

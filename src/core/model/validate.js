@@ -4,6 +4,7 @@ import { validateBackgroundhighlighting, validateCroppingInput, validateHighligh
 import { createPointMutation } from './mutations.js';
 import { createRegionHighlight } from './regions.js';
 import { createSubsequenceHighlight } from './subsequences.js';
+import { createTextAnnotation } from './text-annotations.js';
 
 /**
  * Validate all inputs and return a `validated` parameter object ready for rendering.
@@ -105,6 +106,11 @@ export function validate(args, colors = DEFAULT_COLORS) {
     });
   } else {
     v.pointMutations = [];
+  }
+  // Absence retains the instance registry/defaults; [] explicitly removes text.
+  if (Object.hasOwn(args, 'textAnnotations')) {
+    if (!Array.isArray(args.textAnnotations)) throw new Error('Text annotations must be an array.');
+    v.textAnnotations = args.textAnnotations.map(createTextAnnotation);
   }
   return v;
 }

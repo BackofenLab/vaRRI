@@ -7,6 +7,7 @@ import { applyRegionHighlights, applySubsequenceHighlights, backgroundhighlightB
 import { applyPointMutations, changeBackgroundColor, highlightBasepairs, highlightRegion, styleBasepairs } from './styling.js';
 import { clearGeneratedRegionHighlights } from '../model/regions.js';
 import { createGraphCanvas } from './graph/index.js';
+import { clearTextAnnotationState, initializeTextAnnotations } from './text-annotations.js';
 
 /**
  * Stop the active force simulation and cancel delayed/animation-frame work.
@@ -32,6 +33,7 @@ export function cancelActiveRender(session) {
   // Remove helix listeners before stopping or disposing the simulation so
   // cancellation cannot refit a detached/cleared SVG container.
   if (session.runtime.activeContainer) {
+    clearTextAnnotationState(session.runtime.activeContainer);
     clearLinearHelixConstraintState(session.runtime.activeContainer);
   }
   if (session.runtime.activeContainer?.force && typeof session.runtime.activeContainer.force.stop === 'function') {
@@ -137,6 +139,8 @@ export function render(session, containerId, v, options = {}) {
     if (accessData) {
       visualiseAccessibility(session, accessData, v.sequence1.length, accessColors, accessColorMode);
     }
+
+    initializeTextAnnotations(session, container, v, options);
 
     // Linear-helix constraints may extend the initial bounds. Refit
     // after the first force ticks and annotation updates.

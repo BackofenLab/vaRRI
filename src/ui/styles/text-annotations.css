@@ -1,0 +1,57 @@
+.text-annotation-hint {
+  margin: 0 0 .6rem;
+  color: var(--text-muted);
+  font-size: .78rem;
+  line-height: 1.4;
+}
+
+.text-annotation-item {
+  grid-template-columns: 1.3rem minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.text-annotation-status {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.text-annotation-preview {
+  overflow-wrap: anywhere;
+  font-family: sans-serif;
+}
+
+.text-annotation-preview[draggable="true"] { cursor: grab; }
+.text-annotation-preview[draggable="true"]:active { cursor: grabbing; }
+
+.text-annotation-form input[type="text"] { width: 100%; margin-bottom: 0; }
+
+.text-annotation-format {
+  display: grid;
+  grid-template-columns: auto auto minmax(3.5rem, 1fr) 2.7rem;
+  gap: .55rem;
+  align-items: end;
+  margin-top: .55rem;
+}
+
+.text-annotation-format label { margin-bottom: .25rem; }
+.text-annotation-format input { margin-bottom: 0; }
+.text-annotation-format input[type="number"] { width: 100%; min-width: 0; }
+.text-annotation-format input[type="color"] { width: 100%; height: 34px; padding: 2px; }
+
+.text-annotation-toggle {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  min-height: 34px;
+  font-size: .8rem;
+}
+
+.text-annotation-toggle input { margin: 0; }
+.text-annotation-form .action-row { gap: .4rem; }
+.text-annotation-form button:disabled { opacity: .55; cursor: default; }
+
+#rendering-canvas.text-annotation-drop-target {
+  outline: 2px dashed var(--brand-blue);
+  outline-offset: -3px;
+}

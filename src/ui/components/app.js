@@ -4,6 +4,7 @@ import SiteFooter from './site-footer.js';
 import SequenceInput from './sequence-input.js';
 import VisualizationSettings from './visualization-settings.js';
 import AnnotationPanel from './annotation-panel.js';
+import TextAnnotationPanel from './text-annotation-panel.js';
 import ProfilePanel from './profile-panel.js';
 import ViewerPanel from './viewer-panel.js';
 import HelpPanel from './help-panel.js';
@@ -20,12 +21,13 @@ export default viewerComponent('VaRRIApp', `
     <div class="controls-column">
       <SequenceInput /><VisualizationSettings />
       <AnnotationPanel kind="regions" /><AnnotationPanel kind="subsequences" /><AnnotationPanel kind="mutations" />
+      <TextAnnotationPanel />
       <ProfilePanel /><HelpPanel />
     </div>
     <ViewerPanel />
   </main>
   <SiteFooter />
   <NumberDialog /><TextDialog /><SubseqHighlightDialog /><RegionHighlightDialog /><MutationDialog /><FastaDialog />
-`, { SiteHeader, SiteFooter, SequenceInput, VisualizationSettings, AnnotationPanel,
+`, { SiteHeader, SiteFooter, SequenceInput, VisualizationSettings, AnnotationPanel, TextAnnotationPanel,
   ProfilePanel, ViewerPanel, HelpPanel, NumberDialog, TextDialog, SubseqHighlightDialog,
   RegionHighlightDialog, MutationDialog, FastaDialog });

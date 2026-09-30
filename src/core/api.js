@@ -1,6 +1,7 @@
 import { decodeUrlState, encodeUrlState } from './model/url-state.js';
 import { setColors, getColors, sequenceColoring } from './model/colors.js';
 import { createSubsequenceHighlight, registerSubsequenceHighlight, updateSubsequenceHighlight, removeSubsequenceHighlight, clearSubsequenceHighlights, getSubsequenceHighlights } from './model/subsequences.js';
+import { createTextAnnotation, registerTextAnnotation, updateTextAnnotation, removeTextAnnotation, clearTextAnnotations, getTextAnnotations } from './model/text-annotations.js';
 import { createRegionHighlight, registerRegionHighlight, updateRegionHighlight, removeRegionHighlight, clearRegionHighlights, getRegionHighlights, registerGeneratedRegionHighlight } from './model/regions.js';
 import { normaliseMutationPosition, createPointMutation, registerPointMutation, updatePointMutation, removePointMutation, clearPointMutations, getPointMutations } from './model/mutations.js';
 import { splitAtAmpersand, checkStructureInputSimple, findBasePairs, listIntermolNodes } from './model/brackets.js';
@@ -19,6 +20,7 @@ import { visualiseAccessibility } from './canvas/accessibility.js';
 import { applyLinearHelixSprings } from './canvas/layout/linear-helix.js';
 import { cancelActiveRender, render } from './canvas/render.js';
 import { normaliseRotationDegrees, rotateVisualization } from './canvas/rotation.js';
+import { refreshTextAnnotations, placeTextAnnotation } from './canvas/text-annotations.js';
 import { buildSVGString, downloadSVG, downloadPNG } from './canvas/export.js';
 import { createSession } from './session.js';
 
@@ -37,6 +39,14 @@ export function createVaRRI(options = {}) {
     validate: args => validate(args, modelState.colors),
     getColors: getColors.bind(null, modelState),
     setColors: setColors.bind(null, modelState),
+    createTextAnnotation,
+    registerTextAnnotation: registerTextAnnotation.bind(null, modelState),
+    updateTextAnnotation: updateTextAnnotation.bind(null, modelState),
+    removeTextAnnotation: removeTextAnnotation.bind(null, modelState),
+    clearTextAnnotations: clearTextAnnotations.bind(null, modelState),
+    getTextAnnotations: getTextAnnotations.bind(null, modelState),
+    refreshTextAnnotations: refreshTextAnnotations.bind(null, session),
+    placeTextAnnotation: placeTextAnnotation.bind(null, session),
     clearPointMutations: clearPointMutations.bind(null, modelState),
     clearRegionHighlights: clearRegionHighlights.bind(null, modelState),
     clearSubsequenceHighlights: clearSubsequenceHighlights.bind(null, modelState),

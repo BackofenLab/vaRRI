@@ -14,3 +14,4 @@ export { validate } from './validate.js';
 export { createSubsequenceHighlight } from './subsequences.js';
 export { createRegionHighlight } from './regions.js';
 export { createPointMutation, normaliseMutationPosition } from './mutations.js';
+export { createTextAnnotation } from './text-annotations.js';
