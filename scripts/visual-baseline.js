@@ -12,7 +12,7 @@ import { createCanvas, loadImage } from 'canvas';
 const args = process.argv.slice(2);
 const option = (name, fallback) => args.includes(name) ? args[args.indexOf(name) + 1] : fallback;
 const root = path.resolve(option('--root', path.join(import.meta.dirname, '..')));
-const baseline = path.resolve(option('--baseline', path.join(import.meta.dirname, '../tests/visual-core')));
+const baseline = path.resolve(option('--baseline', path.join(import.meta.dirname, '../tests/visual-review-90')));
 const output = path.resolve(option('--output', path.join(import.meta.dirname, '../output/playwright')));
 const update = args.includes('--update');
 const revision = option('--revision', null);
