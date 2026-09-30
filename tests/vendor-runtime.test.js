@@ -59,12 +59,12 @@ test('the retained classic D3 URL preserves its browser global and engine versio
     const oldD3 = legacy.window.d3;
     const coreD3 = getD3(native.window.document);
     expect(oldD3.version).toBe('3.4.13');
-    expect(coreD3.version).toBe(oldD3.version);
+    expect(coreD3.version).toBe('7.9.0');
     oldD3.select('svg').append('circle').attr('r', 7);
     expect(legacy.window.document.querySelector('circle').getAttribute('r')).toBe('7');
     const values = [-4, 0, 0.25, 1, 8];
     const oldScale = oldD3.scale.linear().domain([-4, 8]).range([0, 120]);
-    const coreScale = coreD3.scale.linear().domain([-4, 8]).range([0, 120]);
+    const coreScale = coreD3.scaleLinear().domain([-4, 8]).range([0, 120]);
     expect(values.map(coreScale)).toEqual(values.map(oldScale));
   } finally {
     legacy.window.close();

@@ -89,16 +89,16 @@ export const VENDOR_ASSETS = [
   },
   {
     "path": "src/core/vendor/d3-runtime.js",
-    "sha256": "068758b7f7d36b432157c32a3e5aaa13ee8ad896f3eec34d801a2626d05e6785",
+    "sha256": "3e945a11550de56561d1f2a7e5303d09800e38425d1b482f02f1358e820dc69e",
     "licenses": [
       {
         "path": "src/core/vendor/D3-LICENSE.txt",
-        "sha256": "10054db83ace18e5a455749d0d247857ec50508cecda79a5abe66fe4778d7721"
+        "sha256": "3e6849627f74ff73c257a3ae1efb574015d94fc1035c05ec3c15805165efcbc4"
       }
     ],
     "provenance": {
       "path": "src/core/vendor/README.md",
-      "sha256": "6cb74bd07da2fe8be58dacbbdd0d29d7be7c533ab654417b0c3bbdd6de79fe66"
+      "sha256": "8bff9acee16cf81c97d13c56e2b3944ef65cec03704f2c2cfd3776fb0f2caaaa"
     }
   },
   {

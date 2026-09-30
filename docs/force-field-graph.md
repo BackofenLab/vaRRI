@@ -2,9 +2,11 @@
 
 The canvas constructs its own graph in
 [`structure.js`](../src/core/canvas/graph/structure.js). It uses the pinned D3
-3.4.13 force engine and extracted RNA layout algorithms, with provenance and
+7.9.0 force engine and extracted RNA layout algorithms, with provenance and
 Apache licensing in [`NOTICE.md`](../src/core/canvas/graph/NOTICE.md).
 It never instantiates or loads `fornac.js`.
+The [D3 upgrade audit](d3-upgrade.md) describes the simulation adapter and
+verification against the reviewed phase-4 geometry.
 
 ## Nucleotides and strand boundaries
 

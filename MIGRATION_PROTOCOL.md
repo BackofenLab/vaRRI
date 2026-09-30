@@ -21,6 +21,7 @@ only that phase's changes. Do not merge or publish releases automatically.
 | 2 | DOM-free model, independent D3 canvas, strand-boundary fix, architecture docs | [PR #88](https://github.com/BackofenLab/vaRRI/pull/88) |
 | 3 | Native Vue 3 JS components, complete legacy URL compatibility | [PR #89](https://github.com/BackofenLab/vaRRI/pull/89) |
 | 4 | Standalone core bundle workflow and enforced contributor rules | [PR #90](https://github.com/BackofenLab/vaRRI/pull/90) |
+| 5 | D3 7 integration, compatibility audit, and interaction regressions | Stacked on phase 4; see [audit](docs/d3-upgrade.md) |
 
 ## Council decision
 
@@ -242,3 +243,13 @@ any D3 upgrade. The [layout audit](docs/review-90-layout-audit.md) records the
 upstream comparison, intentional differences, force measurements, and visual
 review. Earlier visual fixtures remain intact; `tests/visual-review-90` records
 the reviewed geometry with source provenance. D3 remains 3.4.13 in phase 4.
+
+### Phase 5
+
+The separate D3 investigation finds 7.9.0 compatible after adapting simulation,
+quadtree, drag, zoom, and event APIs. The native core uses the locally vendored
+current engine with its ISC license; retained Fornac exports keep their original
+D3 3 compatibility runtime. The simulation adapter preserves rail projection,
+fixed nodes, force reconfiguration, and cancellation. The
+[upgrade audit](docs/d3-upgrade.md) records the API changes, geometric limits,
+upstream references, and verification. Animation-off fixtures remain unchanged.
