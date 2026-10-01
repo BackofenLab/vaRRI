@@ -1,4 +1,5 @@
 import { DEFAULT_COLORS } from './colors.js';
+import { DEFAULT_SEQUENCE_NAMES } from './sequence-names.js';
 
 function createRegistry(label) {
   return { items: [], nextId: 1, label };
@@ -7,12 +8,13 @@ function createRegistry(label) {
 /** Serializable model data, independent of any renderer or browser document. */
 export function createModelState() {
   return {
+    ...DEFAULT_SEQUENCE_NAMES,
     colors: { ...DEFAULT_COLORS },
     annotations: {
       subsequences: createRegistry('Highlight'),
       regions: createRegistry('Region highlight'),
       mutations: createRegistry('Mutation'),
-      texts: { ...createRegistry('Text annotation'), defaultsSuppressed: false, initializedDefaultAnchors: [] },
+      texts: { ...createRegistry('Text annotation'), defaultsSuppressed: false },
     },
   };
 }

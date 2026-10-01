@@ -27,6 +27,7 @@
 | Field | Description |
 |---|---|
 | **Sequence** | RNA sequence (IUPAC characters). Separate two molecules with `&`. |
+| **Sequence names** | Names for the two strands, defaulting to `Seq. 1` and `Seq. 2`. Their colored backgrounds identify the strand; edits update its text annotation. |
 | **Start index mol. 1/2** | The number assigned to the first nucleotide of each molecule. Defaults to 1. 0 is not valid; negative indices are supported. |
 | **Color Choice** | Use the color pickers to customize the colors for each sequence. |
 | **Structure** | Dot-bracket structure string. Separate two molecules with `&`. |
@@ -37,7 +38,7 @@ The **Sequence** field content can be automatically generated from **FASTA input
 The `FASTA` button opens a dialog, in which the provided FASTA encoding is automatically parsed and split into the sequence and structure fields.
 **Fasta files can also be dragged and dropped** into the dialog's FASTA input field to load.
 
-Multiline FASTA sequence input is supported, and the trimmed subsequences are concatenated into a single sequence string. The **FASTA header line is ignored**, and the structure field is left unchanged unless the FASTA input contains a **second line with a dot-bracket structure string**. Note, if structure information is provided, each FASTA record must contain a single sequence line and a single structure line; no multi-line support in this case!
+Multiline FASTA sequence input is supported, and the trimmed subsequences are concatenated into a single sequence string. The **first whitespace-free token of each FASTA header becomes its sequence name**. Parsed names can be edited in the dialog before confirming. The structure field is left unchanged unless the FASTA input contains a **second line with a dot-bracket structure string**. If structure information is provided, each FASTA record must contain a single sequence line and a single structure line; no multi-line support in this case.
 
 > ![IMPORTANT]
 > Only if *all* FASTA records contain a structure line, the structure field is updated with the concatenated structures. Otherwise, the structure field remains unchanged.
@@ -188,13 +189,17 @@ Selecting a listed mutation will populate the input fields with its values for e
 
 ### Text Annotations
 
-Add free-position labels with **Text**, **Bold**, **Italic**, **Size** and **Color**.
+This panel is immediately below **Visualization Settings**. Select **Add** to
+open a dialog with **Text**, **Bold**, **Italic**, **Size** and **Color**.
 New labels show a **?** in the list until you drag them onto the drawing. The
 **⌖** symbol indicates a positioned label. Drag a label within the drawing to
 move it; this works with the force layout switched off as well as on.
 
-Select a list entry to edit it, then choose **Update**. **Clear inputs** resets
-the form. The trash button removes one entry, and **Remove all** clears the list.
+Select a list entry to edit it in the dialog. Cancel discards the draft.
+Sequence-name entries have a fixed strand badge; editing their text also updates
+the name in **Sequence & Structure Input**. Their trash buttons clear positioning
+without removing the entries. User annotation trash buttons delete the entries.
+Clearing all annotations removes user labels and unpositions sequence names.
 Labels stay horizontal when the drawing is rotated and follow its overall
 movement while the force layout runs.
 

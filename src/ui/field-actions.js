@@ -47,6 +47,7 @@ export function createFieldActions({ state, actions, document, colors }) {
     actions.clearFieldError(id);
     if (id === 'rotationSlider') { actions.commitSliderRotation(); return; }
     if (id === 'hideFooterAndHeader') { actions.applyBodyClasses(); return; }
+    if (id === 'seq1name' || id === 'seq2name') { actions.commitSequenceName(id); return; }
     if (validateDraft(id)) return;
     if ((id === 'forceLayoutLinearRRI' || id === 'forceLayoutLinearStructure') && state.fields[id]) {
       actions.enableForceLayoutForSelectedLinearOptions();

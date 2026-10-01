@@ -2,6 +2,7 @@ import { decodeUrlState, encodeUrlState } from './model/url-state.js';
 import { setColors, getColors, sequenceColoring } from './model/colors.js';
 import { createSubsequenceHighlight, registerSubsequenceHighlight, updateSubsequenceHighlight, removeSubsequenceHighlight, clearSubsequenceHighlights, getSubsequenceHighlights } from './model/subsequences.js';
 import { createTextAnnotation, registerTextAnnotation, updateTextAnnotation, removeTextAnnotation, clearTextAnnotations, getTextAnnotations } from './model/text-annotations.js';
+import { normalizeSequenceName, getSequenceNames, setSequenceNames } from './model/sequence-names.js';
 import { createRegionHighlight, registerRegionHighlight, updateRegionHighlight, removeRegionHighlight, clearRegionHighlights, getRegionHighlights, registerGeneratedRegionHighlight } from './model/regions.js';
 import { normaliseMutationPosition, createPointMutation, registerPointMutation, updatePointMutation, removePointMutation, clearPointMutations, getPointMutations } from './model/mutations.js';
 import { splitAtAmpersand, checkStructureInputSimple, findBasePairs, listIntermolNodes } from './model/brackets.js';
@@ -39,6 +40,9 @@ export function createVaRRI(options = {}) {
     validate: args => validate(args, modelState.colors),
     getColors: getColors.bind(null, modelState),
     setColors: setColors.bind(null, modelState),
+    normalizeSequenceName,
+    getSequenceNames: getSequenceNames.bind(null, modelState),
+    setSequenceNames: setSequenceNames.bind(null, modelState),
     createTextAnnotation,
     registerTextAnnotation: registerTextAnnotation.bind(null, modelState),
     updateTextAnnotation: updateTextAnnotation.bind(null, modelState),

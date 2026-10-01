@@ -1,4 +1,5 @@
 import { clearRegistry, getRegistryItem, listRegistryItems, registerRegistryItem, removeRegistryItem } from './registry.js';
+import { normalizeSequenceName, setSequenceNames } from './sequence-names.js';
 
 const DEFAULT_STYLE = { bold: false, italic: false, size: 16, color: '#000000' };
 
@@ -26,7 +27,11 @@ function normalizeAnchor(anchor) {
  * Optional terminal anchors keep the initial sequence labels beside their ends.
  */
 export function createTextAnnotation(input) {
-  if (!input || typeof input.text !== 'string' || !input.text.trim()) {
+  const sequenceNameFor = input?.sequenceNameFor == null ? null : String(input.sequenceNameFor);
+  if (sequenceNameFor !== null && !['1', '2'].includes(sequenceNameFor)) {
+    throw new Error('Sequence-name annotations must identify strand 1 or 2.');
+  }
+  if (!input || typeof input.text !== 'string' || (!sequenceNameFor && !input.text.trim())) {
     throw new Error('Text annotation text must not be empty.');
   }
   const supplied = Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined));
@@ -43,7 +48,8 @@ export function createTextAnnotation(input) {
   }
   return {
     id: Number.isInteger(input.id) ? input.id : 0,
-    text: input.text.trim(), bold: style.bold, italic: style.italic, size,
+    text: sequenceNameFor ? normalizeSequenceName(input.text, sequenceNameFor) : input.text.trim(),
+    sequenceNameFor, bold: style.bold, italic: style.italic, size,
     color: style.color.trim(),
     position: input.position === undefined || input.position === null ? null : coordinates(input.position, 'Text annotation position'),
     anchor: normalizeAnchor(input.anchor),
@@ -56,30 +62,52 @@ export function cloneTextAnnotation(item) {
 }
 
 export function registerTextAnnotation(modelState, input) {
-  return registerRegistryItem(modelState.annotations.texts, createTextAnnotation(input), cloneTextAnnotation);
+  const normalized = createTextAnnotation(input);
+  const registry = modelState.annotations.texts;
+  if (normalized.sequenceNameFor) {
+    const existing = registry.items.find(item => item.sequenceNameFor === normalized.sequenceNameFor);
+    setSequenceNames(modelState, { [`seq${normalized.sequenceNameFor}name`]: normalized.text });
+    if (existing) {
+      Object.assign(existing, normalized, { id: existing.id });
+      return cloneTextAnnotation(existing);
+    }
+  }
+  return registerRegistryItem(registry, normalized, cloneTextAnnotation);
 }
 
 /** Style/text edits preserve anchoring; placing or unplacing a label detaches it. */
 export function updateTextAnnotation(modelState, id, patch) {
   const target = getRegistryItem(modelState.annotations.texts, id);
   const changes = Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined));
+  if (Object.hasOwn(changes, 'sequenceNameFor') && changes.sequenceNameFor !== target.sequenceNameFor) {
+    throw new Error('An annotation\'s sequence-name identity cannot be changed.');
+  }
   const anchor = Object.hasOwn(changes, 'anchor') ? changes.anchor
     : Object.hasOwn(changes, 'position') ? null : target.anchor;
   const normalized = createTextAnnotation({ ...target, ...changes, id, anchor });
   Object.assign(target, normalized);
+  if (target.sequenceNameFor) setSequenceNames(modelState, { [`seq${target.sequenceNameFor}name`]: target.text });
   return cloneTextAnnotation(target);
 }
 
 export function removeTextAnnotation(modelState, id) {
+  const target = modelState.annotations.texts.items.find(item => item.id === id);
+  if (target?.sequenceNameFor) {
+    updateTextAnnotation(modelState, id, { position: null });
+    return true;
+  }
   return removeRegistryItem(modelState.annotations.texts, id);
 }
 
 /** Clearing is deliberate; only a new figure reset permits initial labels again. */
 export function clearTextAnnotations(modelState, { resetDefaults = false } = {}) {
   const registry = modelState.annotations.texts;
-  clearRegistry(registry);
+  if (resetDefaults) clearRegistry(registry);
+  else {
+    registry.items = registry.items.filter(item => item.sequenceNameFor);
+    registry.items.forEach(item => { item.position = null; item.anchor = null; });
+  }
   registry.defaultsSuppressed = !resetDefaults;
-  registry.initializedDefaultAnchors = [];
 }
 
 export function getTextAnnotations(modelState) {
@@ -88,18 +116,18 @@ export function getTextAnnotations(modelState) {
 
 /**
  * The canvas supplies positioned labels for the currently visible strands. Track
- * each terminal independently so adding strand 2 later creates its initial label,
- * while removing or moving an existing default never causes it to return.
+ * permanent strand identities so adding strand 2 creates its label while moving
+ * or unplacing an existing name never causes its position to be reset.
  */
 export function initializeDefaultTextAnnotations(modelState, defaults) {
   const registry = modelState.annotations.texts;
-  if (registry.defaultsSuppressed) return;
   const normalized = defaults.map(createTextAnnotation);
-  if (normalized.some(item => !item.anchor)) throw new Error('Default text annotations need a terminal anchor.');
+  if (normalized.some(item => !item.sequenceNameFor)) throw new Error('Default text annotations need a sequence-name identity.');
   normalized.forEach(item => {
-    const key = `${item.anchor.sequence}:${item.anchor.end}`;
-    if (registry.initializedDefaultAnchors.includes(key)) return;
+    const existing = registry.items.find(candidate => candidate.sequenceNameFor === item.sequenceNameFor);
+    if (existing) return;
+    item.text = modelState[`seq${item.sequenceNameFor}name`];
+    if (registry.defaultsSuppressed) { item.position = null; item.anchor = null; }
     registerRegistryItem(registry, item, cloneTextAnnotation);
-    registry.initializedDefaultAnchors.push(key);
   });
 }

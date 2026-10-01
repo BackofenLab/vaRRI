@@ -24,6 +24,22 @@
 .text-annotation-preview[draggable="true"] { cursor: grab; }
 .text-annotation-preview[draggable="true"]:active { cursor: grabbing; }
 
+.text-annotation-kind {
+  display: block;
+  margin-bottom: .25rem;
+  color: #000;
+  font-size: .68rem;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.sequence-name-annotation .text-annotation-preview { border-left: 3px solid var(--brand-blue); }
+.sequence-name-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; }
+.sequence-name-grid > div { min-width: 0; }
+.sequence-name-grid label { margin-bottom: .25rem; }
+.sequence-name-grid .sequence-name-field { width: 100%; min-width: 0; }
+#textAnnotationDialog { min-width: min(360px, calc(100vw - 24px)); }
+
 .text-annotation-form input[type="text"] { width: 100%; margin-bottom: 0; }
 
 .text-annotation-format {
@@ -47,7 +63,7 @@
   font-size: .8rem;
 }
 
-.text-annotation-toggle input { margin: 0; }
+.app-dialog .text-annotation-toggle input { margin: 0; width: auto; }
 .text-annotation-form .action-row { gap: .4rem; }
 .text-annotation-form button:disabled { opacity: .55; cursor: default; }
 

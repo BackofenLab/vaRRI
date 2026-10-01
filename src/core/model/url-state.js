@@ -7,7 +7,7 @@ export const URL_CHECKBOX_FIELDS = Object.freeze([
 ]);
 
 export const URL_UI_ONLY_FIELDS = Object.freeze([
-  'fastaInput', 'fastaSequence', 'fastaStructure',
+  'fastaInput', 'fastaSequence', 'fastaStructure', 'fastaSeq1name', 'fastaSeq2name',
   'regionEditId', 'region1', 'region2', 'regionColor', 'regionAlpha',
   'subseqEditId', 'subseqSequence', 'subseqRange', 'subseqColor', 'subseqAlpha',
   'mutationEditId', 'mutationSequence', 'mutationPosition', 'mutationBase', 'mutationColor',

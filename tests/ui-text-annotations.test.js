@@ -20,19 +20,31 @@ function dragEvent(type, dataTransfer, coordinates = {}) {
   return event;
 }
 
+async function addDialog(viewer) {
+  document.getElementById('textAnnotationSubmitBtn').click();
+  await viewer.flush();
+  expect(document.getElementById('textAnnotationDialog').open).toBe(true);
+}
+
+async function saveDialog(viewer) {
+  document.querySelector('#textAnnotationDialog button[value="ok"]').click();
+  await viewer.flush();
+}
+
 test('text annotation controls add, style, edit and remove plain text without rerendering the graph', async () => {
   const viewer = await mountViewer();
   try {
     const refresh = jest.spyOn(viewer.api, 'refreshTextAnnotations');
     viewer.renderSpy.mockClear();
+    await addDialog(viewer);
     editField('textAnnotationText', 'Binding <site> α & β');
     editField('textAnnotationBold', true);
     editField('textAnnotationItalic', true);
     editField('textAnnotationSize', '23.5');
     editField('textAnnotationColor', '#123456');
     await viewer.flush();
-    document.getElementById('textAnnotationSubmitBtn').click();
-    await viewer.flush();
+    await saveDialog(viewer);
+    expect(document.getElementById('textAnnotationDialog').open).toBe(false);
 
     const [annotation] = viewer.api.getTextAnnotations();
     expect(annotation).toMatchObject({ text: 'Binding <site> α & β', bold: true, italic: true,
@@ -56,10 +68,10 @@ test('text annotation controls add, style, edit and remove plain text without re
     await viewer.flush();
     preview.click();
     await viewer.flush();
-    expect(document.getElementById('textAnnotationSubmitBtn').textContent).toBe('Update');
+    expect(document.getElementById('textAnnotationDialog').open).toBe(true);
+    expect(document.querySelector('#textAnnotationDialog .dialog-header').textContent).toContain('Edit Text Annotation');
     editField('textAnnotationText', 'Edited annotation');
-    document.getElementById('textAnnotationSubmitBtn').click();
-    await viewer.flush();
+    await saveDialog(viewer);
     expect(viewer.api.getTextAnnotations()).toHaveLength(1);
     expect(viewer.api.getTextAnnotations()[0]).toMatchObject({ id: annotation.id,
       text: 'Edited annotation', position: { x: 10, y: 20 } });
@@ -78,6 +90,7 @@ test('free text can be added before sequence input, validates style, and clears 
   const viewer = await mountViewer();
   try {
     viewer.view.actions.clearAll();
+    await addDialog(viewer);
     editField('textAnnotationText', '  ');
     expect(viewer.view.actions.submitTextAnnotationForm()).toBe(false);
     expect(viewer.view.state.errors.textAnnotationText).toBeTruthy();
@@ -94,7 +107,7 @@ test('free text can be added before sequence input, validates style, and clears 
     await viewer.flush();
     document.getElementById('textAnnotationClearBtn').click();
     await viewer.flush();
-    expect(viewer.view.state.fields.textAnnotationEditId).toBe('');
+    expect(viewer.view.state.fields.textAnnotationEditId).toBe(String(viewer.api.getTextAnnotations()[0].id));
     expect(viewer.view.state.fields.textAnnotationText).toBe('');
     expect(viewer.api.getTextAnnotations()).toHaveLength(1);
     expect(viewer.view.state.errors).toEqual({});
@@ -102,6 +115,33 @@ test('free text can be added before sequence input, validates style, and clears 
     await viewer.flush();
     expect(viewer.api.getTextAnnotations()).toEqual([]);
     expect(new URL(viewer.view.actions.generateShareableURL()).searchParams.get('textAnnotations')).toBe('[]');
+  } finally { await viewer.close(); }
+});
+
+test('text dialogs cancel draft changes and the text panel follows visualization settings', async () => {
+  const viewer = await mountViewer();
+  try {
+    const panels = [...document.querySelectorAll('.controls-column > aside')];
+    expect(panels.slice(0, 4).map(panel => panel.getAttribute('aria-label')))
+      .toEqual(['Sequence and structure input', 'Visualization settings', 'Text annotations', 'Region highlights']);
+    await addDialog(viewer);
+    editField('textAnnotationText', 'Discard this');
+    editField('textAnnotationSize', '0');
+    await viewer.flush();
+    const dialog = document.getElementById('textAnnotationDialog');
+    expect(document.getElementById(dialog.getAttribute('aria-labelledby')).textContent).toContain('Add Text Annotation');
+    expect(document.getElementById('textAnnotationSize').checkValidity()).toBe(false);
+    const cancel = document.querySelector('#textAnnotationDialog button[value="cancel"]');
+    expect(cancel.formNoValidate).toBe(true);
+    // JSDOM does not honor formnovalidate on button activation; the browser suite
+    // checks native activation while this dispatch exercises cancellation actions.
+    dialog.querySelector('form').dispatchEvent(new window.SubmitEvent('submit', {
+      bubbles: true, cancelable: true, submitter: cancel,
+    }));
+    await viewer.flush();
+    expect(viewer.api.getTextAnnotations()).toEqual([]);
+    expect(viewer.view.state.fields.textAnnotationText).toBe('');
+    expect(document.getElementById('textAnnotationDialog').open).toBe(false);
   } finally { await viewer.close(); }
 });
 

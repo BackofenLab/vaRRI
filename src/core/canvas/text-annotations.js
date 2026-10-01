@@ -4,11 +4,13 @@ import { syncTextAnnotationRotation } from './rotation.js';
 import { clientToGraphPosition, nucleotideCentroid, terminalPosition } from './text-annotation-geometry.js';
 import { attachTextAnnotationDragging } from './text-annotation-drag.js';
 import { defaultTextOffset } from './text-annotation-defaults.js';
+import { getSequenceNames, setSequenceNames } from '../model/sequence-names.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-function defaultAnnotations(container, validated) {
+function defaultAnnotations(session, container, validated) {
   const center = nucleotideCentroid(container.graph);
+  const names = getSequenceNames(session.modelState);
   const sequences = validated.sequence2.length ? ['1', '2'] : ['1'];
   return sequences.map(sequence => {
     const anchor = { sequence, end: sequence === '1' ? 'start' : 'end', offset: { x: 0, y: 0 } };
@@ -17,17 +19,23 @@ function defaultAnnotations(container, validated) {
     const dx = terminal.x - center.x, dy = terminal.y - center.y;
     const length = Math.hypot(dx, dy);
     const preferred = length > 1e-8 ? { x: dx / length * 24, y: dy / length * 24 } : { x: 0, y: -24 };
-    anchor.offset = defaultTextOffset(container, terminal, preferred, 6.4);
+    const text = names[`seq${sequence}name`];
+    anchor.offset = defaultTextOffset(container, terminal, preferred, 6.4, text);
     // Match the RNA glyph size so tightly fitted short strands retain room for
     // the label beyond their terminal index, without changing the RNA viewport.
-    return { text: `Seq. ${sequence}`, bold: true, size: 6.4, anchor,
+    return { text, sequenceNameFor: sequence, bold: true, size: 6.4, anchor,
       position: { x: terminal.x + anchor.offset.x - center.x, y: terminal.y + anchor.offset.y - center.y } };
   }).filter(Boolean);
+}
+
+function hasVisibleSequence(item, validated) {
+  return !item.sequenceNameFor || !!validated[`sequence${item.sequenceNameFor}`]?.length;
 }
 
 function resolveAnchors(session, state) {
   const center = nucleotideCentroid(state.container.graph);
   for (const item of session.annotations.texts.items) {
+    if (!hasVisibleSequence(item, state.validated)) continue;
     if (item.anchor) {
       const point = terminalPosition(state.container.graph, state.validated, item.anchor);
       item.position = point ? { x: point.x - center.x, y: point.y - center.y } : null;
@@ -41,7 +49,8 @@ function syncPositions(session, state) {
   for (const item of session.annotations.texts.items) {
     const entry = state.entries.get(item.id);
     if (!entry) continue;
-    entry.position = item.position && { x: center.x + item.position.x, y: center.y + item.position.y };
+    entry.position = hasVisibleSequence(item, state.validated) && item.position &&
+      { x: center.x + item.position.x, y: center.y + item.position.y };
     if (entry.position) {
       entry.group.setAttribute('transform', `translate(${entry.position.x},${entry.position.y})`);
     } else { entry.group.remove(); state.entries.delete(item.id); }
@@ -66,7 +75,7 @@ export function refreshTextAnnotations(session) {
   const state = session.runtime.activeContainer?.varriTextAnnotations;
   if (!state) return 0;
   resolveAnchors(session, state);
-  const items = session.annotations.texts.items.filter(item => item.position);
+  const items = session.annotations.texts.items.filter(item => item.position && hasVisibleSequence(item, state.validated));
   const ids = new Set(items.map(item => item.id));
   for (const [id, entry] of state.entries) {
     if (!ids.has(id)) { entry.group.remove(); state.entries.delete(id); }
@@ -76,6 +85,7 @@ export function refreshTextAnnotations(session) {
     if (!entry) {
       const group = session.dom.createElementNS(SVG_NS, 'g');
       group.setAttribute('data-varri-text', String(item.id));
+      if (item.sequenceNameFor) group.setAttribute('data-varri-sequence-name', item.sequenceNameFor);
       group.setAttribute('role', 'img');
       group.style.cursor = 'move';
       group.style.touchAction = 'none';
@@ -136,7 +146,10 @@ export function initializeTextAnnotations(session, container, validated, options
     clearTextAnnotations(session.modelState);
     validated.textAnnotations.forEach(item => registerTextAnnotation(session.modelState, item));
   }
-  initializeDefaultTextAnnotations(session.modelState, defaultAnnotations(container, validated));
+  const names = Object.fromEntries(['seq1name', 'seq2name'].filter(key => Object.hasOwn(validated, key))
+    .map(key => [key, validated[key]]));
+  setSequenceNames(session.modelState, names);
+  initializeDefaultTextAnnotations(session.modelState, defaultAnnotations(session, container, validated));
   const layer = session.dom.createElementNS(SVG_NS, 'g');
   layer.setAttribute('data-varri-text-layer', 'true');
   container.plot.appendChild(layer);

@@ -7,6 +7,7 @@ import { initializeTextAnnotations, refreshTextAnnotations, placeTextAnnotation,
   clearTextAnnotationState } from '../src/core/canvas/text-annotations.js';
 import { clientToGraphPosition, nucleotideCentroid } from '../src/core/canvas/text-annotation-geometry.js';
 import { rotateVisualization } from '../src/core/canvas/rotation.js';
+import { getSequenceNames, setSequenceNames } from '../src/core/model/sequence-names.js';
 
 function fixture({ defaults = false } = {}) {
   const dom = new JSDOM('<div id="canvas"><svg><g class="fornac-plot"><g class="rna"></g></g></svg></div>');
@@ -57,13 +58,16 @@ test('defaults track visible sequence terminals, detach when placed, and do not 
   placeTextAnnotation(f.session, defaults[0].id, 50, 30);
   const moved = getTextAnnotations(f.session.modelState)[0];
   expect(moved.anchor).toBeNull();
+  expect(moved.sequenceNameFor).toBe('1');
   expect(f.container.varriTextAnnotations.entries.get(moved.id).position).toEqual({ x: 50, y: 30 });
   clearTextAnnotations(f.session.modelState);
   refreshTextAnnotations(f.session);
   expect(f.layer.children).toHaveLength(0);
   clearTextAnnotationState(f.container);
   initializeTextAnnotations(f.session, f.container, { sequence1: 'AA', sequence2: 'UU' });
-  expect(getTextAnnotations(f.session.modelState)).toEqual([]);
+  expect(getTextAnnotations(f.session.modelState)).toEqual(defaults.map(item => expect.objectContaining({
+    id: item.id, sequenceNameFor: item.sequenceNameFor, position: null, anchor: null,
+  })));
   f.dom.window.close();
 });
 
@@ -77,7 +81,7 @@ test('free text follows global RNA drift while persisted coordinates remain unch
   const notifications = f.notify.mock.calls.length;
   f.tick();
   expect(f.container.varriTextAnnotations.entries.get(item.id).position).toEqual({ x: 106, y: -12 });
-  expect(getTextAnnotations(f.session.modelState)[0].position).toEqual({ x: 6, y: 8 });
+  expect(getTextAnnotations(f.session.modelState).find(annotation => annotation.id === item.id).position).toEqual({ x: 6, y: 8 });
   expect(f.notify).toHaveBeenCalledTimes(notifications);
   f.dom.window.close();
 });
@@ -126,8 +130,48 @@ test('removing dragged text cancels movement and touch cannot start the plot pan
   refreshTextAnnotations(f.session);
   f.pointer(f.dom.window, 'pointermove', 52, 33);
   f.pointer(f.dom.window, 'pointerup', 52, 33);
-  expect(getTextAnnotations(f.session.modelState)).toEqual([]);
+  expect(getTextAnnotations(f.session.modelState).every(item => item.sequenceNameFor && !item.position)).toBe(true);
   expect(f.layer.children).toHaveLength(0);
+  f.dom.window.close();
+});
+
+test('names redraw in place, cached unnamed input preserves edits, and explicit names win imported text', () => {
+  const f = fixture({ defaults: true });
+  const first = getTextAnnotations(f.session.modelState)[0];
+  placeTextAnnotation(f.session, first.id, 22, 33);
+  setSequenceNames(f.session.modelState, { seq1name: 'OxyS' });
+  refreshTextAnnotations(f.session);
+  expect(f.layer.querySelector('[data-varri-sequence-name="1"] text').textContent).toBe('OxyS');
+  const positioned = getTextAnnotations(f.session.modelState)[0];
+  expect(positioned).toMatchObject({ id: first.id, sequenceNameFor: '1', anchor: null, position: { x: 12, y: 33 } });
+  const rerender = input => {
+    clearTextAnnotationState(f.container);
+    f.container.plot.querySelectorAll('[data-varri-text-layer]').forEach(layer => layer.remove());
+    initializeTextAnnotations(f.session, f.container, input);
+  };
+  const cached = { sequence1: 'AA', sequence2: 'UU' };
+  rerender(cached);
+  expect(getSequenceNames(f.session.modelState).seq1name).toBe('OxyS');
+  expect(getTextAnnotations(f.session.modelState)[0]).toMatchObject(positioned);
+  rerender({ ...cached, seq1name: 'Explicit', textAnnotations: [{ ...positioned, text: 'Imported' }] });
+  expect(getSequenceNames(f.session.modelState).seq1name).toBe('Explicit');
+  expect(f.container.varriTextAnnotations.layer.querySelector('text').textContent).toBe('Explicit');
+  f.dom.window.close();
+});
+
+test('temporarily absent sequence labels stay hidden while retaining manual placement and identity', () => {
+  const f = fixture({ defaults: true });
+  const second = getTextAnnotations(f.session.modelState)[1];
+  placeTextAnnotation(f.session, second.id, 50, 10);
+  const saved = getTextAnnotations(f.session.modelState)[1];
+  f.container.varriTextAnnotations.validated.sequence2 = '';
+  refreshTextAnnotations(f.session);
+  expect(f.layer.querySelector('[data-varri-sequence-name="2"]')).toBeNull();
+  expect(getTextAnnotations(f.session.modelState)[1]).toEqual(saved);
+  f.container.varriTextAnnotations.validated.sequence2 = 'UU';
+  refreshTextAnnotations(f.session);
+  expect(f.layer.querySelector('[data-varri-sequence-name="2"]')).not.toBeNull();
+  expect(getTextAnnotations(f.session.modelState)[1]).toEqual(saved);
   f.dom.window.close();
 });
 

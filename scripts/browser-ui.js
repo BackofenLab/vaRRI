@@ -6,6 +6,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { chromium } from 'playwright';
 import { exerciseTextAnnotationUI } from './browser-text-ui.js';
+import { exerciseSequenceNames } from './browser-sequence-names.js';
 const root = path.resolve(import.meta.dirname, '..');
 const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
@@ -217,6 +218,8 @@ async function main() {
     await page.screenshot({ path: path.join(output, 'render-only.png') });
     phase = 'text annotation defaults, editing, dragging and sharing';
     await exerciseTextAnnotationUI(page, origin, output);
+    phase = 'sequence names, protected labels, text dialogs and FASTA';
+    await exerciseSequenceNames(page, origin, output);
     assert.deepEqual(errors, [], 'Browser errors during Vue UI workflow');
     await page.close();
     console.log(`Vue browser UI passed (Chromium ${browser.version()}): five examples, edits, FASTA, annotation CRUD, text drag/drop and sharing, profiles, force, export, render-only.`);

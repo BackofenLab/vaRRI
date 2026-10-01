@@ -6,8 +6,10 @@ import { validate } from '../src/core/model/validate.js';
 import { createVaRRI, registerTextAnnotation as publicRegisterTextAnnotation } from '../src/core/index.js';
 
 const positioned = () => ({ text: 'Seq. 1', bold: true, italic: true, size: 20,
-  color: 'rebeccapurple', position: { x: -25.5, y: 30 },
+  color: 'rebeccapurple', position: { x: -25.5, y: 30 }, sequenceNameFor: null,
   anchor: { sequence: '1', end: 'start', offset: { x: -20, y: -10 } } });
+const nameLabel = (sequence = '1') => ({ ...positioned(), text: `Seq. ${sequence}`, sequenceNameFor: sequence,
+  anchor: { sequence, end: sequence === '1' ? 'start' : 'end', offset: { x: -20, y: -10 } } });
 
 describe('DOM-free text annotation model', () => {
   test('public registries remain headless and isolated', () => {
@@ -29,7 +31,7 @@ describe('DOM-free text annotation model', () => {
   test('creates unpositioned literal text with editable default styles', () => {
     expect(createTextAnnotation({ text: '  α <RNA> & “label”  ', size: undefined })).toEqual({
       id: 0, text: 'α <RNA> & “label”', bold: false, italic: false,
-      size: 16, color: '#000000', position: null, anchor: null,
+      size: 16, color: '#000000', position: null, anchor: null, sequenceNameFor: null,
     });
   });
 
@@ -78,6 +80,7 @@ describe('DOM-free text annotation model', () => {
     { anchor: { sequence: '3', end: 'start', offset: { x: 0, y: 0 } } },
     { anchor: { sequence: '1', end: 'middle', offset: { x: 0, y: 0 } } },
     { anchor: { sequence: '1', end: 'end', offset: { x: 0, y: Infinity } } },
+    { sequenceNameFor: '3' },
   ])('rejects invalid input %j', patch => {
     expect(() => createTextAnnotation({ text: 'Label', ...patch })).toThrow();
   });
@@ -85,48 +88,48 @@ describe('DOM-free text annotation model', () => {
   test('seeds defaults once while preserving custom text and deliberate clears', () => {
     const state = createModelState();
     registerTextAnnotation(state, { text: 'Custom before rendering' });
-    initializeDefaultTextAnnotations(state, [positioned()]);
-    initializeDefaultTextAnnotations(state, [positioned()]);
+    initializeDefaultTextAnnotations(state, [nameLabel()]);
+    initializeDefaultTextAnnotations(state, [nameLabel()]);
     expect(getTextAnnotations(state).map(item => item.text)).toEqual(['Custom before rendering', 'Seq. 1']);
     clearTextAnnotations(state);
-    initializeDefaultTextAnnotations(state, [positioned()]);
-    expect(getTextAnnotations(state)).toEqual([]);
+    initializeDefaultTextAnnotations(state, [nameLabel()]);
+    expect(getTextAnnotations(state)).toEqual([expect.objectContaining({ text: 'Seq. 1', position: null, anchor: null, sequenceNameFor: '1' })]);
     clearTextAnnotations(state, { resetDefaults: true });
-    initializeDefaultTextAnnotations(state, [positioned()]);
-    expect(getTextAnnotations(state)).toEqual([{ id: 1, ...positioned() }]);
+    initializeDefaultTextAnnotations(state, [nameLabel()]);
+    expect(getTextAnnotations(state)).toEqual([{ id: 1, ...nameLabel() }]);
   });
 
   test('introducing a second strand adds its default without restoring a removed first label', () => {
     const state = createModelState();
-    const first = positioned();
-    const second = { ...positioned(), text: 'Seq. 2',
-      anchor: { sequence: '2', end: 'end', offset: { x: 10, y: 20 } } };
+    const first = nameLabel(), second = nameLabel('2');
     initializeDefaultTextAnnotations(state, [first]);
     removeTextAnnotation(state, getTextAnnotations(state)[0].id);
     initializeDefaultTextAnnotations(state, [first, second]);
-    expect(getTextAnnotations(state).map(item => item.text)).toEqual(['Seq. 2']);
-    const item = getTextAnnotations(state)[0];
+    expect(getTextAnnotations(state)).toEqual([
+      expect.objectContaining({ text: 'Seq. 1', position: null, anchor: null, sequenceNameFor: '1' }),
+      expect.objectContaining({ text: 'Seq. 2', position: second.position, sequenceNameFor: '2' }),
+    ]);
+    const item = getTextAnnotations(state)[1];
     updateTextAnnotation(state, item.id, { text: 'Moved label', position: { x: 7, y: 8 } });
     initializeDefaultTextAnnotations(state, [first]);
     const restored = JSON.parse(JSON.stringify(state));
     initializeDefaultTextAnnotations(restored, [first, second]);
     expect(getTextAnnotations(restored)).toEqual([
+      expect.objectContaining({ text: 'Seq. 1', position: null, sequenceNameFor: '1' }),
       expect.objectContaining({ id: item.id, text: 'Moved label', anchor: null, position: { x: 7, y: 8 } }),
     ]);
   });
 
   test('explicit lists and deliberate clearing suppress defaults for subsequently added strands', () => {
-    const first = positioned();
-    const second = { ...positioned(), text: 'Seq. 2',
-      anchor: { sequence: '2', end: 'end', offset: { x: 10, y: 20 } } };
+    const first = nameLabel(), second = nameLabel('2');
     const state = createModelState();
     initializeDefaultTextAnnotations(state, [first]);
     clearTextAnnotations(state);
     initializeDefaultTextAnnotations(state, [first, second]);
-    expect(getTextAnnotations(state)).toEqual([]);
+    expect(getTextAnnotations(state).map(item => item.position)).toEqual([null, null]);
     registerTextAnnotation(state, { text: 'Explicit shared label' });
     initializeDefaultTextAnnotations(state, [first, second]);
-    expect(getTextAnnotations(state).map(item => item.text)).toEqual(['Explicit shared label']);
+    expect(getTextAnnotations(state).map(item => item.text)).toEqual(['Seq. 1', 'Seq. 2', 'Explicit shared label']);
     clearTextAnnotations(state, { resetDefaults: true });
     initializeDefaultTextAnnotations(state, [first, second]);
     expect(getTextAnnotations(state).map(item => item.text)).toEqual(['Seq. 1', 'Seq. 2']);

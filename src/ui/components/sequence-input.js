@@ -24,6 +24,26 @@ export default viewerComponent('sequence-input', `<aside class="panel control-pa
           <textarea id="sequence" class="backdropable" rows="3" placeholder="ACGAUCAGAGAUUAGAGCAUACGACAGCAG&amp;ACGAAAAGAGCAUACGACAGUAG" v-bind:value="state.fields.sequence" v-on:input="actions.inputField('sequence', $event)" v-on:change="actions.commitField('sequence', $event)" v-on:scroll="actions.syncScroll('sequence')" v-on:dragover.prevent="actions.dragOver($event)" v-on:dragleave="actions.dragLeave($event)" v-on:drop.prevent="actions.dropFile('sequence', $event)"></textarea>
           <span class="field-tooltip">{{ state.errors.sequence || '' }}</span>
         </div>
+        <div class="sequence-name-grid">
+          <div><label for="seq1name">Name 1</label>
+            <div class="input-wrap" :class="{'has-error':state.errors.seq1name}">
+              <input id="seq1name" class="sequence-name-field" type="text" :value="state.fields.seq1name"
+                :style="{backgroundColor:colors.cssColorToRGB(state.fields.colorSeq1,0.35)}"
+                @input="actions.inputField('seq1name',$event)" @change="actions.commitField('seq1name',$event)"
+                @keydown.enter.prevent="actions.commitField('seq1name',$event)">
+              <span class="field-tooltip">{{ state.errors.seq1name || '' }}</span>
+            </div>
+          </div>
+          <div><label for="seq2name">Name 2</label>
+            <div class="input-wrap" :class="{'has-error':state.errors.seq2name}">
+              <input id="seq2name" class="sequence-name-field" type="text" :value="state.fields.seq2name"
+                :style="{backgroundColor:colors.cssColorToRGB(state.fields.colorSeq2,0.35)}"
+                @input="actions.inputField('seq2name',$event)" @change="actions.commitField('seq2name',$event)"
+                @keydown.enter.prevent="actions.commitField('seq2name',$event)">
+              <span class="field-tooltip">{{ state.errors.seq2name || '' }}</span>
+            </div>
+          </div>
+        </div>
         <div class="start-index-grid">
           <div class="start-index-item">
             <div class="start-index-label-row" v-bind:class="{'has-error': state.errors.startIndex1}">

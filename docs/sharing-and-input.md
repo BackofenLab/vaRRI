@@ -10,6 +10,7 @@ See the [viewer guide](viewer-guide.md) and the [Input Format Reference](#input-
 | Parameter | Description |
 | --- | --- |
 | **`sequence`** | IUPAC nucleotide sequence. Use `&` as a separator for two interacting molecules (*e.g., `GCAUGGCGGGCAA&CCCGCAU*`). |
+| **`seq1name` / `seq2name`** | Optional strand names, defaulting to `Seq. 1` and `Seq. 2`. Explicit names also update the corresponding text annotations. |
 | **`structure`** | Secondary structure in dot-bracket notation. Separate two molecules with `&` (*e.g., `((...))..<<..&...>>..*`). |
 | **`startIndex1` / `startIndex2`** | Starting sequence indices for strand 1 and strand 2 (default: `1`). |
 | **`colorSeq1` / `colorSeq2`** | Custom color hex codes for sequence strands 1 and 2 (*e.g., `%23ff0000` for `#ff0000*`). |
@@ -20,6 +21,7 @@ See the [viewer guide](viewer-guide.md) and the [Input Format Reference](#input-
 | **`forceLayout`** | Enable or disable the force-layout physics simulation (`true` / `false`). |
 | **`forceLayoutLinearRRI`** | Enforce a linear horizontal layout of all noncrossing RRI helices. Enabling it also enables `forceLayout`. |
 | **`forceLayoutLinearStructure`** | Enforce a linear layout of intramolecular stems containing bulges or interior loops. Enabling it also enables `forceLayout`. |
+| **`textAnnotations`** | JSON definitions with text, styles, positions, and sequence-name identities. An explicit `[]` leaves names unpositioned; use Share Link to generate this value. |
 
 To simplify sequence and structure input validation, sequence and structure inputs are highlighted with the chosen strand-specific colors.
 

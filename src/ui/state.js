@@ -5,6 +5,7 @@ export function createViewerState(api, colors) {
   const hex = colors.cssColorToHex;
   const defaults = {
     sequence: '', structure: '', startIndex1: '1', startIndex2: '1',
+    seq1name: 'Seq. 1', seq2name: 'Seq. 2',
     rotationSlider: '0', cropping: '-1', colorSeq1: hex(palette.sequence1),
     colorSeq2: hex(palette.sequence2), coloring: 'strand', highlighting: 'region',
     backgroundhighlighting: 'basepairs', distinctBpTypes: true,
@@ -24,6 +25,7 @@ export function createViewerState(api, colors) {
     textAnnotationEditId: '', textAnnotationText: '', textAnnotationBold: false,
     textAnnotationItalic: false, textAnnotationSize: '16', textAnnotationColor: '#000000',
     fastaInput: '', fastaSequence: '', fastaStructure: '',
+    fastaSeq1name: 'Seq. 1', fastaSeq2name: 'Seq. 2',
   };
   const state = reactive({
     fields: { ...defaults }, errors: {}, message: { text: '', type: '' },
@@ -50,11 +52,13 @@ export function createStateActions({ state, defaults, api }) {
     },
     showMsg(text, type) { state.message = { text, type }; },
     clearMsg() { state.message = { text: '', type: '' }; },
+    syncSequenceNames() { Object.assign(state.fields, api.getSequenceNames()); },
     syncAnnotations() {
       state.annotations.subsequences = api.getSubsequenceHighlights();
       state.annotations.regions = api.getRegionHighlights();
       state.annotations.mutations = api.getPointMutations();
       state.annotations.texts = api.getTextAnnotations();
+      Object.assign(state.fields, api.getSequenceNames());
     },
   };
 }

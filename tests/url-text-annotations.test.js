@@ -34,7 +34,7 @@ describe('text annotation share data', () => {
     ]));
     params.append('textAnnotations', JSON.stringify([{ text: 'Wrong occurrence' }]));
     expect(decodeUrlState(params).annotations.textAnnotations).toEqual([
-      { text: 'Valid', bold: true, italic: false, size: 16, color: '#000000', position: null, anchor: null },
+      { text: 'Valid', bold: true, italic: false, size: 16, color: '#000000', position: null, anchor: null, sequenceNameFor: null },
     ]);
   });
 
@@ -46,7 +46,28 @@ describe('text annotation share data', () => {
 
   test('does not share unfinished editor controls', () => {
     const fields = { textAnnotationEditId: '3', textAnnotationText: 'Unsaved', textAnnotationBold: true,
-      textAnnotationItalic: true, textAnnotationSize: '22', textAnnotationColor: '#123456' };
+      textAnnotationItalic: true, textAnnotationSize: '22', textAnnotationColor: '#123456',
+      fastaSeq1name: 'Draft 1', fastaSeq2name: 'Draft 2' };
     expect([...encodeUrlState({ fields })]).toEqual([]);
+  });
+
+  test('name-label identity survives being moved or unplaced', () => {
+    const labels = [{ text: 'RNA α', sequenceNameFor: '1', position: { x: 1, y: 2 }, anchor: null },
+      { text: 'RNA β', sequenceNameFor: '2', position: null, anchor: null }];
+    const params = encodeUrlState({ fields: { seq1name: 'RNA α', seq2name: 'RNA β' }, annotations: { textAnnotations: labels } });
+    const decoded = decodeUrlState(params);
+    expect(decoded.fields).toEqual({ seq1name: 'RNA α', seq2name: 'RNA β' });
+    expect(decoded.annotations.textAnnotations).toEqual(labels.map(item => expect.objectContaining(item)));
+  });
+
+  test('only legacy canonical anchors infer protected names, not matching text or explicit user identity', () => {
+    const labels = [
+      { text: 'Former default renamed', anchor: { sequence: '1', end: 'start', offset: { x: 0, y: 0 } } },
+      { text: 'Seq. 2', position: { x: 1, y: 2 } },
+      { text: 'User-anchored', sequenceNameFor: null, anchor: { sequence: '2', end: 'end', offset: { x: 0, y: 0 } } },
+      { text: 'Opposite terminal', anchor: { sequence: '1', end: 'end', offset: { x: 0, y: 0 } } },
+    ];
+    const decoded = decodeUrlState(new URLSearchParams({ textAnnotations: JSON.stringify(labels) }));
+    expect(decoded.annotations.textAnnotations.map(item => item.sequenceNameFor)).toEqual(['1', null, null, null]);
   });
 });

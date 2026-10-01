@@ -20,12 +20,13 @@ export async function exerciseTextAnnotationUI(page, origin, output) {
   await page.screenshot({ path: path.join(output, 'text-defaults.png'), fullPage: true });
 
   const content = 'Binding α: <seed> & tail';
+  await page.locator('#textAnnotationSubmitBtn').click();
   await page.locator('#textAnnotationText').fill(content);
   await page.locator('#textAnnotationBold').check();
   await page.locator('#textAnnotationItalic').check();
   await page.locator('#textAnnotationSize').fill('10');
   await page.locator('#textAnnotationColor').fill('#173c8f');
-  await page.locator('#textAnnotationSubmitBtn').click();
+  await page.locator('#textAnnotationDialog button[value="ok"]').click();
   const item = page.locator('.text-annotation-item').filter({ hasText: content });
   const preview = item.locator('.text-annotation-preview');
   assert.equal(await item.locator('[aria-label="Unpositioned"]').count(), 1);
@@ -72,7 +73,7 @@ export async function exerciseTextAnnotationUI(page, origin, output) {
 
   await preview.click();
   await page.locator('#textAnnotationText').fill(content + ' edited');
-  await page.locator('#textAnnotationSubmitBtn').click();
+  await page.locator('#textAnnotationDialog button[value="ok"]').click();
   assert.equal(await group.locator('text').textContent(), content + ' edited');
   const shared = await page.evaluate(async () => {
     const { default: view } = await import('/index.js');
@@ -114,7 +115,11 @@ export async function exerciseTextAnnotationUI(page, origin, output) {
     await view.actions.runVisualization();
     return view.actions.generateShareableURL();
   });
-  assert.equal(new URL(cleared).searchParams.get('textAnnotations'), '[]');
+  const clearedRecords = JSON.parse(new URL(cleared).searchParams.get('textAnnotations'));
+  assert.deepEqual(clearedRecords.map(item => item.sequenceNameFor).sort(), ['1', '2']);
+  assert.ok(clearedRecords.every(item => item.position === null));
   await page.goto(cleared, { waitUntil: 'networkidle' });
   assert.equal(await page.locator('#rendering-canvas [data-varri-text]').count(), 0, 'Cleared defaults stay cleared after share restoration');
+  assert.equal(await page.locator('#text-annotation-list .text-annotation-item').count(), 2,
+    'Clearing removes user labels while retaining both unpositioned sequence names');
 }

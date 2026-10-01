@@ -26,7 +26,8 @@ export function createTextAnnotationsController({ api, state, actions, colors, d
   }
   function validateTextAnnotationForm() {
     actions.clearFieldErrors(FIELDS);
-    try { api.createTextAnnotation(input()); }
+    const edited = api.getTextAnnotations().find(item => String(item.id) === fields.textAnnotationEditId);
+    try { api.createTextAnnotation({ ...input(), sequenceNameFor: edited?.sequenceNameFor || null }); }
     catch (error) { return report(error); }
     return true;
   }
@@ -52,9 +53,26 @@ export function createTextAnnotationsController({ api, state, actions, colors, d
     return draggedId !== null && api.getTextAnnotations().some(item => item.id === draggedId)
       && Array.from(event.dataTransfer?.types || []).includes(DRAG_TYPE);
   }
+  function textAnnotationAvailable(item) {
+    return !item.sequenceNameFor || Boolean(String(fields.sequence || '').split('&')[Number(item.sequenceNameFor) - 1]?.trim());
+  }
+  function openTextAnnotationDialog(event, title) {
+    actions.openDialog('textAnnotationDialog', title, '', event,
+      submitTextAnnotationForm, resetTextAnnotationForm);
+  }
   return {
     resetTextAnnotationForm, validateTextAnnotationForm, submitTextAnnotationForm,
-    editTextAnnotation(item) {
+    textAnnotationAvailable,
+    clearTextAnnotationInputs() {
+      const id = fields.textAnnotationEditId;
+      resetTextAnnotationForm();
+      fields.textAnnotationEditId = id;
+    },
+    addTextAnnotation(event) {
+      resetTextAnnotationForm();
+      openTextAnnotationDialog(event, 'Add Text Annotation ...');
+    },
+    editTextAnnotation(item, event) {
       fields.textAnnotationEditId = String(item.id);
       fields.textAnnotationText = item.text;
       fields.textAnnotationBold = item.bold;
@@ -62,7 +80,17 @@ export function createTextAnnotationsController({ api, state, actions, colors, d
       fields.textAnnotationSize = String(item.size);
       fields.textAnnotationColor = colors.cssColorToHex(item.color);
       actions.clearFieldErrors(FIELDS);
-      document.getElementById('textAnnotationText')?.focus();
+      openTextAnnotationDialog(event, item.sequenceNameFor
+        ? `Edit Sequence ${item.sequenceNameFor} Name ...` : 'Edit Text Annotation ...');
+    },
+    commitSequenceName(id) {
+      try {
+        api.setSequenceNames({ [id]: fields[id] });
+        refresh();
+      } catch (error) { actions.setFieldError(id, errorText(error)); }
+    },
+    textAnnotationStatus(item) {
+      return !textAnnotationAvailable(item) ? 'Sequence absent' : item.position ? 'Positioned' : 'Unpositioned';
     },
     textAnnotationStyle(item) {
       return { color: item.color, fontSize: `${Math.max(12, item.size)}px`,
@@ -81,7 +109,7 @@ export function createTextAnnotationsController({ api, state, actions, colors, d
       refresh();
     },
     startTextAnnotationDrag(item, event) {
-      if (item.position || !event.dataTransfer) { event.preventDefault(); return; }
+      if (item.position || !textAnnotationAvailable(item) || !event.dataTransfer) { event.preventDefault(); return; }
       draggedId = item.id;
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData(DRAG_TYPE, String(item.id));

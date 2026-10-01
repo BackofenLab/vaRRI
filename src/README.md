@@ -50,6 +50,7 @@ object expected by `render()`.
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `sequence` | `string` | required | IUPAC sequence; separate two molecules with `&`. |
+| `seq1name`, `seq2name` | `string` | instance names | Optional explicit strand names. Omitted names preserve the current instance model. |
 | `structure` | `string` | required | Dot-bracket structure; separate two molecules with `&`. |
 | `startIndex1` | `string\|number` | `1` | First index of molecule 1; zero is invalid. |
 | `startIndex2` | `string\|number` | `1` | First index of molecule 2; zero is invalid. |
@@ -181,8 +182,8 @@ characters such as `<` and `&`.
 - `vaRRI.createTextAnnotation(input)` validates a definition without registering it.
 - `vaRRI.registerTextAnnotation(input)` returns the added definition, including its ID.
 - `vaRRI.updateTextAnnotation(id, patch)` changes selected properties.
-- `vaRRI.removeTextAnnotation(id)` removes one annotation.
-- `vaRRI.clearTextAnnotations()` clears the list and suppresses automatic defaults.
+- `vaRRI.removeTextAnnotation(id)` deletes user text; a sequence-name label is retained with its position cleared.
+- `vaRRI.clearTextAnnotations()` deletes user text, unpositions sequence names, and suppresses automatic placement.
 - `vaRRI.getTextAnnotations()` returns independent copies of the definitions.
 - `vaRRI.refreshTextAnnotations()` redraws the annotation layer after registry edits.
 - `vaRRI.placeTextAnnotation(id, clientX, clientY)` positions an annotation at
@@ -194,8 +195,11 @@ change these saved coordinates. The centroid moves with the force layout, so
 labels follow its overall translation without participating in the simulation.
 Use `placeTextAnnotation()` to convert a pointer's client coordinates correctly.
 
-Each strand first gets `Seq. 1` near the first strand's start or
-`Seq. 2` near the second strand's end when it appears in the figure. These defaults
+Each strand gets its sequence name near the first strand's start or the second
+strand's end when it appears in the figure. The names default to `Seq. 1` and
+`Seq. 2`. These labels carry `sequenceNameFor: '1' | '2'` so their identity survives
+dragging, renaming, and unpositioning. Their text and model names stay synchronized.
+The defaults
 carry a serializable terminal `anchor` and follow the endpoint through layout
 changes. Dragging or explicitly updating `position` releases the anchor.
 `clearTextAnnotations({ resetDefaults: true })` enables fresh defaults on the
@@ -205,7 +209,21 @@ Pass `onTextAnnotationsChange` to `render()` to synchronize a list after pointer
 placement. SVG dragging is available with animation off as well as on. Rotation
 keeps the text horizontal, and both SVG and PNG exports include positioned labels.
 Share links use the additive JSON `textAnnotations` query parameter; an explicit
-empty array preserves a cleared list. See [text annotations](../docs/text-annotations.md).
+empty array preserves cleared positioning. See [text annotations](../docs/text-annotations.md).
+
+### Sequence names
+
+- `vaRRI.getSequenceNames()` returns a copy of `{ seq1name, seq2name }`.
+- `vaRRI.normalizeSequenceName(value, sequence)` trims a name and substitutes
+  the default when blank; `sequence` is `'1'` or `'2'`.
+- `vaRRI.setSequenceNames(patch)` updates supplied names and matching annotation
+  text without changing style or placement. Blank names reset to the strand default.
+
+Call `refreshTextAnnotations()` after name changes to update the active canvas.
+These model operations work without a DOM. `validate()` remains pure and carries
+names only when explicitly supplied; reusing a validated object with omitted names
+does not undo later name edits. The URL fields `seq1name` and `seq2name` are optional.
+Explicit URL names override matching annotation text during restoration.
 
 A `sequenceContext` uses molecule keys and visible sequence metadata:
 

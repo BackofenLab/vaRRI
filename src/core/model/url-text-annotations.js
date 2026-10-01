@@ -1,6 +1,6 @@
 import { createTextAnnotation } from './text-annotations.js';
 
-/** Missing means use initial labels; an explicit empty array means keep none. */
+/** Missing uses initial labels; an explicit empty array leaves name labels unplaced. */
 export function decodeUrlTextAnnotations(params) {
   if (!params.has('textAnnotations')) return {};
   let records;
@@ -9,7 +9,12 @@ export function decodeUrlTextAnnotations(params) {
   if (!Array.isArray(records)) return { textAnnotations: [] };
   return { textAnnotations: records.flatMap(input => {
     try {
-      const { id, ...item } = createTextAnnotation(input);
+      // Earlier links identify default labels only by their canonical terminal
+      // anchor. Do not guess identity from text or from a free label's position.
+      const anchor = input?.anchor;
+      const legacyName = !Object.hasOwn(input || {}, 'sequenceNameFor') &&
+        ((anchor?.sequence === '1' && anchor.end === 'start') || (anchor?.sequence === '2' && anchor.end === 'end'));
+      const { id, ...item } = createTextAnnotation(legacyName ? { ...input, sequenceNameFor: anchor.sequence } : input);
       return [item];
     } catch { return []; }
   }) };

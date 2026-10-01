@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { exerciseCoreSequenceNames } from './browser-sequence-name-core.js';
 
 /** The same annotation contract is exercised against native and bundled APIs. */
 export async function exerciseCoreTextAnnotations(page) {
@@ -108,7 +109,7 @@ export async function exerciseCoreTextAnnotations(page) {
   assert.deepEqual(await page.evaluate(() => window.textApi.getTextAnnotations().find(item => item.id === window.manualTextId).position),
     beforeRerender.find(item => item.id === movement.manual.id).position, 'Rerender preserves relative position');
 
-  // Releasing a default changes it into a freely positioned annotation.
+  // Releasing a default clears its endpoint anchor but keeps its name identity.
   await page.evaluate(() => window.textApi.placeTextAnnotation(1, 230, 210));
   assert.ok(!await page.evaluate(() => window.textApi.getTextAnnotations()[0].anchor), 'Moving default releases its endpoint anchor');
   const activeLabel = host.locator('[data-varri-text] text').first();
@@ -161,6 +162,7 @@ export async function exerciseCoreTextAnnotations(page) {
   await page.evaluate(async () => { await window.textApi.render('text-contract', window.textInput); });
   assert.deepEqual(await host.locator('[data-varri-text] text').allTextContents(), ['Seq. 1', 'Seq. 2'],
     'Adding a second strand introduces its default');
+  await exerciseCoreSequenceNames(page);
   await page.evaluate(() => {
     window.textApi.cancelActiveRender();
     document.getElementById('text-contract').remove();
