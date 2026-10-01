@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { checkPNGDialog, checkPNGResize } from './browser-png-export.js';
 const root = path.resolve(import.meta.dirname, '..');
 const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
@@ -193,6 +194,7 @@ async function main() {
     }
     for (const extension of ['svg', 'png']) {
       phase = extension + ' export';
+      if (extension === 'png') { await checkPNGDialog(page, output); continue; }
       const [download] = await Promise.all([page.waitForEvent('download'),
         page.locator(extension === 'svg' ? '#exportSvgBtn' : '#exportPngBtn').click(),
       ]);
@@ -214,6 +216,8 @@ async function main() {
     assert.equal(fullPage.searchParams.has('showRenderingOnly'), false);
     assert.equal(fullPage.searchParams.get('sequence'), 'ACGU&UGCA');
     await page.screenshot({ path: path.join(output, 'render-only.png') });
+    phase = 'PNG dialog after resizing in render-only mode';
+    await checkPNGResize(page, output);
     assert.deepEqual(errors, [], 'Browser errors during Vue UI workflow');
     await page.close();
     console.log(`Vue browser UI passed (Chromium ${browser.version()}): five examples, edits, FASTA, annotation CRUD, profiles, force, share roundtrip, export, render-only.`);

@@ -220,7 +220,17 @@ Details about URL encoding are given in the following section [URL Parameters & 
 | Button | Description |
 |---|---|
 | **⬇ SVG** | Downloads a self-contained SVG file with embedded Fornac CSS. |
-| **⬇ PNG** | Rasterises the SVG to a canvas (2× resolution) and downloads a PNG. |
+| **⬇ PNG** | Opens a dialog for PNG pixel dimensions and DPI, then downloads the image. |
 | **🔗 Share Link** | Generate URL encoding of the input for sharing or embedding in other web applications; copied to clipboard. | 
+
+The PNG dialog starts with the current canvas width and height. Editing either
+dimension updates the other to preserve the aspect ratio, rounded to whole pixels.
+DPI defaults to 96 and sets the image's print density without changing its pixel
+dimensions. PNG exports keep the white canvas background. The browser's PNG
+encoder controls lossless compression, so no compression setting is offered.
+
+Click **Export PNG** to start the normal browser download. The browser's download
+settings determine whether it prompts for a file name and location or saves to
+the default download folder. **Cancel** or Escape closes the dialog without saving.
 
 ---

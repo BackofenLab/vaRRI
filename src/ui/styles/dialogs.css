@@ -107,3 +107,21 @@ dialog.app-dialog::backdrop {
 #fastaInput {
   min-width: 600px;
 }
+
+dialog.png-export-dialog {
+  margin: auto;
+  width: 360px;
+  min-width: 0;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+}
+
+.png-export-dialog .dialog-header { cursor: default; }
+.png-resolution { display: flex; gap: 12px; }
+.png-export-dialog label { display: block; flex: 1; min-width: 0; font-size: 13px; }
+.png-export-dialog input { margin-top: 4px; }
+.png-hint { margin: 6px 0 14px; color: #52627a; font-size: 12px; }
+.png-hint:last-child { margin-bottom: 0; }
+.png-export-error { margin: 8px 0 0; color: #a12622; font-size: 13px; }
+.png-export-dialog button:disabled { opacity: 0.6; cursor: wait; }
