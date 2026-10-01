@@ -18,6 +18,6 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
       <button id="shareLinkBtn" class="btn btn-shareLink btn-sm" type="button" title="Copy shareable link to clipboard" v-on:click="actions.shareLink($event)">{{ state.shareCopied ? '✓ Copied!' : '🔗 Share' }}</button>
       <button id="openVarriBtn" class="btn btn-openVarri btn-sm" type="button" title="Show this in a new vaRRI browser window" v-on:click="actions.openFullPage($event)" v-show="state.showFullPage">Full Page</button>
       <span class="cite-note">Please
-      <a href="citation.html" class="btn btn-cite btn-sm">🔖 cite vaRRI</a></span>
+      <a href="citation.html" class="btn btn-cite btn-sm">🤍 Cite vaRRI</a></span>
     </div>
   </section>`);
