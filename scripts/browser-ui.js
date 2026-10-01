@@ -7,6 +7,7 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 import { exerciseTextAnnotationUI } from './browser-text-ui.js';
 import { exerciseSequenceNames } from './browser-sequence-names.js';
+import { checkInputHighlights } from './browser-input-highlights.js';
 const root = path.resolve(import.meta.dirname, '..');
 const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
@@ -117,6 +118,10 @@ async function main() {
     // A clean URL isolates dialog behavior from the catalog's annotations.
     const initial = new URLSearchParams({ sequence: 'ACGU&UGCA', structure: '((..&..))',
       highlighting: 'nothing', backgroundhighlighting: 'nothing', forceLayout: '0' });
+    phase = 'linked input highlights';
+    await page.goto(`${origin}/index.html?${initial}`, { waitUntil: 'networkidle' });
+    await ready(page);
+    await checkInputHighlights(page, output);
     phase = 'sequence editing';
     await page.goto(`${origin}/index.html?${initial}`, { waitUntil: 'networkidle' });
     await ready(page);
@@ -222,7 +227,7 @@ async function main() {
     await exerciseSequenceNames(page, origin, output);
     assert.deepEqual(errors, [], 'Browser errors during Vue UI workflow');
     await page.close();
-    console.log(`Vue browser UI passed (Chromium ${browser.version()}): five examples, edits, FASTA, annotation CRUD, text drag/drop and sharing, profiles, force, export, render-only.`);
+    console.log(`Vue browser UI passed (Chromium ${browser.version()}): five examples, input highlights, edits, FASTA, sequence names, annotation CRUD, text drag/drop and sharing, profiles, force, export, render-only.`);
   } catch (error) {
     if (page && !page.isClosed()) {
       await page.screenshot({ path: path.join(output, 'failure.png'), fullPage: true }).catch(() => {});

@@ -13,6 +13,7 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
     copiedTimer = null;
     state.shareCopied = false;
     actions.cancelRendering();
+    actions.clearInputCaret();
     state.selectedExample = null;
     state.exampleOpen = false;
     actions.resetFields(Object.keys(defaults));
