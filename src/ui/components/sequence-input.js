@@ -21,7 +21,13 @@ export default viewerComponent('sequence-input', `<aside class="panel control-pa
         </label>
         <div class="input-wrap" v-bind:class="{'has-error': state.errors.sequence}">
           <div id="backdrop-sequence" class="backdropable"><div class="highlights" id="highlights-sequence"><span v-for="(part, index) in actions.highlightSegments('sequence')" v-bind:key="index" v-bind:class="part.className" v-bind:style="part.style">{{ part.text }}</span></div></div>
-          <textarea id="sequence" class="backdropable" rows="3" placeholder="ACGAUCAGAGAUUAGAGCAUACGACAGCAG&amp;ACGAAAAGAGCAUACGACAGUAG" v-bind:value="state.fields.sequence" v-on:input="actions.inputField('sequence', $event)" v-on:change="actions.commitField('sequence', $event)" v-on:scroll="actions.syncScroll('sequence')" v-on:dragover.prevent="actions.dragOver($event)" v-on:dragleave="actions.dragLeave($event)" v-on:drop.prevent="actions.dropFile('sequence', $event)"></textarea>
+          <textarea id="sequence" class="backdropable" rows="3" placeholder="ACGAUCAGAGAUUAGAGCAUACGACAGCAG&amp;ACGAAAAGAGCAUACGACAGUAG" v-bind:value="state.fields.sequence" v-on:input="actions.inputField('sequence', $event)" v-on:change="actions.commitField('sequence', $event)" v-on:scroll="actions.syncScroll('sequence')"
+            v-on:focus="actions.updateInputCaret('sequence', $event)"
+            v-on:click="actions.updateInputCaret('sequence', $event)"
+            v-on:keyup="actions.updateInputCaret('sequence', $event)"
+            v-on:select="actions.updateInputCaret('sequence', $event)"
+            v-on:selectionchange="actions.updateInputCaret('sequence', $event)"
+            v-on:blur="actions.clearInputCaret()" v-on:dragover.prevent="actions.dragOver($event)" v-on:dragleave="actions.dragLeave($event)" v-on:drop.prevent="actions.dropFile('sequence', $event)"></textarea>
           <span class="field-tooltip">{{ state.errors.sequence || '' }}</span>
         </div>
         <div class="start-index-grid">
@@ -47,7 +53,13 @@ export default viewerComponent('sequence-input', `<aside class="panel control-pa
         </label>
         <div class="input-wrap" v-bind:class="{'has-error': state.errors.structure}">
           <div id="backdrop-structure" class="backdropable"><div class="highlights" id="highlights-structure"><span v-for="(part, index) in actions.highlightSegments('structure')" v-bind:key="index" v-bind:class="part.className" v-bind:style="part.style">{{ part.text }}</span></div></div>
-          <textarea id="structure" class="backdropable" rows="3" placeholder="..(((((....)))))(((....)))..&amp;..(((......))).." v-bind:value="state.fields.structure" v-on:input="actions.inputField('structure', $event)" v-on:change="actions.commitField('structure', $event)" v-on:scroll="actions.syncScroll('structure')"></textarea>
+          <textarea id="structure" class="backdropable" rows="3" placeholder="..(((((....)))))(((....)))..&amp;..(((......))).." v-bind:value="state.fields.structure" v-on:input="actions.inputField('structure', $event)" v-on:change="actions.commitField('structure', $event)" v-on:scroll="actions.syncScroll('structure')"
+            v-on:focus="actions.updateInputCaret('structure', $event)"
+            v-on:click="actions.updateInputCaret('structure', $event)"
+            v-on:keyup="actions.updateInputCaret('structure', $event)"
+            v-on:select="actions.updateInputCaret('structure', $event)"
+            v-on:selectionchange="actions.updateInputCaret('structure', $event)"
+            v-on:blur="actions.clearInputCaret()"></textarea>
           <span class="field-tooltip">{{ state.errors.structure || '' }}</span>
         </div>
         </div>

@@ -28,6 +28,7 @@ export function createViewerState(api, colors) {
     annotations: { subsequences: [], regions: [], mutations: [] },
     selectedExample: null, exampleOpen: false, rotation: 0, rotationPreview: 0,
     renderingOnly: false, showFullPage: false, shareCopied: false,
+    inputCaret: { field: '', index: -1 },
     dialog: { id: '', title: '', value: '', left: '', top: '' },
   });
   return { state, defaults, initialColors: palette };

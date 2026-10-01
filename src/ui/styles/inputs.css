@@ -173,7 +173,7 @@ textarea.backdropable {
 }
 
 /* Highlight-Klassen für die Abschnitte */
-.hl-seq1, .hl-seq2, .hl-basepair {
+.hl-seq1, .hl-seq2, .hl-basepair, .hl-caret, .hl-partner {
   display: inline;
   border-radius: 0 !important;
   margin: 0 !important;
@@ -182,6 +182,15 @@ textarea.backdropable {
   box-decoration-break: clone;
 }
 
+.hl-caret {
+  background-color: #ffe08a;
+  box-shadow: inset 0 -2px #946200;
+}
+
+.hl-partner {
+  background-color: #9fe4d8;
+  box-shadow: inset 0 -2px #157565;
+}
 
 textarea.profileData {
   overflow-wrap: normal;
@@ -281,4 +290,3 @@ textarea.drag-over {
 .checkbox-row input { width: auto; margin: 0; }
 .checkbox-row label { margin: 0; }
 .checkbox-row-nested { margin-left: 1.5em; }
-
