@@ -139,7 +139,7 @@ test('names redraw in place, cached unnamed input preserves edits, and explicit 
   const f = fixture({ defaults: true });
   const first = getTextAnnotations(f.session.modelState)[0];
   placeTextAnnotation(f.session, first.id, 22, 33);
-  setSequenceNames(f.session.modelState, { seq1name: 'OxyS' });
+  setSequenceNames(f.session.modelState, { seqName1: 'OxyS' });
   refreshTextAnnotations(f.session);
   expect(f.layer.querySelector('[data-varri-sequence-name="1"] text').textContent).toBe('OxyS');
   const positioned = getTextAnnotations(f.session.modelState)[0];
@@ -151,10 +151,10 @@ test('names redraw in place, cached unnamed input preserves edits, and explicit 
   };
   const cached = { sequence1: 'AA', sequence2: 'UU' };
   rerender(cached);
-  expect(getSequenceNames(f.session.modelState).seq1name).toBe('OxyS');
+  expect(getSequenceNames(f.session.modelState).seqName1).toBe('OxyS');
   expect(getTextAnnotations(f.session.modelState)[0]).toMatchObject(positioned);
-  rerender({ ...cached, seq1name: 'Explicit', textAnnotations: [{ ...positioned, text: 'Imported' }] });
-  expect(getSequenceNames(f.session.modelState).seq1name).toBe('Explicit');
+  rerender({ ...cached, seqName1: 'Explicit', textAnnotations: [{ ...positioned, text: 'Imported' }] });
+  expect(getSequenceNames(f.session.modelState).seqName1).toBe('Explicit');
   expect(f.container.varriTextAnnotations.layer.querySelector('text').textContent).toBe('Explicit');
   f.dom.window.close();
 });

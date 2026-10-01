@@ -11,30 +11,35 @@ function changeField(id, value) {
 test('sequence name fields and named annotation dialogs synchronize without rerendering RNA', async () => {
   const viewer = await mountViewer();
   try {
+    const names = document.querySelector('fieldset.sequence-names');
+    expect(names.querySelector('legend').textContent).toBe('Sequence Names');
+    expect(names.querySelectorAll('label')).toHaveLength(0);
+    expect(document.getElementById('seqName1').getAttribute('aria-label')).toBe('Sequence 1 name');
+    expect(document.getElementById('seqName2').getAttribute('aria-label')).toBe('Sequence 2 name');
     const annotation = viewer.api.registerTextAnnotation({ text: 'Seq. 1', sequenceNameFor: '1',
       size: 6.4, position: { x: 12, y: 34 } });
     viewer.view.actions.syncAnnotations();
     await viewer.flush();
     viewer.renderSpy.mockClear();
     const refresh = jest.spyOn(viewer.api, 'refreshTextAnnotations');
-    changeField('seq1name', 'RNA alpha');
+    changeField('seqName1', 'RNA alpha');
     await viewer.flush();
-    expect(viewer.api.getSequenceNames().seq1name).toBe('RNA alpha');
+    expect(viewer.api.getSequenceNames().seqName1).toBe('RNA alpha');
     expect(viewer.api.getTextAnnotations()[0]).toMatchObject({ id: annotation.id,
       text: 'RNA alpha', position: { x: 12, y: 34 }, size: 6.4 });
     const row = document.querySelector('[data-sequence-name-for="1"]');
     expect(row.querySelector('.text-annotation-kind').textContent).toBe('Sequence 1 name');
-    expect(document.getElementById('seq1name').style.backgroundColor).not.toBe('');
-    expect(document.getElementById('seq1name').style.backgroundColor)
-      .not.toBe(document.getElementById('seq2name').style.backgroundColor);
+    expect(document.getElementById('seqName1').style.backgroundColor).not.toBe('');
+    expect(document.getElementById('seqName1').style.backgroundColor)
+      .not.toBe(document.getElementById('seqName2').style.backgroundColor);
     row.querySelector('.text-annotation-preview').click();
     await viewer.flush();
     expect(document.querySelector('#textAnnotationDialog .dialog-header').textContent).toContain('Sequence 1 Name');
     changeField('textAnnotationText', 'RNA renamed in dialog');
     document.querySelector('#textAnnotationDialog button[value="ok"]').click();
     await viewer.flush();
-    expect(document.getElementById('seq1name').value).toBe('RNA renamed in dialog');
-    expect(viewer.api.getSequenceNames().seq1name).toBe('RNA renamed in dialog');
+    expect(document.getElementById('seqName1').value).toBe('RNA renamed in dialog');
+    expect(viewer.api.getSequenceNames().seqName1).toBe('RNA renamed in dialog');
     expect(viewer.api.getTextAnnotations()[0].sequenceNameFor).toBe('1');
     expect(refresh).toHaveBeenCalled();
     expect(viewer.renderSpy).not.toHaveBeenCalled();
@@ -49,9 +54,9 @@ test('sequence name fields and named annotation dialogs synchronize without rere
     expect(viewer.api.getTextAnnotations()).toEqual([
       expect.objectContaining({ id: annotation.id, text: 'Seq. 1', sequenceNameFor: '1' }),
     ]);
-    changeField('seq1name', '  ');
+    changeField('seqName1', '  ');
     await viewer.flush();
-    expect(document.getElementById('seq1name').value).toBe('Seq. 1');
+    expect(document.getElementById('seqName1').value).toBe('Seq. 1');
     expect(viewer.api.getTextAnnotations()[0].text).toBe('Seq. 1');
   } finally { await viewer.close(); }
 });
@@ -76,29 +81,34 @@ test('deleting or clearing sequence-name labels only unpositions them', async ()
     document.getElementById('textAnnotationClearAllBtn').click();
     await viewer.flush();
     expect(viewer.api.getTextAnnotations()).toEqual([expect.objectContaining({ id: annotation.id, position: null })]);
-    expect(document.getElementById('seq1name').value).toBe('RNA alpha');
+    expect(document.getElementById('seqName1').value).toBe('RNA alpha');
   } finally { await viewer.close(); }
 });
 
-test('sequence name URL fields override label text and survive shared links', async () => {
+test.each([
+  { seqName1: 'Explicit α & β', seqName2: 'Other RNA' },
+  { seq1name: 'Explicit α & β', seq2name: 'Other RNA' },
+])('sequence name URL fields override label text and survive shared links: %j', async nameFields => {
   const viewer = await mountViewer();
   try {
     const params = new URLSearchParams({ sequence: 'ACGU&UGCA', structure: '((..&..))',
-      seq1name: 'Explicit α & β', seq2name: 'Other RNA', textAnnotations: JSON.stringify([
+      ...nameFields, textAnnotations: JSON.stringify([
         { text: 'Outdated name', sequenceNameFor: '1', position: null },
       ]) });
     viewer.view.actions.clearAll();
     viewer.view.actions.loadAllUrlParameters(params);
     await viewer.flush();
-    expect(viewer.api.getSequenceNames()).toEqual({ seq1name: 'Explicit α & β', seq2name: 'Other RNA' });
+    expect(viewer.api.getSequenceNames()).toEqual({ seqName1: 'Explicit α & β', seqName2: 'Other RNA' });
     expect(viewer.api.getTextAnnotations()[0].text).toBe('Explicit α & β');
-    expect(document.getElementById('seq1name').value).toBe('Explicit α & β');
+    expect(document.getElementById('seqName1').value).toBe('Explicit α & β');
     const shared = new URL(viewer.view.actions.generateShareableURL()).searchParams;
-    expect(shared.get('seq1name')).toBe('Explicit α & β');
-    expect(shared.get('seq2name')).toBe('Other RNA');
+    expect(shared.get('seqName1')).toBe('Explicit α & β');
+    expect(shared.get('seqName2')).toBe('Other RNA');
+    expect(shared.has('seq1name')).toBe(false);
+    expect(shared.has('seq2name')).toBe(false);
     expect(JSON.parse(shared.get('textAnnotations'))[0].sequenceNameFor).toBe('1');
     viewer.view.actions.clearAll();
-    expect(viewer.api.getSequenceNames()).toEqual({ seq1name: 'Seq. 1', seq2name: 'Seq. 2' });
+    expect(viewer.api.getSequenceNames()).toEqual({ seqName1: 'Seq. 1', seqName2: 'Seq. 2' });
     expect(viewer.api.getTextAnnotations()).toEqual([]);
   } finally { await viewer.close(); }
 });

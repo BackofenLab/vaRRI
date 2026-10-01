@@ -66,7 +66,7 @@ export function registerTextAnnotation(modelState, input) {
   const registry = modelState.annotations.texts;
   if (normalized.sequenceNameFor) {
     const existing = registry.items.find(item => item.sequenceNameFor === normalized.sequenceNameFor);
-    setSequenceNames(modelState, { [`seq${normalized.sequenceNameFor}name`]: normalized.text });
+    setSequenceNames(modelState, { [`seqName${normalized.sequenceNameFor}`]: normalized.text });
     if (existing) {
       Object.assign(existing, normalized, { id: existing.id });
       return cloneTextAnnotation(existing);
@@ -86,7 +86,7 @@ export function updateTextAnnotation(modelState, id, patch) {
     : Object.hasOwn(changes, 'position') ? null : target.anchor;
   const normalized = createTextAnnotation({ ...target, ...changes, id, anchor });
   Object.assign(target, normalized);
-  if (target.sequenceNameFor) setSequenceNames(modelState, { [`seq${target.sequenceNameFor}name`]: target.text });
+  if (target.sequenceNameFor) setSequenceNames(modelState, { [`seqName${target.sequenceNameFor}`]: target.text });
   return cloneTextAnnotation(target);
 }
 
@@ -126,7 +126,7 @@ export function initializeDefaultTextAnnotations(modelState, defaults) {
   normalized.forEach(item => {
     const existing = registry.items.find(candidate => candidate.sequenceNameFor === item.sequenceNameFor);
     if (existing) return;
-    item.text = modelState[`seq${item.sequenceNameFor}name`];
+    item.text = modelState[`seqName${item.sequenceNameFor}`];
     if (registry.defaultsSuppressed) { item.position = null; item.anchor = null; }
     registerRegistryItem(registry, item, cloneTextAnnotation);
   });

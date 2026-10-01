@@ -30,7 +30,7 @@ downloads. Unpositioned labels are saved in share links but do not appear in exp
 
 ## Coordinates and lifecycle
 
-The model stores `seq1name` and `seq2name`; the registry contains plain definitions
+The model stores `seqName1` and `seqName2`; the registry contains plain definitions
 with `text`, `bold`, `italic`, `size`, `color` and `position`. Sequence-name labels
 also carry `sequenceNameFor: '1' | '2'`, independent of their placement or anchor.
 A null position means unpositioned.
@@ -53,8 +53,9 @@ Each viewer has an independent registry and accepts list drops only from itself.
 The JSON `textAnnotations` URL parameter is additive: existing URL keys retain
 their encodings. An absent parameter permits defaults; `textAnnotations=[]`
 suppresses automatic positioning while keeping the sequence-name entries.
-Optional `seq1name` and `seq2name` URL parameters set the names and take precedence
-over names in annotation records. Unicode text, punctuation, styles, null positions and
+Optional `seqName1` and `seqName2` URL parameters set the names and take precedence
+over names in annotation records. Older links using `seq1name` or `seq2name` still
+load; newly shared links use `seqName1` and `seqName2`. Unicode text, punctuation, styles, null positions and
 positioned values round-trip without delimiter escaping rules.
 
 FASTA import takes the first whitespace-delimited token after each `>` as the

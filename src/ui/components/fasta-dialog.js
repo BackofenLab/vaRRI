@@ -15,14 +15,14 @@ ACGAAAAAAAGAGCAUACGACAGccc
         </div>
         <div class="sequence-name-grid" v-if="state.fields.fastaSequence">
           <div v-for="number in (state.fields.fastaSequence.includes('&') ? ['1','2'] : ['1'])" :key="number">
-            <label :for="'fastaSeq' + number + 'name'">Sequence {{ number }} name</label>
-            <div class="input-wrap" :class="{'has-error':state.errors['fastaSeq' + number + 'name']}">
-              <input :id="'fastaSeq' + number + 'name'" class="sequence-name-field" type="text"
-                :value="state.fields['fastaSeq' + number + 'name']"
+            <label :for="'fastaSeqName' + number">Sequence {{ number }} name</label>
+            <div class="input-wrap" :class="{'has-error':state.errors['fastaSeqName' + number]}">
+              <input :id="'fastaSeqName' + number" class="sequence-name-field" type="text"
+                :value="state.fields['fastaSeqName' + number]"
                 :style="{backgroundColor:colors.cssColorToRGB(state.fields['colorSeq' + number],0.35)}"
-                @input="actions.inputField('fastaSeq' + number + 'name',$event)"
-                @change="actions.commitField('fastaSeq' + number + 'name',$event)">
-              <span class="field-tooltip">{{ state.errors['fastaSeq' + number + 'name'] || '' }}</span>
+                @input="actions.inputField('fastaSeqName' + number,$event)"
+                @change="actions.commitField('fastaSeqName' + number,$event)">
+              <span class="field-tooltip">{{ state.errors['fastaSeqName' + number] || '' }}</span>
             </div>
           </div>
         </div>

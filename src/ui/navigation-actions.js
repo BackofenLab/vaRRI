@@ -20,7 +20,7 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
     actions.resetFastaForm();
     api.clearSubsequenceHighlights(); api.clearRegionHighlights(); api.clearPointMutations();
     api.clearTextAnnotations({ resetDefaults: true });
-    api.setSequenceNames({ seq1name: defaults.seq1name, seq2name: defaults.seq2name });
+    api.setSequenceNames({ seqName1: defaults.seqName1, seqName2: defaults.seqName2 });
     actions.endTextAnnotationDrag();
     actions.syncAnnotations();
     state.rotation = state.rotationPreview = 0;
@@ -58,7 +58,7 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
         catch (error) { window.console.warn(`Failed to register textAnnotations from URL: ${error.message}`); }
       });
     }
-    const names = Object.fromEntries(['seq1name', 'seq2name'].filter(key => params.has(key))
+    const names = Object.fromEntries(['seqName1', 'seqName2'].filter(key => Object.hasOwn(decoded.fields, key))
       .map(key => [key, state.fields[key]]));
     if (Object.keys(names).length) api.setSequenceNames(names);
     actions.syncAnnotations();

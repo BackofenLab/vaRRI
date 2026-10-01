@@ -4,7 +4,7 @@ export async function exerciseCoreSequenceNames(page) {
   const result = await page.evaluate(async () => {
     const api = window.textApi;
     const first = api.getTextAnnotations().find(item => item.sequenceNameFor === '1');
-    api.setSequenceNames({ seq1name: 'Custom α' });
+    api.setSequenceNames({ seqName1: 'Custom α' });
     api.refreshTextAnnotations();
     const canvasName = document.querySelector(`[data-varri-text="${first.id}"] text`).textContent;
     api.placeTextAnnotation(first.id, 220, 170);
@@ -36,7 +36,7 @@ export async function exerciseCoreSequenceNames(page) {
       textAnnotations: decoded.annotations.textAnnotations }));
     const restored = { names: restoredApi.getSequenceNames(), records: restoredApi.getTextAnnotations(),
       visible: [...host.querySelectorAll('[data-varri-text] text')].map(node => node.textContent) };
-    await restoredApi.render(host, restoredApi.validate({ ...decoded.fields, seq1name: 'Explicit URL name',
+    await restoredApi.render(host, restoredApi.validate({ ...decoded.fields, seqName1: 'Explicit URL name',
       textAnnotations: decoded.annotations.textAnnotations }));
     const overridden = restoredApi.getTextAnnotations().find(item => item.sequenceNameFor === '1');
     restoredApi.cancelActiveRender();
@@ -47,7 +47,7 @@ export async function exerciseCoreSequenceNames(page) {
   assert.equal(result.canvasName, 'Custom α');
   assert.equal(result.positioned.sequenceNameFor, '1', 'Manual placement retains sequence identity');
   assert.equal(result.positioned.anchor, null);
-  assert.equal(result.names.seq1name, 'Renamed β');
+  assert.equal(result.names.seqName1, 'Renamed β');
   assert.equal(result.afterRerender.text, 'Renamed β', 'Cached validation cannot undo a later rename');
   assert.deepEqual(result.afterRerender.position, result.positioned.position);
   assert.equal(result.unpositioned.id, result.first.id);
@@ -58,7 +58,7 @@ export async function exerciseCoreSequenceNames(page) {
   assert.equal(result.absentSvgCount, 0, 'Absent strand labels do not leak into the single-strand SVG');
   assert.equal(result.returned.id, result.second.id);
   assert.ok(result.returned.position);
-  assert.equal(result.restored.names.seq1name, 'Renamed β');
+  assert.equal(result.restored.names.seqName1, 'Renamed β');
   assert.equal(result.restored.records.find(item => item.sequenceNameFor === '1').position, null);
   assert.deepEqual(result.restored.visible, ['Seq. 2']);
   assert.equal(result.overridden.text, 'Explicit URL name');

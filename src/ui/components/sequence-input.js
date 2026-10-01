@@ -30,26 +30,29 @@ export default viewerComponent('sequence-input', `<aside class="panel control-pa
             v-on:blur="actions.clearInputCaret()" v-on:dragover.prevent="actions.dragOver($event)" v-on:dragleave="actions.dragLeave($event)" v-on:drop.prevent="actions.dropFile('sequence', $event)"></textarea>
           <span class="field-tooltip">{{ state.errors.sequence || '' }}</span>
         </div>
-        <div class="sequence-name-grid">
-          <div><label for="seq1name">Name 1</label>
-            <div class="input-wrap" :class="{'has-error':state.errors.seq1name}">
-              <input id="seq1name" class="sequence-name-field" type="text" :value="state.fields.seq1name"
+        <fieldset class="sequence-names">
+          <legend>Sequence Names</legend>
+          <div class="sequence-name-grid">
+          <div>
+            <div class="input-wrap" :class="{'has-error':state.errors.seqName1}">
+              <input id="seqName1" class="sequence-name-field" type="text" aria-label="Sequence 1 name" :value="state.fields.seqName1"
                 :style="{backgroundColor:colors.cssColorToRGB(state.fields.colorSeq1,0.35)}"
-                @input="actions.inputField('seq1name',$event)" @change="actions.commitField('seq1name',$event)"
-                @keydown.enter.prevent="actions.commitField('seq1name',$event)">
-              <span class="field-tooltip">{{ state.errors.seq1name || '' }}</span>
+                @input="actions.inputField('seqName1',$event)" @change="actions.commitField('seqName1',$event)"
+                @keydown.enter.prevent="actions.commitField('seqName1',$event)">
+              <span class="field-tooltip">{{ state.errors.seqName1 || '' }}</span>
             </div>
           </div>
-          <div><label for="seq2name">Name 2</label>
-            <div class="input-wrap" :class="{'has-error':state.errors.seq2name}">
-              <input id="seq2name" class="sequence-name-field" type="text" :value="state.fields.seq2name"
+          <div>
+            <div class="input-wrap" :class="{'has-error':state.errors.seqName2}">
+              <input id="seqName2" class="sequence-name-field" type="text" aria-label="Sequence 2 name" :value="state.fields.seqName2"
                 :style="{backgroundColor:colors.cssColorToRGB(state.fields.colorSeq2,0.35)}"
-                @input="actions.inputField('seq2name',$event)" @change="actions.commitField('seq2name',$event)"
-                @keydown.enter.prevent="actions.commitField('seq2name',$event)">
-              <span class="field-tooltip">{{ state.errors.seq2name || '' }}</span>
+                @input="actions.inputField('seqName2',$event)" @change="actions.commitField('seqName2',$event)"
+                @keydown.enter.prevent="actions.commitField('seqName2',$event)">
+              <span class="field-tooltip">{{ state.errors.seqName2 || '' }}</span>
             </div>
           </div>
-        </div>
+          </div>
+        </fieldset>
         <div class="start-index-grid">
           <div class="start-index-item">
             <div class="start-index-label-row" v-bind:class="{'has-error': state.errors.startIndex1}">

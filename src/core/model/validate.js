@@ -30,7 +30,7 @@ export function validate(args, colors = DEFAULT_COLORS) {
   const v = {};
   // Only explicit names override instance names when this result is rendered.
   for (const sequence of ['1', '2']) {
-    const key = `seq${sequence}name`;
+    const key = `seqName${sequence}`;
     if (Object.hasOwn(args, key)) v[key] = normalizeSequenceName(args[key], sequence);
   }
 

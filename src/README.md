@@ -50,7 +50,7 @@ object expected by `render()`.
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `sequence` | `string` | required | IUPAC sequence; separate two molecules with `&`. |
-| `seq1name`, `seq2name` | `string` | instance names | Optional explicit strand names. Omitted names preserve the current instance model. |
+| `seqName1`, `seqName2` | `string` | instance names | Optional explicit strand names. Omitted names preserve the current instance model. |
 | `structure` | `string` | required | Dot-bracket structure; separate two molecules with `&`. |
 | `startIndex1` | `string\|number` | `1` | First index of molecule 1; zero is invalid. |
 | `startIndex2` | `string\|number` | `1` | First index of molecule 2; zero is invalid. |
@@ -213,7 +213,7 @@ empty array preserves cleared positioning. See [text annotations](../docs/text-a
 
 ### Sequence names
 
-- `vaRRI.getSequenceNames()` returns a copy of `{ seq1name, seq2name }`.
+- `vaRRI.getSequenceNames()` returns a copy of `{ seqName1, seqName2 }`.
 - `vaRRI.normalizeSequenceName(value, sequence)` trims a name and substitutes
   the default when blank; `sequence` is `'1'` or `'2'`.
 - `vaRRI.setSequenceNames(patch)` updates supplied names and matching annotation
@@ -222,7 +222,7 @@ empty array preserves cleared positioning. See [text annotations](../docs/text-a
 Call `refreshTextAnnotations()` after name changes to update the active canvas.
 These model operations work without a DOM. `validate()` remains pure and carries
 names only when explicitly supplied; reusing a validated object with omitted names
-does not undo later name edits. The URL fields `seq1name` and `seq2name` are optional.
+does not undo later name edits. The URL fields `seqName1` and `seqName2` are optional.
 Explicit URL names override matching annotation text during restoration.
 
 A `sequenceContext` uses molecule keys and visible sequence metadata:

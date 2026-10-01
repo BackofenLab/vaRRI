@@ -47,17 +47,30 @@ describe('text annotation share data', () => {
   test('does not share unfinished editor controls', () => {
     const fields = { textAnnotationEditId: '3', textAnnotationText: 'Unsaved', textAnnotationBold: true,
       textAnnotationItalic: true, textAnnotationSize: '22', textAnnotationColor: '#123456',
-      fastaSeq1name: 'Draft 1', fastaSeq2name: 'Draft 2' };
+      fastaSeqName1: 'Draft 1', fastaSeqName2: 'Draft 2' };
     expect([...encodeUrlState({ fields })]).toEqual([]);
   });
 
   test('name-label identity survives being moved or unplaced', () => {
     const labels = [{ text: 'RNA α', sequenceNameFor: '1', position: { x: 1, y: 2 }, anchor: null },
       { text: 'RNA β', sequenceNameFor: '2', position: null, anchor: null }];
-    const params = encodeUrlState({ fields: { seq1name: 'RNA α', seq2name: 'RNA β' }, annotations: { textAnnotations: labels } });
+    const params = encodeUrlState({ fields: { seqName1: 'RNA α', seqName2: 'RNA β' }, annotations: { textAnnotations: labels } });
     const decoded = decodeUrlState(params);
-    expect(decoded.fields).toEqual({ seq1name: 'RNA α', seq2name: 'RNA β' });
+    expect(decoded.fields).toEqual({ seqName1: 'RNA α', seqName2: 'RNA β' });
     expect(decoded.annotations.textAnnotations).toEqual(labels.map(item => expect.objectContaining(item)));
+  });
+
+  test.each([
+    ['seq1name=Older+RNA&seq2name=Older+target', { seqName1: 'Older RNA', seqName2: 'Older target' }],
+    ['seq1name=Old&seqName1=Current&seqName2=Target&seq2name=Old', { seqName1: 'Current', seqName2: 'Target' }],
+    ['seqName1=&seq1name=Old&seq2name=First&seq2name=Last', { seqName1: '', seqName2: ['First', 'Last'] }],
+  ])('reads legacy name URLs and shares current spellings: %s', (query, fields) => {
+    const decoded = decodeUrlState(query);
+    expect(decoded.fields).toEqual(fields);
+    const shared = encodeUrlState(decoded);
+    expect(shared.has('seq1name')).toBe(false);
+    expect(shared.has('seq2name')).toBe(false);
+    expect(shared.getAll('seqName2')).toEqual(Array.isArray(fields.seqName2) ? fields.seqName2 : [fields.seqName2]);
   });
 
   test('only legacy canonical anchors infer protected names, not matching text or explicit user identity', () => {

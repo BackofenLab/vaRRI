@@ -5,7 +5,7 @@ export function createViewerState(api, colors) {
   const hex = colors.cssColorToHex;
   const defaults = {
     sequence: '', structure: '', startIndex1: '1', startIndex2: '1',
-    seq1name: 'Seq. 1', seq2name: 'Seq. 2',
+    seqName1: 'Seq. 1', seqName2: 'Seq. 2',
     rotationSlider: '0', cropping: '-1', colorSeq1: hex(palette.sequence1),
     colorSeq2: hex(palette.sequence2), coloring: 'strand', highlighting: 'region',
     backgroundhighlighting: 'basepairs', distinctBpTypes: true,
@@ -25,7 +25,7 @@ export function createViewerState(api, colors) {
     textAnnotationEditId: '', textAnnotationText: '', textAnnotationBold: false,
     textAnnotationItalic: false, textAnnotationSize: '16', textAnnotationColor: '#000000',
     fastaInput: '', fastaSequence: '', fastaStructure: '',
-    fastaSeq1name: 'Seq. 1', fastaSeq2name: 'Seq. 2',
+    fastaSeqName1: 'Seq. 1', fastaSeqName2: 'Seq. 2',
   };
   const state = reactive({
     fields: { ...defaults }, errors: {}, message: { text: '', type: '' },

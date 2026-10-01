@@ -10,7 +10,7 @@ See the [viewer guide](viewer-guide.md) and the [Input Format Reference](#input-
 | Parameter | Description |
 | --- | --- |
 | **`sequence`** | IUPAC nucleotide sequence. Use `&` as a separator for two interacting molecules (*e.g., `GCAUGGCGGGCAA&CCCGCAU*`). |
-| **`seq1name` / `seq2name`** | Optional strand names, defaulting to `Seq. 1` and `Seq. 2`. Explicit names also update the corresponding text annotations. |
+| **`seqName1` / `seqName2`** | Optional strand names, defaulting to `Seq. 1` and `Seq. 2`. Explicit names also update the corresponding text annotations. |
 | **`structure`** | Secondary structure in dot-bracket notation. Separate two molecules with `&` (*e.g., `((...))..<<..&...>>..*`). |
 | **`startIndex1` / `startIndex2`** | Starting sequence indices for strand 1 and strand 2 (default: `1`). |
 | **`colorSeq1` / `colorSeq2`** | Custom color hex codes for sequence strands 1 and 2 (*e.g., `%23ff0000` for `#ff0000*`). |

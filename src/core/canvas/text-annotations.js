@@ -19,7 +19,7 @@ function defaultAnnotations(session, container, validated) {
     const dx = terminal.x - center.x, dy = terminal.y - center.y;
     const length = Math.hypot(dx, dy);
     const preferred = length > 1e-8 ? { x: dx / length * 24, y: dy / length * 24 } : { x: 0, y: -24 };
-    const text = names[`seq${sequence}name`];
+    const text = names[`seqName${sequence}`];
     anchor.offset = defaultTextOffset(container, terminal, preferred, 6.4, text);
     // Match the RNA glyph size so tightly fitted short strands retain room for
     // the label beyond their terminal index, without changing the RNA viewport.
@@ -146,7 +146,7 @@ export function initializeTextAnnotations(session, container, validated, options
     clearTextAnnotations(session.modelState);
     validated.textAnnotations.forEach(item => registerTextAnnotation(session.modelState, item));
   }
-  const names = Object.fromEntries(['seq1name', 'seq2name'].filter(key => Object.hasOwn(validated, key))
+  const names = Object.fromEntries(['seqName1', 'seqName2'].filter(key => Object.hasOwn(validated, key))
     .map(key => [key, validated[key]]));
   setSequenceNames(session.modelState, names);
   initializeDefaultTextAnnotations(session.modelState, defaultAnnotations(session, container, validated));

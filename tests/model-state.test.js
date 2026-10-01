@@ -47,7 +47,7 @@ test('renderer documents and cyclic force graphs cannot enter the serializable m
 
   const serialized = JSON.parse(JSON.stringify(session.modelState));
   expect(getSubsequenceHighlights(serialized)[0].range).toEqual([[1, 2]]);
-  expect(Object.keys(serialized).sort()).toEqual(['annotations', 'colors', 'seq1name', 'seq2name']);
+  expect(Object.keys(serialized).sort()).toEqual(['annotations', 'colors', 'seqName1', 'seqName2']);
   expect(() => JSON.stringify(session)).toThrow();
 });
 
