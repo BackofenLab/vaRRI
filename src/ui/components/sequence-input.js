@@ -16,6 +16,7 @@ export default viewerComponent('sequence-input', `<aside class="panel control-pa
         </div>
         <label for="sequence">
           Sequences <small>(IUPAC; separate molecules with &amp;)</small>
+          &nbsp;
           <button id="fastaInputBtn" class="btn btn-secondary btn-sm" type="button" title="Provide sequences in FASTA format" v-on:click="actions.openFastaDialog($event)">FASTA</button>
         </label>
         <div class="input-wrap" v-bind:class="{'has-error': state.errors.sequence}">
