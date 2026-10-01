@@ -23,6 +23,13 @@ See the [viewer guide](viewer-guide.md) and the [Input Format Reference](#input-
 
 To simplify sequence and structure input validation, sequence and structure inputs are highlighted with the chosen strand-specific colors.
 
+While editing either input, the character immediately left of the cursor is
+highlighted in amber in both fields. If that position contains a paired bracket
+in the structure, its partner is highlighted in teal in both fields as well.
+This works for all four bracket types, including pairs across `&`. Positions
+missing from a shorter input and unmatched brackets are skipped. Selecting text
+or leaving the input clears these temporary highlights.
+
 > [!IMPORTANT]
 > - All URL parameters are case-sensitive. 
 > - Use proper URL encoding for special characters (e.g., `&` as `%26`, parentheses as `%28` and `%29`) when encoding yourself.

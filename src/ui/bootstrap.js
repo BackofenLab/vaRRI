@@ -14,6 +14,7 @@ import { createRenderActions } from './render-actions.js';
 import { createNavigationActions } from './navigation-actions.js';
 import { createDialogActions } from './dialog-actions.js';
 import { createFieldActions } from './field-actions.js';
+import { createInputHighlights } from './input-highlights.js';
 
 /** Mount a complete viewer. Only field/annotation DTOs enter Vue's store. */
 export function createViewerApp(options = {}) {
@@ -28,7 +29,7 @@ export function createViewerApp(options = {}) {
   const context = { api, state, defaults, initialColors, actions, document, examples, colors };
   [createStateActions, createFastaController, createProfilesController,
     createValidationController, createAnnotationControllers, createAnnotationActions,
-    createRenderActions, createNavigationActions, createDialogActions, createFieldActions]
+    createRenderActions, createNavigationActions, createDialogActions, createInputHighlights, createFieldActions]
     .forEach(factory => Object.assign(actions, factory(context)));
   const app = createApp(App);
   app.provide(VIEWER_CONTEXT, { state, actions, examples, colors });
