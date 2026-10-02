@@ -89,6 +89,7 @@
     "test:visual": "node scripts/visual-baseline.js",
     "test:browser": "npm run build && node scripts/browser-invariants.js",
     "test:ui": "node scripts/browser-ui.js",
+    "test:ui:firefox": "node scripts/browser-ui.js --firefox",
     "test:pages": "node scripts/browser-pages.js",
     "prepack": "npm run build"
   },

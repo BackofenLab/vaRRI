@@ -86,9 +86,5 @@ export function createRenderActions({ api, state, actions, document }) {
       try { api.downloadSVG('rendering-canvas', 'vaRRI_output.svg'); }
       catch (error) { actions.showMsg('SVG export error: ' + error.message, 'error'); }
     },
-    exportPNG() {
-      try { api.downloadPNG('rendering-canvas', 'vaRRI_output.png'); }
-      catch (error) { actions.showMsg('PNG export error: ' + error.message, 'error'); }
-    },
   };
 }

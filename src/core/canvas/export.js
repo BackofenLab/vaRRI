@@ -1,3 +1,6 @@
+import { validatePNGOptions } from '../model/png-options.js';
+import { rasterizePNG } from './png-raster.js';
+import { blobDataURL } from './blob-data-url.js';
 
 
 const SVG_STYLE_PROPS = ['fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'font-family', 'font-size', 'font-weight', 'font-style', 'text-anchor', 'dominant-baseline', 'alignment-baseline', 'opacity', 'visibility', 'display', 'marker-start', 'marker-end', 'marker-mid', 'color'];
@@ -112,58 +115,29 @@ export function downloadSVG(session, containerId, filename = 'vaRRI_output.svg')
 }
 
 /**
- * Trigger a browser download of the current visualisation as a PNG image.
- *
- * Rasterises the SVG to a canvas at `scale` × the rendered size and
- * converts it to a PNG data URL.  A white background is painted on the
- * canvas before the image is drawn so the result matches the on-screen
- * appearance.
- *
- * @param {string} containerId  ID of the container element.
- * @param {string} [filename="vaRRI_output.png"]
- * @param {number} [scale=2]  Resolution multiplier (2 = retina quality).
+ * Download a PNG with a white background. The legacy numeric scale defaults to
+ * 2; an options object accepts explicit pixel width/height, DPI (default 96),
+ * and an optional AbortSignal. Resolves when the browser download is triggered.
  */
 export function downloadPNG(session, containerId, filename = 'vaRRI_output.png', scale = 2) {
-  const svgStr = buildSVGString(session, containerId);
-  const blob = new (session.window?.Blob || globalThis.Blob)([svgStr], {
-    type: 'image/svg+xml'
-  });
-  const url = (session.window?.URL || globalThis.URL).createObjectURL(blob);
-
-  // Determine the rendered pixel size from the live container so that
-  // canvas dimensions are correct regardless of the SVG's naturalWidth.
   const container = session.dom.getElementById(containerId);
   const svgEl = container && container.querySelector('svg');
-  const w = svgEl && svgEl.clientWidth || container && container.clientWidth || 800;
-  const h = svgEl && svgEl.clientHeight || container && container.clientHeight || 600;
-  function rasterise(imgEl, canvasW, canvasH) {
-    const canvas = session.dom.createElement('canvas');
-    canvas.width = canvasW;
-    canvas.height = canvasH;
-    const ctx = canvas.getContext('2d');
-    // White background to match the container's CSS background colour.
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvasW, canvasH);
-    ctx.drawImage(imgEl, 0, 0, canvasW, canvasH);
-    return canvas.toDataURL('image/png');
-  }
-  const img = new (session.window?.Image || globalThis.Image)();
-  img.onload = () => {
-    const dataUrl = rasterise(img, w * scale, h * scale);
-    (session.window?.URL || globalThis.URL).revokeObjectURL(url);
-    triggerDownload(session, dataUrl, filename);
-  };
-  img.onerror = () => {
-    // Fallback: load the SVG via a data URI instead of a blob URL.
-    (session.window?.URL || globalThis.URL).revokeObjectURL(url);
-    const dataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
-    const imgFallback = new (session.window?.Image || globalThis.Image)();
-    imgFallback.onload = () => {
-      triggerDownload(session, rasterise(imgFallback, w * scale, h * scale), filename);
-    };
-    imgFallback.src = dataUri;
-  };
-  img.src = url;
+  if (!svgEl) throw new Error('No SVG found in container');
+  const w = svgEl.clientWidth || container.clientWidth || 800;
+  const h = svgEl.clientHeight || container.clientHeight || 600;
+  const options = typeof scale === 'number'
+    ? { width: Math.floor(w * scale), height: Math.floor(h * scale), dpi: 96 }
+    : scale || {};
+  const dimensions = validatePNGOptions(options);
+  options.signal?.throwIfAborted();
+  return rasterizePNG(session, buildSVGString(session, containerId), {
+    ...dimensions, signal: options.signal,
+  }).then(blob => blobDataURL(session, blob, options.signal)).then(url => {
+    options.signal?.throwIfAborted();
+    // Do not revoke a blob URL while Firefox may still be opening its save
+    // dialog. A data URL keeps the bytes available without cleanup timers.
+    triggerDownload(session, url, filename);
+  });
 }
 
 /**

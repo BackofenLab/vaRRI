@@ -99,8 +99,9 @@ export async function exerciseTextAnnotationUI(page, origin, output) {
   assert.equal(restored.text, content + ' edited');
   await page.screenshot({ path: path.join(output, 'text-annotations-ui.png'), fullPage: true });
   for (const extension of ['svg', 'png']) {
+    if (extension === 'png') await page.locator('#exportPngBtn').click();
     const [download] = await Promise.all([page.waitForEvent('download'),
-      page.locator(extension === 'svg' ? '#exportSvgBtn' : '#exportPngBtn').click()]);
+      page.locator(extension === 'svg' ? '#exportSvgBtn' : '#pngExportDialog button[value="ok"]').click()]);
     const destination = path.join(output, 'text-annotations.' + extension);
     await download.saveAs(destination);
     const bytes = fs.readFileSync(destination);

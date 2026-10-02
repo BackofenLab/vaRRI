@@ -15,6 +15,7 @@ import SubseqHighlightDialog from './subseq-highlight-dialog.js';
 import RegionHighlightDialog from './region-highlight-dialog.js';
 import MutationDialog from './mutation-dialog.js';
 import FastaDialog from './fasta-dialog.js';
+import PNGExportDialog from './png-export-dialog.js';
 
 export default viewerComponent('VaRRIApp', `
   <SiteHeader />
@@ -27,8 +28,8 @@ export default viewerComponent('VaRRIApp', `
     <ViewerPanel />
   </main>
   <SiteFooter />
-  <NumberDialog /><TextDialog /><SubseqHighlightDialog /><RegionHighlightDialog /><MutationDialog /><FastaDialog />
+  <PNGExportDialog /><NumberDialog /><TextDialog /><SubseqHighlightDialog /><RegionHighlightDialog /><MutationDialog /><FastaDialog />
   <TextAnnotationDialog />
 `, { SiteHeader, SiteFooter, SequenceInput, VisualizationSettings, AnnotationPanel, TextAnnotationPanel,
   ProfilePanel, ViewerPanel, HelpPanel, NumberDialog, TextDialog, SubseqHighlightDialog,
-  RegionHighlightDialog, MutationDialog, FastaDialog, TextAnnotationDialog });
+  RegionHighlightDialog, MutationDialog, FastaDialog, PNGExportDialog, TextAnnotationDialog });

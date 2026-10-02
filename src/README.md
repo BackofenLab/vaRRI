@@ -306,6 +306,12 @@ should call `render()` and let it coordinate them.
 - `vaRRI.downloadSVG(containerId, filename = 'vaRRI_output.svg')` downloads the
   self-contained SVG.
 - `vaRRI.downloadPNG(containerId, filename = 'vaRRI_output.png', scale = 2)`
-  rasterizes the same SVG onto a white canvas and downloads a PNG.
+  rasterizes the same SVG onto a white canvas and downloads a PNG. The third
+  argument also accepts `{ width, height, dpi = 96, signal }`: width and height
+  are whole pixel dimensions, DPI is written as PNG print-density metadata,
+  and an optional AbortSignal cancels pending work. Returns a Promise that
+  resolves when the download starts or rejects on failure. Numeric scale calls
+  retain their 2× default. Dimensions are limited to 16,384 pixels per side and
+  64 megapixels in total; DPI must be between 1 and 100,000.
 
 All three functions throw if the container does not contain an SVG.

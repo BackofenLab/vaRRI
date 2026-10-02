@@ -260,6 +260,12 @@ Run `npm run test:ci` and `npm run test:package` locally before proposing a rele
 package check installs the actual tarball in a temporary consumer and checks module exports,
 viewer asset references, documentation images, and citation data. It also runs in PR CI.
 
+Browser UI checks run in Chromium (`npm run test:ui`) and Firefox
+(`npm run test:ui:firefox`). Install both with
+`npx playwright install --with-deps chromium firefox`. To check only PNG export,
+append `-- --png-only`. `VARRI_BROWSER_PATH` and `VARRI_BROWSER_CHANNEL` can select
+an installed browser; for stock Firefox use the `moz-firefox` channel.
+
 Release tags must be valid semantic versions with an optional leading `v`, for example `v1.2.3`
 or `1.2.3`. The workflow changes `package.json` and `package-lock.json` only inside the temporary
 runner, so no release-generated commit is pushed back to `main`.

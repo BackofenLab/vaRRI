@@ -35,12 +35,13 @@ jobs:
         run: npm run test:package
 
       - name: Install browser
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium firefox
 
       - name: Verify native source, embedding, UI, and visual fixtures
         run: |
           npm run test:browser
           npm run test:ui
+          npm run test:ui:firefox
           npm run test:pages
           npm run test:visual
 

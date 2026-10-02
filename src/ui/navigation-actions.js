@@ -12,6 +12,7 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
     if (copiedTimer !== null) window.clearTimeout(copiedTimer);
     copiedTimer = null;
     state.shareCopied = false;
+    actions.cancelPNGExport();
     actions.cancelRendering();
     actions.clearInputCaret();
     state.selectedExample = null;
