@@ -4,6 +4,8 @@ import SiteFooter from './site-footer.js';
 import SequenceInput from './sequence-input.js';
 import VisualizationSettings from './visualization-settings.js';
 import AnnotationPanel from './annotation-panel.js';
+import TextAnnotationPanel from './text-annotation-panel.js';
+import TextAnnotationDialog from './text-annotation-dialog.js';
 import ProfilePanel from './profile-panel.js';
 import ViewerPanel from './viewer-panel.js';
 import HelpPanel from './help-panel.js';
@@ -19,7 +21,7 @@ export default viewerComponent('VaRRIApp', `
   <SiteHeader />
   <main>
     <div class="controls-column">
-      <SequenceInput /><VisualizationSettings />
+      <SequenceInput /><VisualizationSettings /><TextAnnotationPanel />
       <AnnotationPanel kind="regions" /><AnnotationPanel kind="subsequences" /><AnnotationPanel kind="mutations" />
       <ProfilePanel /><HelpPanel />
     </div>
@@ -27,6 +29,7 @@ export default viewerComponent('VaRRIApp', `
   </main>
   <SiteFooter />
   <PNGExportDialog /><NumberDialog /><TextDialog /><SubseqHighlightDialog /><RegionHighlightDialog /><MutationDialog /><FastaDialog />
-`, { SiteHeader, SiteFooter, SequenceInput, VisualizationSettings, AnnotationPanel,
+  <TextAnnotationDialog />
+`, { SiteHeader, SiteFooter, SequenceInput, VisualizationSettings, AnnotationPanel, TextAnnotationPanel,
   ProfilePanel, ViewerPanel, HelpPanel, NumberDialog, TextDialog, SubseqHighlightDialog,
-  RegionHighlightDialog, MutationDialog, FastaDialog, PNGExportDialog });
+  RegionHighlightDialog, MutationDialog, FastaDialog, PNGExportDialog, TextAnnotationDialog });

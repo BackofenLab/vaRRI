@@ -6,6 +6,9 @@ import http from 'node:http';
 import path from 'node:path';
 import { chromium, firefox } from 'playwright';
 import { checkPNGDialog, checkPNGResize } from './browser-png-export.js';
+import { exerciseTextAnnotationUI } from './browser-text-ui.js';
+import { exerciseSequenceNames } from './browser-sequence-names.js';
+import { checkInputHighlights } from './browser-input-highlights.js';
 const root = path.resolve(import.meta.dirname, '..');
 const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
@@ -128,6 +131,10 @@ async function main() {
     // A clean URL isolates dialog behavior from the catalog's annotations.
     const initial = new URLSearchParams({ sequence: 'ACGU&UGCA', structure: '((..&..))',
       highlighting: 'nothing', backgroundhighlighting: 'nothing', forceLayout: '0' });
+    phase = 'linked input highlights';
+    await page.goto(`${origin}/index.html?${initial}`, { waitUntil: 'networkidle' });
+    await ready(page);
+    await checkInputHighlights(page, output);
     phase = 'sequence editing';
     await page.goto(`${origin}/index.html?${initial}`, { waitUntil: 'networkidle' });
     await ready(page);
@@ -228,11 +235,15 @@ async function main() {
     assert.equal(fullPage.searchParams.has('showRenderingOnly'), false);
     assert.equal(fullPage.searchParams.get('sequence'), 'ACGU&UGCA');
     await page.screenshot({ path: path.join(output, 'render-only.png') });
-    phase = 'PNG dialog after resizing in render-only mode';
+    phase = 'text annotation defaults, editing, dragging and sharing';
+    await exerciseTextAnnotationUI(page, origin, output);
+    phase = 'sequence names, protected labels, text dialogs and FASTA';
+    await exerciseSequenceNames(page, origin, output);
+    phase = 'PNG dialog after resizing';
     await checkPNGResize(page, output);
     assert.deepEqual(errors, [], 'Browser errors during Vue UI workflow');
     await page.close();
-    console.log(`Vue browser UI passed (${browserType.name()} ${browser.version()}): five examples, edits, FASTA, annotation CRUD, profiles, force, share roundtrip, export, render-only.`);
+    console.log(`Vue browser UI passed (${browserType.name()} ${browser.version()}): five examples, input highlights, edits, FASTA, sequence names, annotation CRUD, text drag/drop and sharing, profiles, force, export, render-only.`);
   } catch (error) {
     if (page && !page.isClosed()) {
       await page.screenshot({ path: path.join(output, 'failure.png'), fullPage: true }).catch(() => {});

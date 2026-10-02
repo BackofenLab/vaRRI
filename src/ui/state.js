@@ -5,6 +5,7 @@ export function createViewerState(api, colors) {
   const hex = colors.cssColorToHex;
   const defaults = {
     sequence: '', structure: '', startIndex1: '1', startIndex2: '1',
+    seqName1: 'Seq. 1', seqName2: 'Seq. 2',
     rotationSlider: '0', cropping: '-1', colorSeq1: hex(palette.sequence1),
     colorSeq2: hex(palette.sequence2), coloring: 'strand', highlighting: 'region',
     backgroundhighlighting: 'basepairs', distinctBpTypes: true,
@@ -21,14 +22,18 @@ export function createViewerState(api, colors) {
     regionColor: hex(palette.backgroundHighlight), regionAlpha: '0.2',
     mutationEditId: '', mutationSequence: '1', mutationPosition: '', mutationBase: '',
     mutationColor: hex(palette.mutationColor),
+    textAnnotationEditId: '', textAnnotationText: '', textAnnotationBold: false,
+    textAnnotationItalic: false, textAnnotationSize: '16', textAnnotationColor: '#000000',
     fastaInput: '', fastaSequence: '', fastaStructure: '',
+    fastaSeqName1: 'Seq. 1', fastaSeqName2: 'Seq. 2',
   };
   const state = reactive({
     fields: { ...defaults }, errors: {}, message: { text: '', type: '' },
-    annotations: { subsequences: [], regions: [], mutations: [] },
+    annotations: { subsequences: [], regions: [], mutations: [], texts: [] },
     selectedExample: null, exampleOpen: false, rotation: 0, rotationPreview: 0,
     renderingOnly: false, showFullPage: false, shareCopied: false,
     pngExport: { width: '', height: '', dpi: '96', error: '', busy: false },
+    inputCaret: { field: '', index: -1 },
     dialog: { id: '', title: '', value: '', left: '', top: '' },
   });
   return { state, defaults, initialColors: palette };
@@ -49,10 +54,13 @@ export function createStateActions({ state, defaults, api }) {
     },
     showMsg(text, type) { state.message = { text, type }; },
     clearMsg() { state.message = { text: '', type: '' }; },
+    syncSequenceNames() { Object.assign(state.fields, api.getSequenceNames()); },
     syncAnnotations() {
       state.annotations.subsequences = api.getSubsequenceHighlights();
       state.annotations.regions = api.getRegionHighlights();
       state.annotations.mutations = api.getPointMutations();
+      state.annotations.texts = api.getTextAnnotations();
+      Object.assign(state.fields, api.getSequenceNames());
     },
   };
 }

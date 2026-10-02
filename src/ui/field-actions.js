@@ -1,8 +1,9 @@
 import { nextTick } from 'vue';
 
-const DRAFTS = { subseq: 'validateSubseqForm', region: 'validateRegionForm', mutation: 'validateMutationForm', fasta: 'validateFastaForm' };
+const DRAFTS = { subseq: 'validateSubseqForm', region: 'validateRegionForm', mutation: 'validateMutationForm',
+  textAnnotation: 'validateTextAnnotationForm', fasta: 'validateFastaForm' };
 
-export function createFieldActions({ state, actions, document, colors }) {
+export function createFieldActions({ state, actions, document }) {
   const observers = [];
   let disposed = false;
   const skipChange = new Map();
@@ -30,11 +31,12 @@ export function createFieldActions({ state, actions, document, colors }) {
   }
   function inputField(id, event) {
     updateFromEvent(id, event);
+    actions.updateInputCaret(id, event);
     actions.clearFieldError(id);
     if (id === 'rotationSlider') actions.applySliderRotation();
     else if (id === 'fastaInput') validateDraft(id);
     else if (event?.target?.type !== 'color' && event?.target?.tagName !== 'SELECT') validateDraft(id);
-    nextTick(() => { syncDimensions(id); syncScroll(id); });
+    nextTick(() => { if (!disposed) { syncDimensions(id); syncScroll(id); } });
   }
   function commitField(id, event) {
     updateFromEvent(id, event);
@@ -46,6 +48,7 @@ export function createFieldActions({ state, actions, document, colors }) {
     actions.clearFieldError(id);
     if (id === 'rotationSlider') { actions.commitSliderRotation(); return; }
     if (id === 'hideFooterAndHeader') { actions.applyBodyClasses(); return; }
+    if (id === 'seqName1' || id === 'seqName2') { actions.commitSequenceName(id); return; }
     if (validateDraft(id)) return;
     if ((id === 'forceLayoutLinearRRI' || id === 'forceLayoutLinearStructure') && state.fields[id]) {
       actions.enableForceLayoutForSelectedLinearOptions();
@@ -56,17 +59,6 @@ export function createFieldActions({ state, actions, document, colors }) {
   return {
     inputField, commitField, syncScroll, syncDimensions,
     profileCount() { return ['profileData1', 'profileData2'].filter(id => String(state.fields[id]).trim()).length; },
-    highlightSegments(id) {
-      const text = String(state.fields[id] || '');
-      const separator = text.indexOf('&');
-      if (separator < 0) return [{ text: text + (text.endsWith('\n') ? ' ' : '') }];
-      const color = (field, alpha) => ({ backgroundColor: colors.cssColorToRGB(state.fields[field], alpha) });
-      return [
-        { text: text.slice(0, separator), className: 'hl-seq1', style: color('colorSeq1', 0.35) },
-        { text: '&', className: 'hl-basepair', style: color('colorBasepair', 0.6) },
-        { text: text.slice(separator + 1) + (text.endsWith('\n') ? ' ' : ''), className: 'hl-seq2', style: color('colorSeq2', 0.35) },
-      ];
-    },
     observeBackdrops() {
       const Observer = document.defaultView.ResizeObserver;
       ['sequence', 'structure', 'fastaSequence', 'fastaStructure'].forEach(id => {
@@ -78,7 +70,11 @@ export function createFieldActions({ state, actions, document, colors }) {
         syncDimensions(id);
       });
     },
-    disposeBackdrops() { disposed = true; observers.forEach(observer => observer.disconnect()); },
+    disposeBackdrops() {
+      disposed = true;
+      actions.clearInputCaret();
+      observers.forEach(observer => observer.disconnect());
+    },
     dragOver(event) { event.stopPropagation(); event.currentTarget.classList.add('drag-over'); },
     dragLeave(event) { event.currentTarget.classList.remove('drag-over'); },
     dropFile(id, event) {

@@ -49,6 +49,7 @@ export function createRenderActions({ api, state, actions, document }) {
     const f = state.fields;
     try {
       const result = await api.render('rendering-canvas', validated, {
+        onTextAnnotationsChange: () => actions.syncAnnotations(),
         forceLayout: f.forceLayout,
         forceLayoutLinearRRI: f.forceLayout && f.forceLayoutLinearRRI,
         forceLayoutLinearStructure: f.forceLayout && f.forceLayoutLinearStructure,

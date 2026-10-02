@@ -50,6 +50,7 @@ object expected by `render()`.
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `sequence` | `string` | required | IUPAC sequence; separate two molecules with `&`. |
+| `seqName1`, `seqName2` | `string` | instance names | Optional explicit strand names. Omitted names preserve the current instance model. |
 | `structure` | `string` | required | Dot-bracket structure; separate two molecules with `&`. |
 | `startIndex1` | `string\|number` | `1` | First index of molecule 1; zero is invalid. |
 | `startIndex2` | `string\|number` | `1` | First index of molecule 2; zero is invalid. |
@@ -62,6 +63,7 @@ object expected by `render()`.
 | `subsequenceHighlights` | `Array` | `[]` | Subsequence highlight definitions. |
 | `regionHighlights` | `Array` | `[]` | Region highlight definitions. |
 | `pointMutations` | `Array` | `[]` | Point-mutation definitions. |
+| `textAnnotations` | `Array` | instance state | Optional replacement text list; `[]` explicitly suppresses defaults. |
 
 ```javascript
 const validated = vaRRI.validate({
@@ -92,6 +94,7 @@ linear-layout listeners, and resolves any pending render as cancelled.
 | `accessData` | `Object<number, number>\|null` | `null` | Node-ID to probability map. |
 | `accessColors` | `Object\|null` | `null` | Optional `sequence1` and `sequence2` overlay colors. |
 | `accessColorMode` | `Object\|null` | `null` | Optional `sequence1RepresentsOne` and `sequence2RepresentsOne` flags. |
+| `onTextAnnotationsChange` | `function` | none | Receives copied text definitions after initial placement or user dragging. |
 
 ```javascript
 const state = await vaRRI.render('rendering-canvas', validated, {
@@ -168,6 +171,59 @@ A definition has `{ sequence, position, replacement, color? }`.
 - `vaRRI.removePointMutation(id)`
 - `vaRRI.clearPointMutations()`
 - `vaRRI.getPointMutations()`
+
+### Free-position text annotations
+
+Text annotations have `{ text, bold?, italic?, size?, color?, position? }`.
+`position: null` keeps an annotation in the registry without drawing it.
+Font size is measured in SVG units. Text is rendered literally, including
+characters such as `<` and `&`.
+
+- `vaRRI.createTextAnnotation(input)` validates a definition without registering it.
+- `vaRRI.registerTextAnnotation(input)` returns the added definition, including its ID.
+- `vaRRI.updateTextAnnotation(id, patch)` changes selected properties.
+- `vaRRI.removeTextAnnotation(id)` deletes user text; a sequence-name label is retained with its position cleared.
+- `vaRRI.clearTextAnnotations()` deletes user text, unpositions sequence names, and suppresses automatic placement.
+- `vaRRI.getTextAnnotations()` returns independent copies of the definitions.
+- `vaRRI.refreshTextAnnotations()` redraws the annotation layer after registry edits.
+- `vaRRI.placeTextAnnotation(id, clientX, clientY)` positions an annotation at
+  browser client coordinates on the current canvas and refreshes the layer.
+
+A positioned annotation stores `{ x, y }` relative to the centroid of the real
+nucleotides, in unrotated graph units. Pan, zoom and display rotation do not
+change these saved coordinates. The centroid moves with the force layout, so
+labels follow its overall translation without participating in the simulation.
+Use `placeTextAnnotation()` to convert a pointer's client coordinates correctly.
+
+Each strand gets its sequence name near the first strand's start or the second
+strand's end when it appears in the figure. The names default to `Seq. 1` and
+`Seq. 2`. These labels carry `sequenceNameFor: '1' | '2'` so their identity survives
+dragging, renaming, and unpositioning. Their text and model names stay synchronized.
+The defaults
+carry a serializable terminal `anchor` and follow the endpoint through layout
+changes. Dragging or explicitly updating `position` releases the anchor.
+`clearTextAnnotations({ resetDefaults: true })` enables fresh defaults on the
+next render, as used when loading a new example.
+
+Pass `onTextAnnotationsChange` to `render()` to synchronize a list after pointer
+placement. SVG dragging is available with animation off as well as on. Rotation
+keeps the text horizontal, and both SVG and PNG exports include positioned labels.
+Share links use the additive JSON `textAnnotations` query parameter; an explicit
+empty array preserves cleared positioning. See [text annotations](../docs/text-annotations.md).
+
+### Sequence names
+
+- `vaRRI.getSequenceNames()` returns a copy of `{ seqName1, seqName2 }`.
+- `vaRRI.normalizeSequenceName(value, sequence)` trims a name and substitutes
+  the default when blank; `sequence` is `'1'` or `'2'`.
+- `vaRRI.setSequenceNames(patch)` updates supplied names and matching annotation
+  text without changing style or placement. Blank names reset to the strand default.
+
+Call `refreshTextAnnotations()` after name changes to update the active canvas.
+These model operations work without a DOM. `validate()` remains pure and carries
+names only when explicitly supplied; reusing a validated object with omitted names
+does not undo later name edits. The URL fields `seqName1` and `seqName2` are optional.
+Explicit URL names override matching annotation text during restoration.
 
 A `sequenceContext` uses molecule keys and visible sequence metadata:
 

@@ -5,6 +5,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { chromium } from 'playwright';
 import { exerciseInteractions } from './browser-interactions.js';
+import { exerciseCoreTextAnnotations } from './browser-text-core.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const output = path.join(root, 'output/playwright/core-contract');
@@ -132,6 +133,8 @@ async function main() {
       assert.deepEqual(errors, [], mode + ': browser errors');
       phase = mode + ' dragging, zooming and interaction disposal';
       await exerciseInteractions(page);
+      phase = mode + ' text annotations, coordinates, drift and disposal';
+      await exerciseCoreTextAnnotations(page);
       assert.deepEqual(errors, [], mode + ': interaction browser errors');
       assert.ok(!requests.some(url => /vue|fornac\.js/.test(url)), mode + ': UI-free core dependency graph');
       await page.evaluate(() => window.exportApi.cancelActiveRender());
@@ -139,7 +142,7 @@ async function main() {
     }
     phase = 'native/bundle parity';
     assert.deepEqual(scenes.native, scenes.bundle, 'Native source and standalone bundle render the same scene');
-    console.log(`Browser contracts passed (Chromium ${browser.version()}): native/bundle parity, topology, instance isolation, force cancellation, SVG and PNG export.`);
+    console.log(`Browser contracts passed (Chromium ${browser.version()}): native/bundle parity, topology, instance isolation, text placement/drag/rotation/drift, force cancellation, SVG and PNG export.`);
   } catch (error) {
     if (activePage && !activePage.isClosed()) {
       await activePage.screenshot({ path: path.join(output, 'failure.png'), fullPage: true }).catch(() => {});

@@ -1,3 +1,5 @@
+import { decodeUrlTextAnnotations, encodeUrlTextAnnotations } from './url-text-annotations.js';
+
 /** The established URL color grammar accepts unprefixed or prefixed hex. */
 export function parseUrlColor(value, fallback) {
   if (!value) return fallback;
@@ -54,6 +56,7 @@ function readList(params, key, expression, convert, groupedRanges = false) {
 export function decodeUrlAnnotations(params, defaults = {}) {
   const colors = { ...DEFAULTS, ...defaults };
   return {
+    ...decodeUrlTextAnnotations(params),
     pointMutations: readList(params, 'mutations', new RegExp(`^([12]):(-?\\d+)(.)(?::(${COLOR}))?$`, 'i'),
       match => {
         const color = annotationColor(match[4], colors.mutationColor);
@@ -106,6 +109,7 @@ function subsequenceRanges(item) {
 
 /** Preserve legacy tokens, adding tagged CSS colors; automatic regions are omitted. */
 export function encodeUrlAnnotations(params, annotations = {}) {
+  encodeUrlTextAnnotations(params, annotations);
   const mutations = (annotations.pointMutations || []).map(item =>
     `${item.sequence}:${item.position}${item.replacement}${encodeStyle(item.color)}`
   ).join(',');

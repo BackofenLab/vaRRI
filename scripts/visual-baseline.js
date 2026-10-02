@@ -127,7 +127,7 @@ async function main() {
       });
       const parameters = new URLSearchParams({ ...examples[name].vaRRIParams,
         forceLayout: '0', forceLayoutLinearRRI: '0', forceLayoutLinearStructure: '0',
-        freeTrailingEnds: '0', pullPseudoknotBasepairs: '0' });
+        freeTrailingEnds: '0', pullPseudoknotBasepairs: '0', textAnnotations: '[]' });
       await page.goto(`${origin}/index.html?${parameters}`, { waitUntil: 'networkidle' });
       await page.waitForFunction(() => document.querySelector('#rendering-canvas circle[node_num]') &&
         document.getElementById('rendering-canvas')?.style.visibility !== 'hidden');
