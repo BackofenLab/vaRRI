@@ -225,6 +225,8 @@ Details about URL encoding are given in the following section [URL Parameters & 
 
 The PNG dialog starts with the current canvas width and height. Editing either
 dimension updates the other to preserve the aspect ratio, rounded to whole pixels.
+Drag the dialog by its title bar to move it. Width, height, and DPI share one row;
+hover over the DPI label or input for its explanation.
 DPI defaults to 96 and sets the image's print density without changing its pixel
 dimensions. PNG exports keep the white canvas background. The browser's PNG
 encoder controls lossless compression, so no compression setting is offered.

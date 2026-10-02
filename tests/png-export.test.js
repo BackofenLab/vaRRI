@@ -60,6 +60,13 @@ function exportSession({ failImages = 0, encode = true, context = true } = {}) {
   const urls = { createObjectURL: jest.fn(() => 'blob:test'), revokeObjectURL: jest.fn() };
   const window = { Blob, URL: urls, XMLSerializer: dom.window.XMLSerializer,
     getComputedStyle: dom.window.getComputedStyle.bind(dom.window),
+    FileReader: class {
+      async readAsDataURL(blob) {
+        this.result = 'data:image/png;base64,' + Buffer.from(await blob.arrayBuffer()).toString('base64');
+        this.onload?.();
+      }
+      abort() {}
+    },
     Image: class {
       set src(value) {
         if (value) queueMicrotask(() => {
@@ -83,7 +90,14 @@ test.each([undefined, 2, 1.234, { width: 1200, height: 900, dpi: 300 }])('suppor
       ? [Math.floor(400 * scale), Math.floor(300 * scale)] : [1200, 900]]);
     expect(click).toHaveBeenCalledTimes(1);
     expect(click.mock.instances[0].download).toBe('figure.png');
-    expect(urls.revokeObjectURL).toHaveBeenCalledTimes(2);
+    expect(urls.revokeObjectURL).toHaveBeenCalledTimes(1);
+    // The browser may read this after the export Promise resolves or the user
+    // finishes choosing a file location. It must not depend on a revoked URL.
+    const href = click.mock.instances[0].href;
+    expect(href).toMatch(/^data:image\/png;base64,/);
+    const saved = chunks(Buffer.from(href.split(',')[1], 'base64'));
+    expect(saved.find(chunk => chunk.type === 'pHYs').data.readUInt32BE(0))
+      .toBe(Math.round((options?.dpi ?? 96) / 0.0254));
     expect(canvas.width).toBe(0);
   }).finally(() => dom.window.close());
 });
@@ -123,5 +137,35 @@ test('cancelling a pending export prevents a late download and releases the sour
     await expect(pending).rejects.toHaveProperty('name', 'AbortError');
     expect(click).not.toHaveBeenCalled();
     expect(urls.revokeObjectURL).toHaveBeenCalledTimes(1);
+  } finally { dom.window.close(); }
+});
+
+test.each(['error event', 'synchronous error'])('reports download URL preparation failures: %s', async failure => {
+  const { session, dom, click } = exportSession();
+  session.window.FileReader = class {
+    error = new Error('Cannot read PNG');
+    readAsDataURL() {
+      if (failure === 'synchronous error') throw this.error;
+      this.onerror();
+    }
+  };
+  try {
+    await expect(downloadPNG(session, 'viewer')).rejects.toThrow('Cannot read PNG');
+    expect(click).not.toHaveBeenCalled();
+  } finally { dom.window.close(); }
+});
+
+test('cancelling while preparing the download URL prevents a late download', async () => {
+  const { session, dom, click } = exportSession();
+  const controller = new AbortController();
+  session.window.FileReader = class {
+    readAsDataURL() { controller.abort(); }
+    abort() {}
+  };
+  try {
+    await expect(downloadPNG(session, 'viewer', 'figure.png', {
+      width: 800, height: 600, signal: controller.signal,
+    })).rejects.toHaveProperty('name', 'AbortError');
+    expect(click).not.toHaveBeenCalled();
   } finally { dom.window.close(); }
 });

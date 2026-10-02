@@ -1,5 +1,6 @@
 import { validatePNGOptions } from '../model/png-options.js';
 import { rasterizePNG } from './png-raster.js';
+import { blobDataURL } from './blob-data-url.js';
 
 
 const SVG_STYLE_PROPS = ['fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'font-family', 'font-size', 'font-weight', 'font-style', 'text-anchor', 'dominant-baseline', 'alignment-baseline', 'opacity', 'visibility', 'display', 'marker-start', 'marker-end', 'marker-mid', 'color'];
@@ -131,12 +132,11 @@ export function downloadPNG(session, containerId, filename = 'vaRRI_output.png',
   options.signal?.throwIfAborted();
   return rasterizePNG(session, buildSVGString(session, containerId), {
     ...dimensions, signal: options.signal,
-  }).then(blob => {
+  }).then(blob => blobDataURL(session, blob, options.signal)).then(url => {
     options.signal?.throwIfAborted();
-    const urls = session.window?.URL || globalThis.URL;
-    const url = urls.createObjectURL(blob);
-    try { triggerDownload(session, url, filename); }
-    finally { urls.revokeObjectURL(url); }
+    // Do not revoke a blob URL while Firefox may still be opening its save
+    // dialog. A data URL keeps the bytes available without cleanup timers.
+    triggerDownload(session, url, filename);
   });
 }
 

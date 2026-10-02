@@ -4,12 +4,14 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
-import { chromium } from 'playwright';
+import { chromium, firefox } from 'playwright';
 import { checkPNGDialog, checkPNGResize } from './browser-png-export.js';
 const root = path.resolve(import.meta.dirname, '..');
 const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
-const output = path.join(root, 'output/playwright/ui');
+const browserType = process.argv.includes('--firefox') ? firefox : chromium;
+const outputName = browserType === firefox ? 'ui-firefox' : 'ui';
+const output = path.join(root, 'output/playwright', outputName + (process.env.VARRI_BROWSER_CHANNEL ? '-channel' : ''));
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
   '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json' };
 
@@ -62,7 +64,8 @@ async function main() {
   let phase = 'browser startup';
   const errors = [];
   try {
-    browser = await chromium.launch({ headless: true,
+    browser = await browserType.launch({ headless: true,
+      ...(process.env.VARRI_BROWSER_CHANNEL ? { channel: process.env.VARRI_BROWSER_CHANNEL } : {}),
       ...(process.env.VARRI_BROWSER_PATH ? { executablePath: process.env.VARRI_BROWSER_PATH } : {}) });
     const origin = `http://127.0.0.1:${server.address().port}`;
     page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1, acceptDownloads: true });
@@ -84,6 +87,15 @@ async function main() {
     phase = 'initial viewer load';
     await page.goto(origin + '/index.html', { waitUntil: 'networkidle' });
     await ready(page);
+    if (process.argv.includes('--png-only')) {
+      phase = 'PNG dialog and download';
+      await checkPNGDialog(page, output);
+      phase = 'PNG dialog after resizing';
+      await checkPNGResize(page, output);
+      assert.deepEqual(errors, [], 'Browser errors during PNG workflow');
+      console.log(`PNG browser checks passed (${browserType.name()} ${browser.version()}): layout, dragging, cancellation, resize, image content and DPI.`);
+      return;
+    }
     phase = 'live Vue and D3 reactivity boundary';
     const boundary = await page.evaluate(async () => {
       const { isProxy } = await import('/src/ui/vendor/vue.esm-browser.prod.js');
@@ -220,7 +232,7 @@ async function main() {
     await checkPNGResize(page, output);
     assert.deepEqual(errors, [], 'Browser errors during Vue UI workflow');
     await page.close();
-    console.log(`Vue browser UI passed (Chromium ${browser.version()}): five examples, edits, FASTA, annotation CRUD, profiles, force, share roundtrip, export, render-only.`);
+    console.log(`Vue browser UI passed (${browserType.name()} ${browser.version()}): five examples, edits, FASTA, annotation CRUD, profiles, force, share roundtrip, export, render-only.`);
   } catch (error) {
     if (page && !page.isClosed()) {
       await page.screenshot({ path: path.join(output, 'failure.png'), fullPage: true }).catch(() => {});
