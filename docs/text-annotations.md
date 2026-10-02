@@ -54,8 +54,7 @@ The JSON `textAnnotations` URL parameter is additive: existing URL keys retain
 their encodings. An absent parameter permits defaults; `textAnnotations=[]`
 suppresses automatic positioning while keeping the sequence-name entries.
 Optional `seqName1` and `seqName2` URL parameters set the names and take precedence
-over names in annotation records. Older links using `seq1name` or `seq2name` still
-load; newly shared links use `seqName1` and `seqName2`. Unicode text, punctuation, styles, null positions and
+over names in annotation records. Unicode text, punctuation, styles, null positions and
 positioned values round-trip without delimiter escaping rules.
 
 FASTA import takes the first whitespace-delimited token after each `>` as the

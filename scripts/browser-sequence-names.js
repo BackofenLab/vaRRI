@@ -82,8 +82,6 @@ export async function exerciseSequenceNames(page, origin, output) {
   const shared = await page.evaluate(async () => (await import('/index.js')).default.actions.generateShareableURL());
   assert.equal(new URL(shared).searchParams.get('seqName1'), 'Dialog edited γ');
   assert.equal(new URL(shared).searchParams.get('seqName2'), 'Target β');
-  assert.equal(new URL(shared).searchParams.has('seq1name'), false);
-  assert.equal(new URL(shared).searchParams.has('seq2name'), false);
   await page.goto(shared, { waitUntil: 'networkidle' });
   await ready();
   await open('#textAnnotationSubmitBtn');

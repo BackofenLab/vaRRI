@@ -87,7 +87,6 @@ test('deleting or clearing sequence-name labels only unpositions them', async ()
 
 test.each([
   { seqName1: 'Explicit α & β', seqName2: 'Other RNA' },
-  { seq1name: 'Explicit α & β', seq2name: 'Other RNA' },
 ])('sequence name URL fields override label text and survive shared links: %j', async nameFields => {
   const viewer = await mountViewer();
   try {
@@ -104,8 +103,6 @@ test.each([
     const shared = new URL(viewer.view.actions.generateShareableURL()).searchParams;
     expect(shared.get('seqName1')).toBe('Explicit α & β');
     expect(shared.get('seqName2')).toBe('Other RNA');
-    expect(shared.has('seq1name')).toBe(false);
-    expect(shared.has('seq2name')).toBe(false);
     expect(JSON.parse(shared.get('textAnnotations'))[0].sequenceNameFor).toBe('1');
     viewer.view.actions.clearAll();
     expect(viewer.api.getSequenceNames()).toEqual({ seqName1: 'Seq. 1', seqName2: 'Seq. 2' });

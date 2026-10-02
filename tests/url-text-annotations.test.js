@@ -60,20 +60,7 @@ describe('text annotation share data', () => {
     expect(decoded.annotations.textAnnotations).toEqual(labels.map(item => expect.objectContaining(item)));
   });
 
-  test.each([
-    ['seq1name=Older+RNA&seq2name=Older+target', { seqName1: 'Older RNA', seqName2: 'Older target' }],
-    ['seq1name=Old&seqName1=Current&seqName2=Target&seq2name=Old', { seqName1: 'Current', seqName2: 'Target' }],
-    ['seqName1=&seq1name=Old&seq2name=First&seq2name=Last', { seqName1: '', seqName2: ['First', 'Last'] }],
-  ])('reads legacy name URLs and shares current spellings: %s', (query, fields) => {
-    const decoded = decodeUrlState(query);
-    expect(decoded.fields).toEqual(fields);
-    const shared = encodeUrlState(decoded);
-    expect(shared.has('seq1name')).toBe(false);
-    expect(shared.has('seq2name')).toBe(false);
-    expect(shared.getAll('seqName2')).toEqual(Array.isArray(fields.seqName2) ? fields.seqName2 : [fields.seqName2]);
-  });
-
-  test('only legacy canonical anchors infer protected names, not matching text or explicit user identity', () => {
+    test('only legacy canonical anchors infer protected names, not matching text or explicit user identity', () => {
     const labels = [
       { text: 'Former default renamed', anchor: { sequence: '1', end: 'start', offset: { x: 0, y: 0 } } },
       { text: 'Seq. 2', position: { x: 1, y: 2 } },

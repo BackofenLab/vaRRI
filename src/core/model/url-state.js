@@ -39,11 +39,6 @@ function toParams(input) {
  */
 export function decodeUrlState(input, defaults = {}) {
   const params = toParams(input);
-  // Read links from the original name-field spelling; emit only current fields.
-  for (const [legacy, current] of [['seq1name', 'seqName1'], ['seq2name', 'seqName2']]) {
-    if (!params.has(current)) params.getAll(legacy).forEach(value => params.append(current, value));
-    params.delete(legacy);
-  }
   const fields = {};
   params.forEach((raw, key) => {
     if (STRUCTURED_FIELDS.has(key)) return;
