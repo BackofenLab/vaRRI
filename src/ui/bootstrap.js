@@ -57,6 +57,7 @@ export function createViewerApp(options = {}) {
       if (unmounted) return;
       unmounted = true;
       actions.cancelRendering(); actions.disposeBackdrops(); actions.disposeDialogs(); actions.disposeNavigation();
+      actions.disposeTextAnnotations();
       document.removeEventListener('click', outsideClick);
       app.unmount();
     },

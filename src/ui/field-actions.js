@@ -1,6 +1,7 @@
 import { nextTick } from 'vue';
 
-const DRAFTS = { subseq: 'validateSubseqForm', region: 'validateRegionForm', mutation: 'validateMutationForm', fasta: 'validateFastaForm' };
+const DRAFTS = { subseq: 'validateSubseqForm', region: 'validateRegionForm', mutation: 'validateMutationForm',
+  textAnnotation: 'validateTextAnnotationForm', fasta: 'validateFastaForm' };
 
 export function createFieldActions({ state, actions, document }) {
   const observers = [];
@@ -47,6 +48,7 @@ export function createFieldActions({ state, actions, document }) {
     actions.clearFieldError(id);
     if (id === 'rotationSlider') { actions.commitSliderRotation(); return; }
     if (id === 'hideFooterAndHeader') { actions.applyBodyClasses(); return; }
+    if (id === 'seqName1' || id === 'seqName2') { actions.commitSequenceName(id); return; }
     if (validateDraft(id)) return;
     if ((id === 'forceLayoutLinearRRI' || id === 'forceLayoutLinearStructure') && state.fields[id]) {
       actions.enableForceLayoutForSelectedLinearOptions();

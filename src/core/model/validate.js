@@ -4,6 +4,8 @@ import { validateBackgroundhighlighting, validateCroppingInput, validateHighligh
 import { createPointMutation } from './mutations.js';
 import { createRegionHighlight } from './regions.js';
 import { createSubsequenceHighlight } from './subsequences.js';
+import { createTextAnnotation } from './text-annotations.js';
+import { normalizeSequenceName } from './sequence-names.js';
 
 /**
  * Validate all inputs and return a `validated` parameter object ready for rendering.
@@ -26,6 +28,11 @@ import { createSubsequenceHighlight } from './subsequences.js';
  */
 export function validate(args, colors = DEFAULT_COLORS) {
   const v = {};
+  // Only explicit names override instance names when this result is rendered.
+  for (const sequence of ['1', '2']) {
+    const key = `seqName${sequence}`;
+    if (Object.hasOwn(args, key)) v[key] = normalizeSequenceName(args[key], sequence);
+  }
 
   // Sequence
   const rawSeq = (args.sequence || '').trim();
@@ -105,6 +112,11 @@ export function validate(args, colors = DEFAULT_COLORS) {
     });
   } else {
     v.pointMutations = [];
+  }
+  // Absence retains the instance registry/defaults; [] explicitly removes text.
+  if (Object.hasOwn(args, 'textAnnotations')) {
+    if (!Array.isArray(args.textAnnotations)) throw new Error('Text annotations must be an array.');
+    v.textAnnotations = args.textAnnotations.map(createTextAnnotation);
   }
   return v;
 }

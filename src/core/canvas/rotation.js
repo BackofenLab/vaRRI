@@ -42,10 +42,14 @@ export function ensureRotationLayer(session, hostEl) {
   if (!layer) {
     layer = session.dom.createElementNS('http://www.w3.org/2000/svg', 'g');
     layer.setAttribute('data-varri-rotation-layer', 'true');
-    hostEl.appendChild(layer);
+    const textLayer = Array.from(hostEl.children).find(child => child.hasAttribute('data-varri-text-layer'));
+    hostEl.insertBefore(layer, textLayer || null);
   }
   const nodesToMove = Array.from(hostEl.childNodes).filter(node => {
     if (node === layer) return false;
+    // Free text mirrors the RNA rotation as a sibling, so its bounds never
+    // change the RNA rotation pivot or the graph's viewport fitting.
+    if (node.nodeType === 1 && node.hasAttribute('data-varri-text-layer')) return false;
     if (hostEl.tagName && hostEl.tagName.toLowerCase() === 'svg' && node.nodeType === 1 && node.tagName && node.tagName.toLowerCase() === 'defs') {
       return false;
     }
@@ -76,6 +80,35 @@ export function getBBoxCenter(el) {
   }
 }
 
+/** Counterrotate local glyphs without changing their positioned parent group. */
+export function counterrotateTextLabels(layer, target, fallback = { x: 0, y: 0 }) {
+  layer.querySelectorAll('text').forEach(textEl => {
+    const transformEl = textEl.closest('[data-varri-text-bar]') || textEl;
+    if (!transformEl.hasAttribute('data-varri-base-transform')) {
+      transformEl.setAttribute('data-varri-base-transform', transformEl.getAttribute('transform') || '');
+    }
+    const baseTransform = transformEl.getAttribute('data-varri-base-transform') || '';
+    if (target === 0) {
+      if (baseTransform) transformEl.setAttribute('transform', baseTransform);
+      else transformEl.removeAttribute('transform');
+      return;
+    }
+    const textCenter = getBBoxCenter(textEl) || fallback;
+    const transformParts = baseTransform ? [baseTransform] : [];
+    transformParts.push(`rotate(${-target} ${textCenter.x} ${textCenter.y})`);
+    transformEl.setAttribute('transform', transformParts.join(' '));
+  });
+}
+
+/** Apply the current RNA rotation to newly added or restyled annotation text. */
+export function syncTextAnnotationRotation(svgEl, textLayer) {
+  const rotationLayer = getRotationHost(svgEl).querySelector('[data-varri-rotation-layer]');
+  const transform = rotationLayer?.getAttribute('transform');
+  if (transform) textLayer.setAttribute('transform', transform);
+  else textLayer.removeAttribute('transform');
+  counterrotateTextLabels(textLayer, Number(svgEl.getAttribute('data-varri-rotation') || 0));
+}
+
 /**
  * Rotate the current visualisation around its bounding-box centre while
  * keeping text labels horizontally aligned.
@@ -103,24 +136,8 @@ export function rotateVisualization(session, containerId, degrees, options = {})
   if (!center) return current;
   layer.setAttribute('transform', `rotate(${target} ${center.x} ${center.y})`);
   svgEl.setAttribute('data-varri-rotation', String(target));
-  layer.querySelectorAll('text').forEach(textEl => {
-    if (!textEl.hasAttribute('data-varri-base-transform')) {
-      textEl.setAttribute('data-varri-base-transform', textEl.getAttribute('transform') || '');
-    }
-    const baseTransform = textEl.getAttribute('data-varri-base-transform') || '';
-    if (target === 0) {
-      if (baseTransform) {
-        textEl.setAttribute('transform', baseTransform);
-      } else {
-        textEl.removeAttribute('transform');
-      }
-      return;
-    }
-    const textCenter = getBBoxCenter(textEl) || center;
-    const transformParts = [];
-    if (baseTransform) transformParts.push(baseTransform);
-    transformParts.push(`rotate(${-target} ${textCenter.x} ${textCenter.y})`);
-    textEl.setAttribute('transform', transformParts.join(' '));
-  });
+  counterrotateTextLabels(layer, target, center);
+  const textLayer = hostEl.querySelector('[data-varri-text-layer]');
+  if (textLayer) syncTextAnnotationRotation(svgEl, textLayer);
   return target;
 }
