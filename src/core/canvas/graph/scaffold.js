@@ -1,7 +1,7 @@
 /** Loop/stem geometry adapted from Fornac v1.0.1 rnagraph.js (Apache-2.0). */
 const TYPES = { e: 'exterior', h: 'hairpin', i: 'interior', m: 'multiloop', s: 'stem' };
 
-function addHub(graph, members, type, serial) {
+export function addScaffoldHub(graph, members, type, uid, metadata = {}) {
   const nucs = members.filter(num => num > 0 && graph.nodes[num - 1]);
   if (nucs.length < 3) return;
   const points = nucs.map(num => graph.nodes[num - 1]);
@@ -14,7 +14,7 @@ function addHub(graph, members, type, serial) {
   const y = anchors.reduce((sum, node) => sum + node.y, 0) / anchors.length;
   const external = type === 'e' || points.some(node => node.layoutRole === 'strand-break');
   const hub = {
-    uid: `hub${serial}`, name: '', num: -1, nodeType: 'middle', elemType: 'f',
+    uid, name: '', num: -1, nodeType: 'middle', elemType: 'f', ...metadata,
     scaffoldType: external ? 'exterior' : TYPES[type], external, nucs,
     radius, rna: graph, x, y, px: x, py: y,
   };
@@ -24,7 +24,7 @@ function addHub(graph, members, type, serial) {
     // Reciprocal hidden chords are separate springs in Fornac, particularly
     // the two diagonals of each stem rectangle. Do not deduplicate them.
     graph.links.push({ source, target, value, linkType: 'fake',
-      uid: `fake:${hub.uid}:${graph.links.length}`, scaffoldUid: hub.uid });
+      uid: `fake:${hub.uid}:${graph.links.length}`, scaffoldUid: hub.uid, ...metadata });
   };
   const spoke = 0.5 / Math.cos((count - 2) * Math.PI / (2 * count));
   points.forEach((node, index) => {
@@ -33,6 +33,7 @@ function addHub(graph, members, type, serial) {
     if (count > 4) link(node, points[(index + Math.floor(count / 2)) % count], spoke * 2);
     link(node, points[(index + 2) % count], 2 * Math.cos(Math.PI / count));
   });
+  return hub;
 }
 
 export function addScaffolds(graph, circularizeExternal = true) {
@@ -42,8 +43,8 @@ export function addScaffolds(graph, circularizeExternal = true) {
   elements.filter(([type]) => type === 's').forEach(([, , members]) => {
     const half = members.slice(0, members.length / 2);
     for (let i = 0; i + 1 < half.length; i++) {
-      addHub(graph, [half[i], half[i + 1], graph.pairtable[half[i + 1]],
-        graph.pairtable[half[i]]], 's', ++serial);
+      addScaffoldHub(graph, [half[i], half[i + 1], graph.pairtable[half[i + 1]],
+        graph.pairtable[half[i]]], 's', `hub${++serial}`);
     }
   });
   elements.filter(([type]) => type !== 's').forEach(([type, , members]) => {
@@ -60,15 +61,23 @@ export function addScaffolds(graph, circularizeExternal = true) {
         });
       }
     }
-    addHub(graph, loop, type, ++serial);
+    addScaffoldHub(graph, loop, type, `hub${++serial}`);
   });
+  connectScaffoldHubs(graph);
+}
+
+/** Connect new hubs to their neighbors without duplicating existing springs. */
+export function connectScaffoldHubs(graph, addedHubs, metadata = {}) {
   const hubs = graph.nodes.filter(node => node.nodeType === 'middle' && node.num === -1);
+  const added = new Set(addedHubs || hubs);
+  if (!added.size) return;
   for (let i = 0; i < hubs.length; i++) {
     for (let j = i + 1; j < hubs.length; j++) {
       const source = hubs[i], target = hubs[j];
+      if (!added.has(source) && !added.has(target)) continue;
       if (!source.nucs.some(num => target.nucs.includes(num))) continue;
       graph.links.push({ source, target, value: (source.radius + target.radius) / 18,
-        linkType: 'fake_fake', uid: `fake_fake:${source.uid}:${target.uid}` });
+        linkType: 'fake_fake', uid: `fake_fake:${source.uid}:${target.uid}`, ...metadata });
     }
   }
 }

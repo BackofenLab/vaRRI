@@ -21,9 +21,11 @@ export async function exercisePseudoknotStacks(page) {
       const visibleLinks = [...element.querySelectorAll('line.link')].map(line => line.__data__);
       const svg = new DOMParser().parseFromString(api.buildSVGString('second'), 'image/svg+xml');
       results.push({
-        hidden: graph.links.filter(link => link.linkType === 'pseudoknot_scaffold').length,
-        visibleHidden: visibleLinks.some(link => link.linkType === 'pseudoknot_scaffold'),
-        exportedHidden: svg.querySelectorAll('[link_type="pseudoknot_scaffold"]').length,
+        hidden: graph.links.filter(link => link.pseudoknotScaffold &&
+          link.source.nodeType === 'nucleotide' && link.target.nodeType === 'nucleotide').length,
+        hubs: graph.nodes.filter(node => node.pseudoknotScaffold).length,
+        visibleHidden: visibleLinks.some(link => link.pseudoknotScaffold),
+        exportedHidden: svg.querySelectorAll('[link_type="fake"], [link_type="fake_fake"], [node_type="middle"]').length,
         nucleotides: element.querySelectorAll('circle[node_type="nucleotide"]').length,
         pairs: visibleLinks.filter(link => ['basepair', 'pseudoknot'].includes(link.linkType)).length,
         finite: graph.nodes.every(node => [node.x, node.y, node.px, node.py].every(Number.isFinite)),
@@ -34,6 +36,8 @@ export async function exercisePseudoknotStacks(page) {
   });
   assert.deepEqual(results.map(result => result.hidden), [0, 0, 4, 4, 0],
     'Only animated pulling activates stacked pseudoknot constraints, including with free ends');
+  assert.deepEqual(results.map(result => result.hubs), [0, 0, 1, 1, 0],
+    'Stack hubs follow the pull option without leaking across renders');
   for (const result of results) {
     assert.equal(result.visibleHidden, false, 'Diagonal springs remain hidden on the canvas');
     assert.equal(result.exportedHidden, 0, 'Diagonal springs remain hidden in SVG exports');

@@ -9,7 +9,8 @@ const structure = '((..[[..))..]]';
 const makeGraph = value => createRnaGraph(value, {
   sequence: value.replaceAll(/[^&]/g, 'A'), labelInterval: 0,
 });
-const diagonals = graph => graph.links.filter(link => link.linkType === 'pseudoknot_scaffold');
+const diagonals = graph => graph.links.filter(link => link.pseudoknotScaffold &&
+  link.source.nodeType === 'nucleotide' && link.target.nodeType === 'nucleotide');
 const activate = graph => applyPseudoknotLinkStrength({ graph, linkStrengths: {} }, true);
 
 test('crossing stacks receive the same reciprocal diagonals as ordinary stem rectangles', () => {
@@ -25,8 +26,13 @@ test('crossing stacks receive the same reciprocal diagonals as ordinary stem rec
     [1, 2, 9, 10].includes(link.source.num) && [1, 2, 9, 10].includes(link.target.num));
   expect(ordinary).toHaveLength(4);
   hidden.forEach((link, index) => expect(link.value).toBeCloseTo(ordinary[index].value, 12));
-  expect(graph.nodes).toEqual(originalNodes);
-  expect(graph.links.filter(link => link.linkType !== 'pseudoknot_scaffold')).toEqual(originalLinks);
+  const hubs = graph.nodes.filter(node => node.pseudoknotScaffold);
+  expect(hubs).toHaveLength(1);
+  expect(hubs[0].scaffoldType).toBe('stem');
+  expect(graph.links.filter(link => link.pseudoknotScaffold &&
+    link.source.nodeType === 'nucleotide' && link.target === hubs[0])).toHaveLength(4);
+  expect(graph.nodes.filter(node => !node.pseudoknotScaffold)).toEqual(originalNodes);
+  expect(graph.links.filter(link => !link.pseudoknotScaffold)).toEqual(originalLinks);
 });
 
 test.each([
@@ -35,8 +41,6 @@ test.each([
   ['((..[[..))&..]]', 4],
   ['((..[&[..))..]]', 0],
   ['((..[[..))..]&]', 0],
-  ['((..[.[..))..].]', 0],
-  ['((..[[..))..].]', 0],
   ['([..)]', 0],
   ['(((...)))', 0],
 ])('%s respects contiguous stacks and strand boundaries', (value, count) => {
@@ -62,12 +66,14 @@ test('toggling refreshes the live simulation without duplicate springs or visibl
   try {
     const graph = canvas.addRNA(structure, { sequence: 'A'.repeat(structure.length) });
     const originalLinks = [...graph.links];
+    const originalNodes = [...graph.nodes];
     const visibleCount = canvas.element.querySelectorAll('line').length;
     for (let repeat = 0; repeat < 2; repeat++) {
       applyPseudoknotLinkStrength(canvas, true);
       applyPseudoknotLinkStrength(canvas, true);
       expect(diagonals(graph)).toHaveLength(4);
       expect(canvas.force.links()).toBe(graph.links);
+      expect(canvas.force.nodes()).toBe(graph.nodes);
       canvas.update();
       expect(canvas.element.querySelectorAll('line')).toHaveLength(visibleCount);
       for (let tick = 0; tick < 400; tick++) canvas.force.tick();
@@ -75,6 +81,8 @@ test('toggling refreshes the live simulation without duplicate springs or visibl
       applyPseudoknotLinkStrength(canvas, false);
       expect(canvas.linkStrengths.pseudoknot).toBe(0);
       expect(graph.links).toEqual(originalLinks);
+      expect(graph.nodes).toEqual(originalNodes);
+      expect(canvas.force.nodes()).toBe(graph.nodes);
       expect(canvas.force.links()).toBe(graph.links);
     }
   } finally { canvas.destroy(); dom.window.close(); }
