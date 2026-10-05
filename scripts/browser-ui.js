@@ -6,6 +6,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { chromium, firefox } from 'playwright';
 import { checkPNGDialog, checkPNGResize } from './browser-png-export.js';
+import { exercisePositionControlsUI } from './browser-position-ui.js';
 import { exerciseTextAnnotationUI } from './browser-text-ui.js';
 import { exerciseSequenceNames } from './browser-sequence-names.js';
 import { checkInputHighlights } from './browser-input-highlights.js';
@@ -235,6 +236,8 @@ async function main() {
     assert.equal(fullPage.searchParams.has('showRenderingOnly'), false);
     assert.equal(fullPage.searchParams.get('sequence'), 'ACGU&UGCA');
     await page.screenshot({ path: path.join(output, 'render-only.png') });
+    phase = 'manual position controls, reset and undo';
+    await exercisePositionControlsUI(page, origin, output);
     phase = 'text annotation defaults, editing, dragging and sharing';
     await exerciseTextAnnotationUI(page, origin, output);
     phase = 'sequence names, protected labels, text dialogs and FASTA';

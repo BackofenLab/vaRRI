@@ -80,7 +80,8 @@ export function render(session, containerId, v, options = {}) {
   // Create the independent SVG/force renderer.
   const container = (session.createCanvas || createGraphCanvas)(session.root, {
     animation: forceLayout,
-    labelInterval: 1
+    labelInterval: 1,
+    onCanvasInteractionChange: options.onCanvasInteractionChange
   });
   session.runtime.activeContainer = container;
   container.addRNA(v.structure, {

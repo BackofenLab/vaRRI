@@ -299,6 +299,26 @@ should call `render()` and let it coordinate them.
 | `updateNodeToolTips(validated)` | Add biological positions to node tooltips. |
 | `visualiseAccessibility(data, sequence1Length, colors?, colorMode?)` | Draw probability overlays. |
 
+## Manual canvas positions
+
+`getCanvasInteractionState()` returns a plain summary with `movedCount`,
+`selectedNodeCount`, `selectedMovedCount`, and `canUndo`. The optional render
+callback `onCanvasInteractionChange(summary)` receives changes to that summary.
+Graph objects remain inside the renderer; text annotations are excluded from
+manual-node counts.
+
+- `selectManuallyPositionedElements()` selects moved nucleotides and numbering labels.
+- `resetSelectedPositions()` restores selected manual nodes to their positions and
+  fixation before the first manual edit. Other elements are retained.
+- `undoCanvasEdit()` undoes the last drag, wheel-rotation burst, or position reset.
+  It restores text positions and anchors when those were edited, and returns
+  whether an edit was undone. History holds at most 100 edits for the current render.
+
+Ctrl-click toggles selection; plain element clicks and Ctrl-clicks on the background
+clear it. Drag a selected member to move its group. Ctrl-wheel rotates two or more
+selected elements around the pointer without changing zoom. Ctrl+Z (or Command+Z)
+undoes while the canvas has focus. A new render or cancellation clears history.
+
 ## Export
 
 - `vaRRI.buildSVGString(containerId)` returns a self-contained SVG string with

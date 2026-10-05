@@ -156,6 +156,17 @@ export function initializeTextAnnotations(session, container, validated, options
   const state = { layer, container, validated, entries: new Map(),
     notify: () => options.onTextAnnotationsChange?.(getTextAnnotations(session.modelState)) };
   container.varriTextAnnotations = state;
+  state.capture = id => {
+    const item = getTextAnnotations(session.modelState).find(item => item.id === id);
+    return item && { position: item.position, anchor: item.anchor };
+  };
+  state.restore = records => {
+    for (const { id, position, anchor } of records) {
+      if (state.entries.has(id)) updateTextAnnotation(session.modelState, id, { position, anchor });
+    }
+    refreshTextAnnotations(session);
+    if (records.length) state.notify();
+  };
   state.move = positions => {
     const center = nucleotideCentroid(container.graph);
     for (const { id, position } of positions) {

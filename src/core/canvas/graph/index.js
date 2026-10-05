@@ -30,8 +30,8 @@ export function createGraphCanvas(target, options = {}) {
   let destroyed = false;
   const svg = d3.select(layers.svg);
   const plot = d3.select(layers.plot);
-  const zoom = d3.zoom().filter(event => !event.button && (event.type === 'wheel' ||
-    (!event.ctrlKey && !event.metaKey && !event.target.closest?.(INTERACTION_TARGET))))
+  const zoom = d3.zoom().filter(event => !event.button && ((event.type === 'wheel' && !event.ctrlKey && !event.metaKey) ||
+    (event.type !== 'wheel' && !event.ctrlKey && !event.metaKey && !event.target.closest?.(INTERACTION_TARGET))))
     .on('start.graph', event => {
     const source = event.sourceEvent;
     if (source?.type !== 'mousedown' || !source.view) return;

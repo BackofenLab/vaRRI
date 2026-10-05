@@ -8,9 +8,17 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
       <label for="rotationSlider">Rotate: <span id="rotation" class="rotation-value" v-on:click="actions.openNumberDialog('rotation', $event)">{{ state.rotationPreview }}°</span></label>
       <input type="range" id="rotationSlider" min="-180" max="180" step="1" v-bind:value="state.fields.rotationSlider" v-on:input="actions.inputField('rotationSlider', $event)" v-on:change="actions.commitField('rotationSlider', $event)">
       <label for="cropping">Crop: <span id="cropping-value" class="cropping-value" v-on:click="actions.openNumberDialog('cropping', $event)">{{ state.fields.cropping }}</span></label>
-      <div class="input-wrap" v-bind:class="{'has-error': state.errors.cropping}">
+      <div class="input-wrap cropping-control" v-bind:class="{'has-error': state.errors.cropping}">
         <input type="range" id="cropping" min="-1" max="10" title="-1 disables cropping. Higher values crop the ends to resp. unpaired positions." v-bind:value="state.fields.cropping" v-on:input="actions.inputField('cropping', $event)" v-on:change="actions.commitField('cropping', $event)">
         <span class="field-tooltip">{{ state.errors.cropping || '' }}</span>
+      </div>
+      <div class="manual-position-controls" role="group" aria-label="Manual positions">
+        <button id="selectMovedBtn" type="button" v-on:click="actions.selectMovedElements()"
+          v-bind:disabled="!state.canvasInteraction.movedCount" title="Select all manually moved nucleotides and numbering labels. Text labels are not counted.">Moved: {{ state.canvasInteraction.movedCount }}</button>
+        <button id="resetPositionsBtn" type="button" v-on:click="actions.resetSelectedPositions()"
+          v-bind:disabled="!state.canvasInteraction.selectedMovedCount" title="Restore selected nodes to their positions and fixation before manual editing.">Reset</button>
+        <button id="undoCanvasBtn" type="button" v-on:click="actions.undoCanvasEdit()"
+          v-bind:disabled="!state.canvasInteraction.canUndo" title="Undo the last drag, selection rotation, or position reset. Ctrl+Z / Command+Z while the canvas is focused.">Undo</button>
       </div>
     </div>
     <div class="export-bar">

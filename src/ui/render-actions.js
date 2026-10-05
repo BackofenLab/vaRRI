@@ -49,6 +49,7 @@ export function createRenderActions({ api, state, actions, document }) {
     const f = state.fields;
     try {
       const result = await api.render('rendering-canvas', validated, {
+        onCanvasInteractionChange: summary => { if (run === latestRun) state.canvasInteraction = summary; },
         onTextAnnotationsChange: () => actions.syncAnnotations(),
         forceLayout: f.forceLayout,
         forceLayoutLinearRRI: f.forceLayout && f.forceLayoutLinearRRI,
@@ -73,7 +74,13 @@ export function createRenderActions({ api, state, actions, document }) {
   }
   return {
     runVisualization, applyColors, syncGeneratedRegionHighlight, applySliderRotation, commitSliderRotation,
-    cancelRendering() { latestRun++; api.cancelActiveRender(); },
+    selectMovedElements() { api.selectManuallyPositionedElements(); },
+    resetSelectedPositions() { api.resetSelectedPositions(); },
+    undoCanvasEdit() { api.undoCanvasEdit(); },
+    cancelRendering() {
+      latestRun++; api.cancelActiveRender();
+      state.canvasInteraction = api.getCanvasInteractionState();
+    },
     enableForceLayoutForSelectedLinearOptions() {
       if (state.fields.forceLayoutLinearRRI || state.fields.forceLayoutLinearStructure) state.fields.forceLayout = true;
     },

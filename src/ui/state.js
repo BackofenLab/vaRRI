@@ -34,6 +34,7 @@ export function createViewerState(api, colors) {
     renderingOnly: false, showFullPage: false, shareCopied: false,
     pngExport: { width: '', height: '', dpi: '96', error: '', busy: false },
     inputCaret: { field: '', index: -1 },
+    canvasInteraction: { movedCount: 0, selectedNodeCount: 0, selectedMovedCount: 0, canUndo: false },
     dialog: { id: '', title: '', value: '', left: '', top: '' },
   });
   return { state, defaults, initialColors: palette };

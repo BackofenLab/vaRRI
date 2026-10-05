@@ -37,6 +37,11 @@ export function createVaRRI(options = {}) {
     normaliseRotationDegrees: normaliseRotationDegrees,
     render: render.bind(null, session),
     rotateVisualization: rotateVisualization.bind(null, session),
+    getCanvasInteractionState: () => session.runtime.activeContainer?.interactions?.status() ||
+      { movedCount: 0, selectedNodeCount: 0, selectedMovedCount: 0, canUndo: false },
+    selectManuallyPositionedElements: () => session.runtime.activeContainer?.interactions?.selectMoved(),
+    resetSelectedPositions: () => session.runtime.activeContainer?.interactions?.resetSelected() || false,
+    undoCanvasEdit: () => session.runtime.activeContainer?.interactions?.undo() || false,
     validate: args => validate(args, modelState.colors),
     getColors: getColors.bind(null, modelState),
     setColors: setColors.bind(null, modelState),

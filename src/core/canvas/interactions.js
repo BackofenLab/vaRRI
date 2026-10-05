@@ -1,3 +1,5 @@
+import { createManualPositions } from './manual-positions.js';
+import { attachSelectionRotation } from './selection-rotation.js';
 import { clientToGraphPosition } from './text-annotation-geometry.js';
 import { createSelectionOverlay, enclosed, interactionTargets, INTERACTION_TARGET,
   selectionRectangle } from './interaction-selection.js';
@@ -10,8 +12,33 @@ export function createCanvasInteractions(container, syncGraph = () => {}) {
   const overlay = createSelectionOverlay(svg);
   let active = null;
   let hadSelection = false;
+  let lastStatus = '';
+  const positions = createManualPositions(container, syncGraph);
+  const selectedTargets = () => selected.size
+    ? interactionTargets(container).filter(target => selected.has(target.element)) : [];
+  const status = () => {
+    const nodes = selectedTargets().filter(target => target.node);
+    return { movedCount: positions.count, selectedNodeCount: nodes.length,
+      selectedMovedCount: nodes.filter(target => positions.has(target.node)).length, canUndo: positions.canUndo };
+  };
+  function notify() {
+    const value = status();
+    const key = JSON.stringify(value);
+    if (key === lastStatus) return;
+    lastStatus = key;
+    container.options?.onCanvasInteractionChange?.(value);
+  }
+  const focus = () => {
+    const host = container.element || svg;
+    if (!host.hasAttribute('tabindex')) host.setAttribute('tabindex', '0');
+    host.focus({ preventScroll: true });
+  };
+  const rotation = attachSelectionRotation(container, {
+    targets: selectedTargets, positions, refresh, busy: () => !!active, focus,
+  });
 
   function refresh() {
+    notify();
     if (!selected.size && !hadSelection && !active?.rectangle) return;
     const targets = interactionTargets(container);
     const live = new Set(targets.map(target => target.element));
@@ -28,8 +55,9 @@ export function createCanvasInteractions(container, syncGraph = () => {}) {
 
   function stop() {
     if (!active) return;
-    const { pointerId } = active;
+    const { pointerId, records } = active;
     active = null;
+    positions.commit(records);
     window.removeEventListener('pointermove', onMove);
     window.removeEventListener('pointerup', onEnd);
     window.removeEventListener('pointercancel', onCancel);
@@ -44,8 +72,8 @@ export function createCanvasInteractions(container, syncGraph = () => {}) {
       : [active.target];
     active.targets = targets.map(target => ({ ...target,
       origin: clientToGraphPosition(target.layer, active.start.x, active.start.y) }));
+    active.records = positions.capture(targets);
     active.moved = true;
-    container.hasManualPositions = targets.some(target => target.node) || container.hasManualPositions;
   }
 
   function onMove(event) {
@@ -62,26 +90,14 @@ export function createCanvasInteractions(container, syncGraph = () => {}) {
     } else {
       if (!active.target.element.isConnected) { stop(); return; }
       if (!active.moved) beginMove();
-      const texts = [];
-      let movedNodes = false;
-      for (const target of active.targets) {
-        if (!target.element.isConnected) continue;
+      const updates = active.targets.map(target => {
         const current = clientToGraphPosition(target.layer, point.x, point.y);
-        const x = target.position.x + current.x - target.origin.x;
-        const y = target.position.y + current.y - target.origin.y;
-        if (target.node) {
-          // Keep the released position for this rendering, including force and
-          // rail constraints. No graph positions enter the serializable model.
-          Object.assign(target.node, { x, y, px: x, py: y, fx: x, fy: y, vx: 0, vy: 0, fixed: 1 });
-          movedNodes = true;
-        } else texts.push({ id: target.id, position: { x, y } });
-      }
-      if (movedNodes) syncGraph();
-      // Apply the entire text batch after moving graph nodes: its model frame
-      // uses the new nucleotide centroid, avoiding double movement in a group.
-      container.varriTextAnnotations?.move(texts);
-      if (texts.length) active.changedText = true;
-      if (movedNodes && container.options?.animation) container.force.resume();
+        return { target, position: {
+          x: target.position.x + current.x - target.origin.x,
+          y: target.position.y + current.y - target.origin.y,
+        } };
+      });
+      positions.apply(updates);
     }
     refresh();
   }
@@ -93,15 +109,13 @@ export function createCanvasInteractions(container, syncGraph = () => {}) {
       if (selected.has(element)) selected.delete(element);
       else selected.add(element);
     }
-    const changedText = active.changedText;
+    if (!active.moved && (!active.target || !active.toggle)) selected.clear();
     stop();
-    if (changedText) container.varriTextAnnotations?.notify();
   }
 
-  function onCancel() {
-    const changedText = active?.changedText;
+  function onCancel(event) {
+    if (event?.pointerId !== undefined && event.pointerId !== active?.pointerId) return;
     stop();
-    if (changedText) container.varriTextAnnotations?.notify();
   }
 
   function onStart(event) {
@@ -110,10 +124,14 @@ export function createCanvasInteractions(container, syncGraph = () => {}) {
     const target = interactionTargets(container).find(item => item.element === element);
     const toggle = event.ctrlKey || event.metaKey;
     if (!target && !toggle) return; // Ordinary background gestures belong to zoom/pan.
+    rotation.finish();
+    focus();
+    if (!target || (!toggle && !selected.has(target.element))) selected.clear();
     event.preventDefault();
     event.stopPropagation();
     active = { target, toggle, pointerId: event.pointerId,
-      start: { x: event.clientX, y: event.clientY }, moved: false, changedText: false };
+      start: { x: event.clientX, y: event.clientY }, moved: false };
+    refresh();
     svg.setPointerCapture?.(event.pointerId);
     window.addEventListener('pointermove', onMove, { passive: false });
     window.addEventListener('pointerup', onEnd);
@@ -126,15 +144,46 @@ export function createCanvasInteractions(container, syncGraph = () => {}) {
       event.stopImmediatePropagation();
     }
   };
+  function undo() {
+    if (container.destroyed) return false;
+    stop(); rotation.finish();
+    const changed = positions.undo();
+    refresh();
+    return changed;
+  }
+  const keydown = event => {
+    if (event.key.toLowerCase() !== 'z' || (!event.ctrlKey && !event.metaKey) || event.shiftKey || event.altKey ||
+      event.target.closest?.('input, textarea, select, [contenteditable="true"]')) return;
+    if (undo()) { event.preventDefault(); event.stopPropagation(); }
+  };
+  const host = container.element || svg;
+  host.addEventListener('keydown', keydown);
   svg.addEventListener('pointerdown', onStart);
   svg.addEventListener('lostpointercapture', onCancel);
   for (const type of ['mousedown', 'touchstart', 'dblclick']) svg.addEventListener(type, stopPan, true);
   return {
-    refresh,
-    cancel: stop,
-    clear() { stop(); selected.clear(); refresh(); },
+    refresh, status, undo,
+    cancel() { stop(); rotation.finish(); },
+    selectMoved() {
+      if (container.destroyed) return;
+      stop(); rotation.finish(); selected.clear();
+      interactionTargets(container).filter(target => positions.has(target.node))
+        .forEach(target => selected.add(target.element));
+      refresh();
+    },
+    resetSelected() {
+      if (container.destroyed) return false;
+      stop(); rotation.finish();
+      const changed = positions.reset(selectedTargets());
+      refresh();
+      return changed;
+    },
+    clear() { stop(); rotation.finish(); selected.clear(); positions.clear(); refresh(); },
     dispose() {
       stop();
+      rotation.dispose();
+      positions.clear();
+      host.removeEventListener('keydown', keydown);
       selected.clear();
       refresh();
       overlay.dispose();

@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { exercisePositionEditing } from './browser-position-editing.js';
 import { exerciseInteractions } from './browser-interactions.js';
 import { exerciseCoreTextAnnotations } from './browser-text-core.js';
 
@@ -133,6 +134,8 @@ async function main() {
       assert.deepEqual(errors, [], mode + ': browser errors');
       phase = mode + ' dragging, zooming and interaction disposal';
       await exerciseInteractions(page);
+      phase = mode + ' manual position reset, undo, and selection rotation';
+      await exercisePositionEditing(page);
       phase = mode + ' text annotations, coordinates, drift and disposal';
       await exerciseCoreTextAnnotations(page);
       assert.deepEqual(errors, [], mode + ': interaction browser errors');
