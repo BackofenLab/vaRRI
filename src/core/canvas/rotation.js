@@ -139,5 +139,6 @@ export function rotateVisualization(session, containerId, degrees, options = {})
   counterrotateTextLabels(layer, target, center);
   const textLayer = hostEl.querySelector('[data-varri-text-layer]');
   if (textLayer) syncTextAnnotationRotation(svgEl, textLayer);
+  session.runtime.activeContainer?.interactions?.refresh();
   return target;
 }

@@ -1,3 +1,4 @@
+import { createCanvasInteractions } from '../src/core/canvas/interactions.js';
 import { jest } from '@jest/globals';
 import { JSDOM } from 'jsdom';
 import { createSession } from '../src/core/session.js';
@@ -31,15 +32,16 @@ function fixture({ defaults = false } = {}) {
     ] } };
   dom.window.SVGElement.prototype.getBBox = () => ({ x: -5, y: -4, width: 10, height: 8 });
   session.runtime.activeContainer = container;
+  container.interactions = createCanvasInteractions(container);
   if (!defaults) clearTextAnnotations(session.modelState);
   const notify = jest.fn();
   initializeTextAnnotations(session, container, { sequence1: 'AA', sequence2: 'UU' }, { onTextAnnotationsChange: notify });
   const layer = container.varriTextAnnotations.layer;
   layer.getScreenCTM = () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 });
   const tick = () => handlers.get('tick.varriTextAnnotations')();
-  const pointer = (target, type, x, y) => {
+  const pointer = (target, type, x, y, options = {}) => {
     const event = new dom.window.MouseEvent(type, { bubbles: true, cancelable: true, button: 0,
-      clientX: x, clientY: y });
+      clientX: x, clientY: y, ...options });
     Object.defineProperty(event, 'pointerId', { value: 1 });
     target.dispatchEvent(event);
   };
@@ -206,5 +208,50 @@ test('live changes at a nonzero angle counterrotate text without changing the RN
   updateTextAnnotation(f.session.modelState, item.id, { position: null });
   refreshTextAnnotations(f.session);
   expect(f.layer.children).toHaveLength(0);
+  f.dom.window.close();
+});
+
+
+test('Ctrl-click toggles text without changing placement, and grouped text persists exactly once', () => {
+  const f = fixture();
+  const first = registerTextAnnotation(f.session.modelState, { text: 'First', position: { x: 10, y: 10 } });
+  const second = registerTextAnnotation(f.session.modelState, { text: 'Second', position: { x: 70, y: 20 } });
+  refreshTextAnnotations(f.session);
+  const groups = [...f.layer.querySelectorAll('[data-varri-text]')];
+  const initial = getTextAnnotations(f.session.modelState);
+  const toggle = group => {
+    f.pointer(group, 'pointerdown', 20, 10, { ctrlKey: true });
+    f.pointer(f.dom.window, 'pointerup', 20, 10, { ctrlKey: true });
+  };
+  toggle(groups[0]);
+  toggle(groups[1]);
+  toggle(groups[1]);
+  expect(f.layer.querySelectorAll('[data-varri-selected]')).toHaveLength(1);
+  expect(getTextAnnotations(f.session.modelState)).toEqual(initial);
+  toggle(groups[1]);
+  f.notify.mockClear();
+  f.pointer(groups[1], 'pointerdown', 83, 22);
+  f.pointer(f.dom.window, 'pointermove', 103, 52);
+  f.pointer(f.dom.window, 'pointerup', 103, 52);
+  const placed = getTextAnnotations(f.session.modelState);
+  expect(placed.find(item => item.id === first.id).position).toEqual({ x: 30, y: 40 });
+  expect(placed.find(item => item.id === second.id).position).toEqual({ x: 90, y: 50 });
+  expect(f.notify).toHaveBeenCalledTimes(1);
+  expect(placed.every(item => !Object.hasOwn(item, 'selected'))).toBe(true);
+  f.dom.window.close();
+});
+
+test('pointer cancellation ends an active text gesture and ignores later moves', () => {
+  const f = fixture();
+  registerTextAnnotation(f.session.modelState, { text: 'Cancelled', position: { x: 10, y: 10 } });
+  refreshTextAnnotations(f.session);
+  const group = f.layer.querySelector('[data-varri-text]');
+  f.pointer(group, 'pointerdown', 22, 13);
+  f.pointer(f.dom.window, 'pointermove', 42, 33);
+  f.pointer(f.dom.window, 'pointercancel', 42, 33);
+  const saved = getTextAnnotations(f.session.modelState);
+  f.pointer(f.dom.window, 'pointermove', 80, 90);
+  f.pointer(f.dom.window, 'pointerup', 80, 90);
+  expect(getTextAnnotations(f.session.modelState)).toEqual(saved);
   f.dom.window.close();
 });

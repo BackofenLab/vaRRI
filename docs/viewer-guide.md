@@ -214,12 +214,13 @@ both positioned and unpositioned labels, including their formatting.
 ### Additional Features
 
 - **Zooming**: Use the mouse wheel to zoom in and out.
-- **Panning**: Click and drag the visualisation to pan around. This is useful when zoomed in to focus on a certain region of the structure.
+- **Panning**: Click and drag the empty background to pan around. This is useful when zoomed in to focus on a certain region of the structure.
 - **Rotation**: Use the *Rotation* slider below the visualisation to rotate the structure. Rotation preserves text orientation and is useful to align the structure for better visibility or to match a certain orientation in a publication figure.
 - **Cropping**: Use the *Crop* slider to reduce the unpaired nucleotides at the ends of each sequence to the given number. This is useful to focus on the interaction region and reduce the size of the visualisation. A value of `-1` disables cropping and shows the full sequences.
-- **Nucleotide Nodes**
-  - .. can be dragged to new positions in the force-directed layout mode.
-  - .. show a tooltip with the nucleotide index and probability value (if present) when hovered over.
+- **Selection**: Ctrl-click a nucleotide, numbering label, or text label to add it to or remove it from the selection. Ctrl-drag the background to replace the selection with all elements fully inside the rectangle. An empty rectangle clears the selection. Command also works on macOS.
+- **Moving elements**: Drag any nucleotide, numbering label, or text label in either layout mode. Drag a selected element to move the whole selection; dragging an unselected element clears the selection and moves that element alone. Released nodes and numbering labels stay in place until the next render, including in force mode.
+- **Saving positions**: SVG and PNG exports preserve the current layout and omit selection outlines. Share links save text-label positions; manually moved nucleotide and numbering positions last only for the current rendering.
+- **Nucleotide tooltips**: Hover to see the nucleotide index and probability value (if present).
 - **Resize Canvas**: The visualisation canvas size can be adjusted by dragging the bottom-right corner of the canvas. This is useful when visualizing large interactions on large screens, or when preparing figures for publication. The canvas size is preserved when exporting the visualisation.
 
 ### Export

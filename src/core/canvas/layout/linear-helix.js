@@ -62,7 +62,7 @@ export function applyLinearHelixSprings(session, container, v, options = {}) {
   let hasRefittedAtRest = false;
   const enforceSyncAndRefit = () => {
     enforceAndSync();
-    if (!hasRefittedAtRest && typeof container.centerView === 'function') {
+    if (!hasRefittedAtRest && !container.hasManualPositions && typeof container.centerView === 'function') {
       hasRefittedAtRest = true;
       container.centerView();
     }

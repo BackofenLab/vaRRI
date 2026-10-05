@@ -148,6 +148,12 @@ export function render(session, containerId, v, options = {}) {
       container.centerView();
     }
 
+    container.onManualMove = () => {
+      session.dom.querySelectorAll('[data-varri-region], [data-varri-subseq]').forEach(el => el.remove());
+      applyRegionHighlights(session, v);
+      applySubsequenceHighlights(session, v);
+    };
+
     // When animation is on, keep the background-highlight polygon in sync
     // with the force-layout by redrawing it on every animation frame.
     if (forceLayout) {

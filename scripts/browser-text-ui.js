@@ -71,6 +71,32 @@ export async function exerciseTextAnnotationUI(page, origin, output) {
   assert.ok(Math.abs(moved.x - placed.x - 50) < 1 && Math.abs(moved.y - placed.y - 30) < 1, 'SVG drag follows pointer with force disabled');
   assert.equal(await page.locator('#rendering-canvas .fornac-plot').getAttribute('transform'), plotBefore);
 
+  // A mixed group must notify Vue with the final centroid-relative text position.
+  const nodePoint = await page.locator('#rendering-canvas circle[node_type="nucleotide"]').evaluateAll(elements => {
+    for (const element of elements) {
+      const box = element.getBoundingClientRect();
+      const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+      if (document.elementFromPoint(point.x, point.y)?.closest('g.gnode') === element.parentElement) return point;
+    }
+    return null;
+  });
+  assert.ok(nodePoint, 'A nucleotide is available for mixed selection');
+  const selectedText = await group.locator('text').boundingBox();
+  const handle = { x: selectedText.x + selectedText.width / 2, y: selectedText.y + selectedText.height / 2 };
+  await page.keyboard.down('Control');
+  await page.mouse.click(nodePoint.x, nodePoint.y);
+  await page.mouse.click(handle.x, handle.y);
+  await page.keyboard.up('Control');
+  assert.equal(await page.locator('#rendering-canvas [data-varri-selected]').count(), 2);
+  await page.mouse.move(handle.x, handle.y);
+  await page.mouse.down();
+  await page.mouse.move(handle.x + 16, handle.y - 10, { steps: 4 });
+  await page.mouse.up();
+  const groupPosition = await page.evaluate(async id => {
+    const { default: view } = await import('/index.js');
+    return view.state.annotations.texts.find(item => item.id === Number(id)).position;
+  }, id);
+
   await preview.click();
   await page.locator('#textAnnotationText').fill(content + ' edited');
   await page.locator('#textAnnotationDialog button[value="ok"]').click();
@@ -85,7 +111,7 @@ export async function exerciseTextAnnotationUI(page, origin, output) {
   assert.equal(saved[2].bold, true);
   assert.equal(saved[2].italic, true);
   assert.equal(saved[2].size, 10);
-  assert.ok(saved[2].position);
+  assert.deepEqual(saved[2].position, groupPosition, 'Share link saves the grouped drag position');
   assert.ok(!saved[2].anchor);
   await page.goto(shared, { waitUntil: 'networkidle' });
   await ready();
