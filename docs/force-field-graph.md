@@ -53,6 +53,25 @@ deduplicating these chords weakens the constraints. Real base pairs remain
 unique. The independent legacy-browser oracle tests hidden endpoints,
 multiplicity, and spring lengths against the pinned Fornac runtime.
 
+When `pullPseudoknotBasepairs` is enabled, adjacent pairs `(i, j)` and
+`(i + 1, j - 1)` also receive both reciprocal diagonal springs if either pair
+is a pseudoknot. As in ordinary stem rectangles, each diagonal has a rest
+length of `sqrt(2)` times the backbone/base-pair length and the ordinary spring
+strength. Both sides must have real backbone edges: no constraint crosses a
+strand break or skips a bulge. Isolated pseudoknot pairs get only the pair pull.
+These `pseudoknot_scaffold` links remain invisible and survive free-end cleanup.
+They add no charged hubs and are removed when pulling is disabled, preserving
+the original graph and D3 link-degree bias when the option is off.
+
+The issue #60 geometry review compared the former pair-only pull with these
+diagonals after 400 D3 ticks on `((..[[..))..]]` (with and without free ends)
+and the crossing-RRI example (with free ends). Rasterized native SVGs showed
+more rectangular crossing stacks, with all 14/30 nucleotides and 4/10 real
+pairs retained. These local SVG checks do not replace browser verification.
+The isolated-stack regression separately verifies that a skewed parallelogram
+relaxes to 15-unit sides and equal `15 * sqrt(2)` diagonals. Existing visual
+baselines are unchanged.
+
 `freeTrailingEnds` removes exterior hubs, virtual vertices, and their constraints while retaining
 real nucleotides and interior-loop constraints, including constraints that share
 a nucleotide with an exterior loop. Real nucleotide identity never changes.

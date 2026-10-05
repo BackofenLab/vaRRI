@@ -50,7 +50,7 @@ export function syncPositions(container, d3) {
 /** Join only visible objects. Geometric force hubs never enter the SVG. */
 export function updateSvg(container, d3) {
   const visibleLinks = container.graph.links.filter(link =>
-    !['fake', 'fake_fake', 'varri_linear_helix'].includes(link.linkType));
+    !['fake', 'fake_fake', 'pseudoknot_scaffold', 'varri_linear_helix'].includes(link.linkType));
   const links = d3.select(container.layers.links).selectAll('line.link')
     .data(visibleLinks, link => link.uid);
   const newLinks = links.enter().append('line').attr('class', 'link fornac-link')
