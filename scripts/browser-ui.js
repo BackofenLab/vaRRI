@@ -9,6 +9,7 @@ import { checkPNGDialog, checkPNGResize } from './browser-png-export.js';
 import { exerciseTextAnnotationUI } from './browser-text-ui.js';
 import { exerciseSequenceNames } from './browser-sequence-names.js';
 import { checkInputHighlights } from './browser-input-highlights.js';
+import { checkCrossingRriExample } from './browser-crossing-rri.js';
 const root = path.resolve(import.meta.dirname, '..');
 const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
@@ -126,6 +127,7 @@ async function main() {
       assert.equal(await page.locator('#sequence').inputValue(), example.vaRRIParams.sequence);
       assert.equal(await page.locator('#structure').inputValue(), example.vaRRIParams.structure);
       assert.ok(await page.locator('#rendering-canvas circle[node_type="nucleotide"]').count() > 0);
+      if (id === 'crossing-rri') await checkCrossingRriExample(page, output);
     }
 
     // A clean URL isolates dialog behavior from the catalog's annotations.

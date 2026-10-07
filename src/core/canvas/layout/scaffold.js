@@ -1,4 +1,5 @@
 import { resolveGraphNodeFromEndpoint } from './graph-access.js';
+import { updatePseudoknotStackConstraints } from './pseudoknot-stacks.js';
 
 /**
  * Identify exterior loop scaffolds, including loops interrupted by a strand
@@ -55,5 +56,8 @@ export function relaxForceGraphScaffold(container) {
 export function applyPseudoknotLinkStrength(container, enabled) {
   if (!container?.linkStrengths) return;
   container.linkStrengths.pseudoknot = enabled ? 10 : 0;
+  updatePseudoknotStackConstraints(container.graph, enabled);
+  if (container.graph?.nodes) container.force?.nodes?.(container.graph.nodes);
+  if (container.graph?.links) container.force?.links?.(container.graph.links);
   container.force?.start?.();
 }

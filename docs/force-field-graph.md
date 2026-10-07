@@ -53,6 +53,40 @@ deduplicating these chords weakens the constraints. Real base pairs remain
 unique. The independent legacy-browser oracle tests hidden endpoints,
 multiplicity, and spring lengths against the pinned Fornac runtime.
 
+When `pullPseudoknotBasepairs` is enabled, pseudoknot helices use the same
+scaffold builder as ordinary helices. Each contiguous stack receives a central
+hub, four spokes, and both reciprocal diagonals. Intervening unpaired bases
+form an interior-loop polygon with its own hub and chords. Neighboring hubs
+sharing nucleotides are connected. Spring lengths, strengths, hub radii, and
+charges follow the existing ordinary-scaffold rules; pseudoknot springs are
+ordinary hidden `fake`/`fake_fake` links.
+
+Both sides must follow real backbone edges, so these constraints never cross a
+strand break. Loop discovery stops at another paired nucleotide and never
+skips an intervening pairing. Isolated pseudoknot pairs get only the pair pull.
+Generated hubs and links carry `pseudoknotScaffold` metadata, survive free-end
+cleanup, remain absent from SVG/PNG output, and are removed when pulling is
+disabled. D3 then refreshes both nodes and links, restoring the original force
+graph, charge sources, and link-degree bias.
+
+Martin's [review of PR #98](https://github.com/BackofenLab/vaRRI/pull/98#issuecomment-6001717945)
+showed that diagonals alone left the crossing-RRI example distorted. The
+corrected upper helix has two stem hubs, an interior-loop hub for its bulge,
+and 36 hidden springs, matching the equivalent ordinary helix exactly.
+The labeled example regression compares its upper and lower stack angles after
+convergence with free ends. The actual Vue example is also checked through the
+example selector, with a screenshot and angle measurements saved under
+`output/playwright/ui/crossing-rri-stacks.*`. All 30 nucleotides and 10 real
+pairs remain visible. Existing animation-off visual baselines are unchanged.
+
+The reviewed screenshot below was captured by `npm run test:ui` using Chromium
+153.0.8010.12 at a 1440 × 1000 viewport. The example selector loads the normal
+defaults; the test waits for convergence and zooms out for the capture without
+changing graph geometry. Maximum corner deviation from 90° is 9.46° in the
+upper pseudoknot stacks and 10.00° in the lower ordinary stacks.
+
+![Crossing RRI after the complete scaffold correction](../doc/pseudoknot-stacks-review.png)
+
 `freeTrailingEnds` removes exterior hubs, virtual vertices, and their constraints while retaining
 real nucleotides and interior-loop constraints, including constraints that share
 a nucleotide with an exterior loop. Real nucleotide identity never changes.
