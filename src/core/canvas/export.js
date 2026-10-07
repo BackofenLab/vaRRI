@@ -72,6 +72,8 @@ export function buildSVGString(session, containerId) {
   // so that class-based CSS rules, relative units, and inherited values
   // are all baked into the clone as plain inline style attributes.
   inlineComputedStyles(session, svgEl, clone);
+  clone.querySelectorAll('[data-varri-interaction-overlay]').forEach(element => element.remove());
+  clone.querySelectorAll('[data-varri-selected]').forEach(element => element.removeAttribute('data-varri-selected'));
 
   // Required namespace declarations for a standalone SVG file.
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');

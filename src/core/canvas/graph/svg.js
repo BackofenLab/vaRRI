@@ -63,7 +63,8 @@ export function updateSvg(container, d3) {
   const nodes = d3.select(container.layers.nodes).selectAll('g.gnode')
     .data(visibleNodes, node => node.uid);
   const groups = nodes.enter().append('g').attr('class', 'gnode')
-    .attr('num', node => `n${node.num}`).attr('struct_name', node => node.structName);
+    .attr('num', node => `n${node.num}`).attr('struct_name', node => node.structName)
+    .style('cursor', 'move').style('touch-action', 'none');
   const nucleotides = groups.filter(node => node.nodeType === 'nucleotide');
   nucleotides.append('path').attr('class', 'fornac-directionArrow')
     .attr('node_num', node => node.num);
@@ -73,7 +74,7 @@ export function updateSvg(container, d3) {
     .style('fill', node => node.nodeType === 'nucleotide' ? LOOP_COLORS[node.elemType] : 'white')
     .append('title').text(node => `${node.structName}:${node.num}`);
   groups.append('text').attr('class', 'fornac-nodeLabel')
-    .attr('label_type', node => node.nodeType).text(node => node.name);
+    .attr('label_type', node => node.nodeType).style('pointer-events', 'auto').text(node => node.name);
   nodes.exit().remove();
   syncPositions(container, d3);
   return groups;

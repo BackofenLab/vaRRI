@@ -42,10 +42,11 @@ Restarting explicitly refreshes those caches after changing pseudoknot strength
 or removing exterior helpers. Old link arrays are cleared before replacing
 nodes. Stopping does not emit convergence or restart a cancelled simulation.
 
-Drag movement is measured in the zoomed plot's coordinates. Selection modifiers
-and prior fixed state are preserved. Disposal detaches active mouse gestures,
-restores browser text selection, and prevents late callbacks from restarting
-the old simulation. Programmatic fitting updates D3's stored zoom transform,
+The subsequent #74 interaction update measures pointer movement through each
+element's zoomed and rotated coordinate frame. Ctrl-click and rectangle selection
+include nucleotides, numbering, and text. Dragged graph nodes remain fixed for the
+current rendering; text positions update the model. Disposal detaches active
+gestures and prevents late callbacks from restarting the old simulation. Programmatic fitting updates D3's stored zoom transform,
 so subsequent wheel and pan gestures start at the fitted view.
 
 ## Verification and visual review

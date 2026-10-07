@@ -76,11 +76,11 @@ Open the **Example** dropdown to choose another RNA-RNA interaction. Each open m
 | **Base pair color** | Chose the color used for all base pairs (intra- and intermolecular). |
 | **Color Choice** | Use the color pickers to customize the highlighting colors. |
 | **G-U basepairs dashed** | When checked, G-U basepairs are drawn with a dashed stroke. |
+| **Linear horizontal RRI layout** | Keeps all noncrossing intermolecular helixes on straight linear layout and rotates the complete two-molecule interaction so its RRI axis is horizontal. Works with or without Force layout; when it is off, the linear layout settles briefly and then stops. |
+| **Linear intramolecular stem layout** | Keeps intramolecular stems (i.e. helices containing bulges or interior loops) on straight linear layout. Stems stop at multiloops or crossing pairs. Works with or without Force layout; when it is off, the linear layout settles briefly and then stops. |
 | **Force layout** | When checked, the rendered structure is shown in an interactive force-directed layout. When unchecked, the structure is drawn in a fixed layout. |
-| - **Linear horizontal RRI layout** | Keeps all noncrossing intermolecular helixes on straight linear layout and rotates the complete two-molecule interaction so its RRI axis is horizontal. Enabling it also enables the force layout. |
 | - **Free trailing ends** | When checked, the trailing ends of the sequences are not fixed in the force-directed layout and can move freely. |
-| - **Pull Pseudoknot Basepairs** | Pulls pseudoknot basepairs together and stabilizes stacked pairs in the force-directed layout. |
-| - **Linear intramolecular stem layout** | Keeps intramolecular stems (i.e. helices containing bulges or interior loops) on straight linear layout. Stems stop at multiloops or crossing pairs. Enabling it also enables the force layout. |
+| - **Pull Pseudoknot Basepairs** | When checked, pulls pseudoknot basepairs together and stabilizes stacked pairs in the force-directed layout. |
 
 ### Region Highlights
 
@@ -214,12 +214,15 @@ both positioned and unpositioned labels, including their formatting.
 ### Additional Features
 
 - **Zooming**: Use the mouse wheel to zoom in and out.
-- **Panning**: Click and drag the visualisation to pan around. This is useful when zoomed in to focus on a certain region of the structure.
+- **Panning**: Click and drag the empty background to pan around. This is useful when zoomed in to focus on a certain region of the structure.
 - **Rotation**: Use the *Rotation* slider below the visualisation to rotate the structure. Rotation preserves text orientation and is useful to align the structure for better visibility or to match a certain orientation in a publication figure.
 - **Cropping**: Use the *Crop* slider to reduce the unpaired nucleotides at the ends of each sequence to the given number. This is useful to focus on the interaction region and reduce the size of the visualisation. A value of `-1` disables cropping and shows the full sequences.
-- **Nucleotide Nodes**
-  - .. can be dragged to new positions in the force-directed layout mode.
-  - .. show a tooltip with the nucleotide index and probability value (if present) when hovered over.
+- **Selection**: Ctrl-click a nucleotide, numbering label, or text label to add it to or remove it from the selection. Ctrl-drag the background to replace the selection with all elements fully inside the rectangle. An empty rectangle, Ctrl-click on the background, or a plain click on an element clears the selection. Command also works on macOS.
+- **Moving elements**: Drag any nucleotide, numbering label, or text label in either layout mode. Drag a selected element to move the whole selection; dragging an unselected element clears the selection and moves that element alone. Released nodes and numbering labels stay in place until the next render, including in force mode.
+- **Manual positions**: The **Moved** button beside Crop counts manually positioned nucleotides and numbering labels; click it to select them all. **Release** unfixes selected nodes at their current positions, allowing them to move again when Force layout is enabled, and removes them from the Moved count. **Reset** restores selected manual nodes to their positions and fixation before the first edit. Text labels are not counted, released, or reset. **Undo** (or Ctrl+Z / Command+Z while the canvas is focused) reverses the last drag, selection rotation, release, or reset. Undo a release before resetting that node to its original position. History is kept for the current rendering. The **?** button opens the full interaction guide.
+- **Selection rotation**: With at least two elements selected, hold Ctrl (or Command) and use the mouse wheel to rotate them around the pointer. The ordinary wheel still zooms.
+- **Saving positions**: SVG and PNG exports preserve the current layout and omit selection outlines. Share links save text-label positions; manually moved nucleotide and numbering positions last only for the current rendering.
+- **Nucleotide tooltips**: Hover to see the nucleotide index and probability value (if present).
 - **Resize Canvas**: The visualisation canvas size can be adjusted by dragging the bottom-right corner of the canvas. This is useful when visualizing large interactions on large screens, or when preparing figures for publication. The canvas size is preserved when exporting the visualisation.
 
 ### Export

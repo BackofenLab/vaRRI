@@ -2,7 +2,6 @@ import { clearTextAnnotations, getTextAnnotations, initializeDefaultTextAnnotati
   registerTextAnnotation, updateTextAnnotation } from '../model/text-annotations.js';
 import { syncTextAnnotationRotation } from './rotation.js';
 import { clientToGraphPosition, nucleotideCentroid, terminalPosition } from './text-annotation-geometry.js';
-import { attachTextAnnotationDragging } from './text-annotation-drag.js';
 import { defaultTextOffset } from './text-annotation-defaults.js';
 import { getSequenceNames, setSequenceNames } from '../model/sequence-names.js';
 
@@ -117,6 +116,7 @@ export function refreshTextAnnotations(session) {
   }
   syncPositions(session, state);
   syncTextAnnotationRotation(state.container.svg, state.layer);
+  state.container.interactions?.refresh();
   return items.length;
 }
 
@@ -153,13 +153,36 @@ export function initializeTextAnnotations(session, container, validated, options
   const layer = session.dom.createElementNS(SVG_NS, 'g');
   layer.setAttribute('data-varri-text-layer', 'true');
   container.plot.appendChild(layer);
-  const state = { layer, container, validated, entries: new Map(), window: session.window,
+  const state = { layer, container, validated, entries: new Map(),
     notify: () => options.onTextAnnotationsChange?.(getTextAnnotations(session.modelState)) };
   container.varriTextAnnotations = state;
-  state.disposeDrag = attachTextAnnotationDragging(state,
-    (id, position) => moveTextAnnotation(session, state, id, position), state.notify);
+  state.capture = id => {
+    const item = getTextAnnotations(session.modelState).find(item => item.id === id);
+    return item && { position: item.position, anchor: item.anchor };
+  };
+  state.restore = records => {
+    for (const { id, position, anchor } of records) {
+      if (state.entries.has(id)) updateTextAnnotation(session.modelState, id, { position, anchor });
+    }
+    refreshTextAnnotations(session);
+    if (records.length) state.notify();
+  };
+  state.move = positions => {
+    const center = nucleotideCentroid(container.graph);
+    for (const { id, position } of positions) {
+      if (!state.entries.has(id)) continue;
+      updateTextAnnotation(session.modelState, id, {
+        position: { x: position.x - center.x, y: position.y - center.y },
+      });
+    }
+    if (positions.length) refreshTextAnnotations(session);
+    else syncPositions(session, state);
+  };
   refreshTextAnnotations(session);
-  const sync = () => syncPositions(session, state);
+  const sync = () => {
+    syncPositions(session, state);
+    container.interactions?.refresh();
+  };
   container.force?.on('tick.varriTextAnnotations', sync).on('end.varriTextAnnotations', sync);
   state.notify();
 }
@@ -167,7 +190,7 @@ export function initializeTextAnnotations(session, container, validated, options
 export function clearTextAnnotationState(container) {
   const state = container?.varriTextAnnotations;
   if (!state) return;
-  state.disposeDrag();
+  container.interactions?.cancel();
   container.force?.on('tick.varriTextAnnotations', null).on('end.varriTextAnnotations', null);
   delete container.varriTextAnnotations;
 }

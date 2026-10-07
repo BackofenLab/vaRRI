@@ -87,8 +87,8 @@ linear-layout listeners, and resolves any pending render as cancelled.
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `forceLayout` | `boolean` | `false` | Enable D3 force-layout animation. |
-| `forceLayoutLinearStructure` | `boolean` | `false` | Apply a rigid two-rail constraint independently to intramolecular stems containing bulges or interior loops. Requires `forceLayout`. |
-| `forceLayoutLinearRRI` | `boolean` | `false` | Keep a noncrossing RRI helix on two parallel rails and rotate the complete two-molecule interaction so its axis is horizontal. Requires `forceLayout`. |
+| `forceLayoutLinearStructure` | `boolean` | `false` | Apply a rigid two-rail constraint independently to intramolecular stems containing bulges or interior loops. Works with or without `forceLayout`; static layouts settle briefly and then stop. |
+| `forceLayoutLinearRRI` | `boolean` | `false` | Keep a noncrossing RRI helix on two parallel rails and rotate the complete two-molecule interaction so its axis is horizontal. Works with or without `forceLayout`; static layouts settle briefly and then stop. |
 | `freeTrailingEnds` | `boolean` | `false` | Relax the external-loop closure scaffold when force layout is active. |
 | `pullPseudoknotBasepairs` | `boolean` | `false` | Pull pseudoknot basepairs together and stabilize their stacks and interior loops with the ordinary helix scaffolds when force layout is active. |
 | `accessData` | `Object<number, number>\|null` | `null` | Node-ID to probability map. |
@@ -298,6 +298,31 @@ should call `render()` and let it coordinate them.
 | `updateLinkTooltips(validated)` | Add biological positions to link tooltips. |
 | `updateNodeToolTips(validated)` | Add biological positions to node tooltips. |
 | `visualiseAccessibility(data, sequence1Length, colors?, colorMode?)` | Draw probability overlays. |
+
+## Manual canvas positions
+
+`getCanvasInteractionState()` returns a plain summary with `movedCount`,
+`selectedNodeCount`, `selectedMovedCount`, and `canUndo`. The optional render
+callback `onCanvasInteractionChange(summary)` receives changes to that summary.
+Graph objects remain inside the renderer; text annotations are excluded from
+manual-node counts.
+
+- `selectManuallyPositionedElements()` selects moved nucleotides and numbering labels.
+- `releaseSelectedPositions()` unfixes selected nodes at their current positions,
+  resumes the force when animation is enabled, and removes them from the moved
+  count. Text labels are unaffected. Returns whether any fixation was released.
+- `resetSelectedPositions()` restores selected manual nodes to their positions and
+  fixation before the first manual edit. Other elements are retained.
+- `undoCanvasEdit()` undoes the last drag, wheel-rotation burst, release, or position reset.
+  It restores text positions and anchors when those were edited, and returns
+  whether an edit was undone. History holds at most 100 edits for the current render.
+
+Ctrl-click toggles selection; plain element clicks and Ctrl-clicks on the background
+clear it. Drag a selected member to move its group. Ctrl-wheel rotates two or more
+selected elements around the pointer without changing zoom. Ctrl+Z (or Command+Z)
+undoes while the canvas has focus. Command works in place of Ctrl for all mouse
+gestures on macOS. Undo a release before resetting a node to its pre-edit position.
+A new render or cancellation clears history.
 
 ## Export
 

@@ -1,7 +1,9 @@
 import getD3 from '../../vendor/d3.js';
 import { createRnaGraph } from './structure.js';
-import { createSvg, updateSvg } from './svg.js';
-import { createForce, attachDragging } from './force.js';
+import { createSvg, updateSvg, syncPositions } from './svg.js';
+import { createForce } from './force.js';
+import { createCanvasInteractions } from '../interactions.js';
+import { INTERACTION_TARGET } from '../interaction-selection.js';
 
 const DEFAULT_OPTIONS = {
   animation: false, labelInterval: 1, chargeDistance: 110, friction: 0.35,
@@ -28,7 +30,9 @@ export function createGraphCanvas(target, options = {}) {
   let destroyed = false;
   const svg = d3.select(layers.svg);
   const plot = d3.select(layers.plot);
-  const zoom = d3.zoom().on('start.graph', event => {
+  const zoom = d3.zoom().filter(event => !event.button && ((event.type === 'wheel' && !event.ctrlKey && !event.metaKey) ||
+    (event.type !== 'wheel' && !event.ctrlKey && !event.metaKey && !event.target.closest?.(INTERACTION_TARGET))))
+    .on('start.graph', event => {
     const source = event.sourceEvent;
     if (source?.type !== 'mousedown' || !source.view) return;
     container.cancelZoom = () => {
@@ -40,6 +44,7 @@ export function createGraphCanvas(target, options = {}) {
     if (destroyed) return;
     const { x, y, k } = event.transform;
     plot.attr('transform', `translate(${x},${y}) scale(${k})`);
+    container.interactions?.refresh();
   });
   if (container.options.zoomable) svg.call(zoom);
 
@@ -54,6 +59,10 @@ export function createGraphCanvas(target, options = {}) {
   }
   sizeCanvas();
   container.force = createForce(container, d3);
+  container.interactions = createCanvasInteractions(container, () => {
+    syncPositions(container, d3);
+    container.onManualMove?.();
+  });
   container.centerView = () => {
     if (destroyed || !container.graph.nodes.length) return;
     const nodes = container.graph.nodes.filter(node => Number.isFinite(node.x) && Number.isFinite(node.y));
@@ -71,13 +80,15 @@ export function createGraphCanvas(target, options = {}) {
   container.update = () => {
     if (destroyed) return;
     container.force.nodes(container.graph.nodes).links(container.graph.links);
-    const newGroups = updateSvg(container, d3);
-    attachDragging(container, newGroups, d3);
+    updateSvg(container, d3);
+    container.interactions.refresh();
     if (container.options.animation) container.force.start();
   };
   container.addRNA = (structure, rnaOptions = {}) => {
     if (destroyed) throw new Error('Cannot add RNA to a destroyed canvas.');
+    container.interactions.clear();
     container.force.stop();
+    container.hasManualPositions = false;
     container.graph = createRnaGraph(structure, {
       labelInterval: container.options.labelInterval, ...rnaOptions,
     });
@@ -96,12 +107,12 @@ export function createGraphCanvas(target, options = {}) {
     if (destroyed) return;
     destroyed = true;
     container.destroyed = true;
-    container.cancelDrag?.();
+    container.interactions.dispose();
+    delete container.onManualMove;
     container.cancelZoom?.();
     observer?.disconnect();
     container.force.on('tick.graph', null).on('end.graph', null).stop();
     svg.on('.zoom', null);
-    d3.select(layers.nodes).selectAll('g.gnode').on('.drag', null);
   };
   return container;
 }

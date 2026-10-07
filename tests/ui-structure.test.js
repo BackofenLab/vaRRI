@@ -87,6 +87,8 @@ describe('UI document structure', () => {
     );
     expect(mountedHtml.indexOf('id="forceLayoutLinearRRI"'))
       .toBeLessThan(mountedHtml.indexOf('id="forceLayoutLinearStructure"'));
+    expect(mountedHtml.indexOf('id="forceLayoutLinearStructure"'))
+      .toBeLessThan(mountedHtml.indexOf('id="forceLayout"'));
   });
 
   test('documents every public API function', () => {

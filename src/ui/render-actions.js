@@ -49,10 +49,11 @@ export function createRenderActions({ api, state, actions, document }) {
     const f = state.fields;
     try {
       const result = await api.render('rendering-canvas', validated, {
+        onCanvasInteractionChange: summary => { if (run === latestRun) state.canvasInteraction = summary; },
         onTextAnnotationsChange: () => actions.syncAnnotations(),
         forceLayout: f.forceLayout,
-        forceLayoutLinearRRI: f.forceLayout && f.forceLayoutLinearRRI,
-        forceLayoutLinearStructure: f.forceLayout && f.forceLayoutLinearStructure,
+        forceLayoutLinearRRI: f.forceLayoutLinearRRI,
+        forceLayoutLinearStructure: f.forceLayoutLinearStructure,
         freeTrailingEnds: f.forceLayout && f.forceLayoutFreeTails,
         pullPseudoknotBasepairs: f.forceLayout && f.forceLayoutPullCrossing,
         accessData,
@@ -73,13 +74,17 @@ export function createRenderActions({ api, state, actions, document }) {
   }
   return {
     runVisualization, applyColors, syncGeneratedRegionHighlight, applySliderRotation, commitSliderRotation,
-    cancelRendering() { latestRun++; api.cancelActiveRender(); },
-    enableForceLayoutForSelectedLinearOptions() {
-      if (state.fields.forceLayoutLinearRRI || state.fields.forceLayoutLinearStructure) state.fields.forceLayout = true;
+    selectMovedElements() { api.selectManuallyPositionedElements(); },
+    resetSelectedPositions() { api.resetSelectedPositions(); },
+    releaseSelectedPositions() { api.releaseSelectedPositions(); },
+    undoCanvasEdit() { api.undoCanvasEdit(); },
+    cancelRendering() {
+      latestRun++; api.cancelActiveRender();
+      state.canvasInteraction = api.getCanvasInteractionState();
     },
     syncAnimationDependentControls() {
       if (state.fields.forceLayout) return;
-      ['forceLayoutLinearRRI', 'forceLayoutLinearStructure', 'forceLayoutFreeTails', 'forceLayoutPullCrossing']
+      ['forceLayoutFreeTails', 'forceLayoutPullCrossing']
         .forEach(id => { state.fields[id] = false; });
     },
     exportSVG() {

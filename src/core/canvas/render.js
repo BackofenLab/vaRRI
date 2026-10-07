@@ -80,7 +80,8 @@ export function render(session, containerId, v, options = {}) {
   // Create the independent SVG/force renderer.
   const container = (session.createCanvas || createGraphCanvas)(session.root, {
     animation: forceLayout,
-    labelInterval: 1
+    labelInterval: 1,
+    onCanvasInteractionChange: options.onCanvasInteractionChange
   });
   session.runtime.activeContainer = container;
   container.addRNA(v.structure, {
@@ -93,10 +94,11 @@ export function render(session, containerId, v, options = {}) {
   if (forceLayout && pullPseudoknotBasepairs) {
     applyPseudoknotLinkStrength(container, true);
   }
-  if (forceLayout && (forceLayoutLinearRRI || forceLayoutLinearStructure)) {
+  if (forceLayoutLinearRRI || forceLayoutLinearStructure) {
     applyLinearHelixSprings(session, container, v, {
       rri: forceLayoutLinearRRI,
-      structure: forceLayoutLinearStructure
+      structure: forceLayoutLinearStructure,
+      animate: forceLayout
     });
   }
   function applyModifications() {
@@ -144,9 +146,15 @@ export function render(session, containerId, v, options = {}) {
 
     // Linear-helix constraints may extend the initial bounds. Refit
     // after the first force ticks and annotation updates.
-    if (forceLayout && (forceLayoutLinearRRI || forceLayoutLinearStructure) && typeof container.centerView === 'function') {
+    if ((forceLayoutLinearRRI || forceLayoutLinearStructure) && typeof container.centerView === 'function') {
       container.centerView();
     }
+
+    container.onManualMove = () => {
+      session.dom.querySelectorAll('[data-varri-region], [data-varri-subseq]').forEach(el => el.remove());
+      applyRegionHighlights(session, v);
+      applySubsequenceHighlights(session, v);
+    };
 
     // When animation is on, keep the background-highlight polygon in sync
     // with the force-layout by redrawing it on every animation frame.

@@ -6,6 +6,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { chromium, firefox } from 'playwright';
 import { checkPNGDialog, checkPNGResize } from './browser-png-export.js';
+import { exercisePositionControlsUI } from './browser-position-ui.js';
 import { exerciseTextAnnotationUI } from './browser-text-ui.js';
 import { exerciseSequenceNames } from './browser-sequence-names.js';
 import { checkInputHighlights } from './browser-input-highlights.js';
@@ -91,6 +92,13 @@ async function main() {
     phase = 'initial viewer load';
     await page.goto(origin + '/index.html', { waitUntil: 'networkidle' });
     await ready(page);
+    if (process.argv.includes('--positions-only')) {
+      phase = 'manual positions, platform modifiers, responsive controls and help';
+      await exercisePositionControlsUI(page, origin, output);
+      assert.deepEqual(errors, [], 'Browser errors during canvas interaction workflow');
+      console.log(`Canvas interaction UI passed (${browserType.name()} ${browser.version()}).`);
+      return;
+    }
     if (process.argv.includes('--png-only')) {
       phase = 'PNG dialog and download';
       await checkPNGDialog(page, output);
@@ -173,9 +181,11 @@ async function main() {
     await ready(page);
     assert.equal((await page.locator('#profileCounterUI').textContent()).trim(), '(1)');
     await openPanel(page, '#forceLayoutLinearRRI');
+    await page.locator('#forceLayout').uncheck();
+    await ready(page);
     await page.locator('#forceLayoutLinearRRI').check();
     await ready(page);
-    assert.equal(await page.locator('#forceLayout').isChecked(), true);
+    assert.equal(await page.locator('#forceLayout').isChecked(), false);
     await page.locator('#rotationSlider').evaluate(element => {
       element.value = '35';
       element.dispatchEvent(new Event('input', { bubbles: true }));
@@ -192,6 +202,7 @@ async function main() {
     const params = new URL(shared).searchParams;
     assert.equal(params.get('profileData1'), '1 0.2\n2 0.8');
     assert.equal(params.get('forceLayoutLinearRRI'), '1');
+    assert.equal(params.get('forceLayout'), '0');
     assert.equal(params.get('rotation'), '35');
     for (const key of ['subseqHighlights', 'regionHighlights', 'mutations']) assert.ok(params.get(key), key + ' must be shared');
     assert.match(params.get('subseqHighlights'), /^1:1-1,3-4:[0-9a-f]{6}:0\.3$/i);
@@ -201,6 +212,7 @@ async function main() {
       assert.equal((await page.locator('#' + id).textContent()).trim(), '(1)', id + ': restored state');
     }
     assert.equal(await page.locator('#forceLayoutLinearRRI').isChecked(), true);
+    assert.equal(await page.locator('#forceLayout').isChecked(), false);
     assert.ok((await page.locator('#highlight-list').textContent()).includes('1-1,3-4'), 'All ranges stay in one restored annotation');
     assert.equal(await page.locator('#rotationSlider').inputValue(), '0');
     assert.ok((await page.locator('#rotation').textContent()).includes('35'));
@@ -237,6 +249,8 @@ async function main() {
     assert.equal(fullPage.searchParams.has('showRenderingOnly'), false);
     assert.equal(fullPage.searchParams.get('sequence'), 'ACGU&UGCA');
     await page.screenshot({ path: path.join(output, 'render-only.png') });
+    phase = 'manual position controls, reset and undo';
+    await exercisePositionControlsUI(page, origin, output);
     phase = 'text annotation defaults, editing, dragging and sharing';
     await exerciseTextAnnotationUI(page, origin, output);
     phase = 'sequence names, protected labels, text dialogs and FASTA';

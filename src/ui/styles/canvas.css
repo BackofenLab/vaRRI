@@ -9,8 +9,8 @@
   min-width: 0;
   max-width: calc(50vw +350px);
 
-  min-height: 520px;
-  height: max(520px, calc(100vh - 260px));;
+  min-height: 0;
+  height: max(300px, calc(100vh - 260px));
 }
 
 .highlight-list {
@@ -151,16 +151,27 @@
   background: var(--surface);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(15, 46, 74, .12);
-  flex: 1;
-  min-height: 450px;
+  flex: 1 1 0;
+  min-height: 0;
   overflow: hidden;
   position: relative;
 }
 
 #rendering-canvas svg {
+  display: block;
   width: 100%;
   height: 100%;
 }
+
+#rendering-canvas:focus { outline: none; }
+#rendering-canvas:focus-visible:not([data-varri-pointer-focus]) {
+  outline: 2px solid var(--brand-blue); outline-offset: -2px;
+}
+
+/* Reserve space for controls and captions when the viewer is short or resized. */
+.result-panel > .viz-control,
+.result-panel > .export-bar,
+.result-panel > #rendering-caption { flex: none; }
 
 #rendering-caption {
   background: var(--surface);
@@ -179,11 +190,12 @@
   background: var(--surface);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(15, 46, 74, .12);
-  padding: .6rem 1.2rem;
+  padding: .6rem .8rem;
   margin-top: .75rem;
   display: flex;
   align-items: center;
-  gap: .75rem;
+  flex-wrap: wrap;
+  gap: .5rem;
 }
 .viz-control label {
   margin: 0;
@@ -195,7 +207,7 @@
 .viz-control input[type="range"] {
   flex: 1;
   margin: 0;
-  min-width: 50;
+  min-width: 50px;
 }
 
 
@@ -234,3 +246,11 @@
   width: 2.5em;
 }
 
+
+.viz-control > #rotationSlider { flex: 1 1 60px; width: 0; }
+.viz-control > .cropping-control { flex: 0.6 1 50px; width: auto; min-width: 50px; }
+.cropping-control > input { width: 100%; display: block; }
+.manual-position-controls { display: flex; flex: none; gap: .25rem; align-items: center; margin-left: auto; }
+.manual-position-controls button { cursor: pointer; }
+.manual-position-controls button:hover:enabled { background: #e8f0f8; }
+.manual-position-controls button:disabled { color: #8b929a; background: #f3f4f5; cursor: default; }
