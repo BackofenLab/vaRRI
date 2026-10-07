@@ -134,18 +134,3 @@ dialog.png-export-dialog {
 .png-hint:last-child { margin-bottom: 0; }
 .png-export-error { margin: 8px 0 0; color: #a12622; font-size: 13px; }
 .png-export-dialog button:disabled { opacity: 0.6; cursor: wait; }
-
-dialog.canvas-help-dialog {
-  inset: 0;
-  margin: auto;
-  width: 540px;
-  min-width: 0;
-  max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 32px);
-  overflow: auto;
-  font-size: 13px;
-  line-height: 1.45;
-}
-.canvas-help-dialog .dialog-header { cursor: default; }
-.canvas-help-dialog dl { margin: 12px 0; }
-.canvas-help-dialog dt { font-weight: 700; margin-top: 8px; }

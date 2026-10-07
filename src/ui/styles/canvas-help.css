@@ -1,0 +1,24 @@
+dialog.canvas-help-dialog {
+  inset: 0;
+  margin: auto;
+  width: 540px;
+  height: fit-content;
+  min-width: 0;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.canvas-help-dialog .dialog-header { cursor: default; }
+.canvas-help-dialog dl { margin: 12px 0; }
+.canvas-help-dialog dt { font-weight: 700; margin-top: 8px; }
+
+.manual-position-controls button,
+.canvas-position-key {
+  font: inherit; font-size: .75rem; line-height: 18px; height: 20px;
+  padding: 0 .4rem; white-space: nowrap;
+  color: var(--brand-blue-dark); background: #f5f8fb;
+  border: 1px solid #cbd7e2; border-radius: 4px;
+}
+.canvas-position-key { display: inline-block; font-weight: 700; }
