@@ -84,7 +84,7 @@ export function applyLinearHelixSprings(session, container, v, options = {}) {
       // Synchronous ticks avoid a timer-dependent layout and finish before the
       // render becomes interactive. Leave nodes free for later manual edits.
       try {
-        for (let tick = 0; tick < 60 && typeof container.force.tick === 'function'; tick++) {
+        for (let tick = 0; tick < 200 && typeof container.force.tick === 'function'; tick++) {
           if (container.force.tick()) break;
         }
       } finally {
