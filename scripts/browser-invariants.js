@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { exerciseStaticLinearLayouts } from './browser-static-linear.js';
 import { exercisePositionEditing } from './browser-position-editing.js';
 import { exerciseInteractions } from './browser-interactions.js';
 import { exerciseCoreTextAnnotations } from './browser-text-core.js';
@@ -132,6 +133,8 @@ async function main() {
         else assert.ok(bytes.toString().includes('<svg'));
       }
       assert.deepEqual(errors, [], mode + ': browser errors');
+      phase = mode + ' static linear geometry and editing';
+      scenes[mode].staticLinear = await exerciseStaticLinearLayouts(page, path.join(output, `static-linear-${mode}.png`));
       phase = mode + ' dragging, zooming and interaction disposal';
       await exerciseInteractions(page);
       phase = mode + ' manual position reset, undo, and selection rotation';

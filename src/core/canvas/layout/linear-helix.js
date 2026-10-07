@@ -20,11 +20,12 @@ export function clearLinearHelixConstraintState(container) {
 
 /**
  * Apply rigid, invisible two-rail constraints for the requested RRI and/or
- * intramolecular helices, then restart the live D3 force once.
+ * intramolecular helices. Static layouts settle for a bounded number of ticks
+ * before returning; animated layouts keep enforcing their rails as they move.
  *
  * @param {Object} container  Live graph canvas.
  * @param {Object} v  Validated parameter dictionary.
- * @param {{rri?:boolean,structure?:boolean}} [options]
+ * @param {{rri?:boolean,structure?:boolean,animate?:boolean}} [options]
  * @returns {number} Number of measured same-strand loop-span constraints.
  */
 export function applyLinearHelixSprings(session, container, v, options = {}) {
@@ -78,6 +79,19 @@ export function applyLinearHelixSprings(session, container, v, options = {}) {
     }
     if (typeof container.force.start === 'function') {
       container.force.start();
+    }
+    if (options.animate === false) {
+      // Synchronous ticks avoid a timer-dependent layout and finish before the
+      // render becomes interactive. Leave nodes free for later manual edits.
+      try {
+        for (let tick = 0; tick < 200 && typeof container.force.tick === 'function'; tick++) {
+          if (container.force.tick()) break;
+        }
+      } finally {
+        clearLinearHelixConstraintState(container);
+        container.force.stop?.();
+      }
+      enforceAndSync();
     }
   }
   return activeConstraints.length;

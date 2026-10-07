@@ -94,10 +94,11 @@ export function render(session, containerId, v, options = {}) {
   if (forceLayout && pullPseudoknotBasepairs) {
     applyPseudoknotLinkStrength(container, true);
   }
-  if (forceLayout && (forceLayoutLinearRRI || forceLayoutLinearStructure)) {
+  if (forceLayoutLinearRRI || forceLayoutLinearStructure) {
     applyLinearHelixSprings(session, container, v, {
       rri: forceLayoutLinearRRI,
-      structure: forceLayoutLinearStructure
+      structure: forceLayoutLinearStructure,
+      animate: forceLayout
     });
   }
   function applyModifications() {
@@ -145,7 +146,7 @@ export function render(session, containerId, v, options = {}) {
 
     // Linear-helix constraints may extend the initial bounds. Refit
     // after the first force ticks and annotation updates.
-    if (forceLayout && (forceLayoutLinearRRI || forceLayoutLinearStructure) && typeof container.centerView === 'function') {
+    if ((forceLayoutLinearRRI || forceLayoutLinearStructure) && typeof container.centerView === 'function') {
       container.centerView();
     }
 

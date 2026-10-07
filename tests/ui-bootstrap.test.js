@@ -47,6 +47,10 @@ test('boots through bound UI actions without inline handlers', async () => {
     return button;
   };
 
+  const forceLayout = document.getElementById('forceLayout');
+  forceLayout.checked = true;
+  forceLayout.dispatchEvent(new window.Event('change'));
+  await flush();
   freeTails.checked = true;
   freeTails.dispatchEvent(new window.Event('change'));
   pullCrossing.checked = true;
@@ -135,118 +139,60 @@ test('boots through bound UI actions without inline handlers', async () => {
   await close();
 });
 
-test('linear layout controls enable force, survive example loading, share, and forward render flags', async () => {
-  const { dom, renderSpy, flush, close } = await mountViewer({
+test('linear controls preserve the force choice through examples, toggles, and sharing', async () => {
+  const { renderSpy, flush, close } = await mountViewer({
     modifyExamples(examples) {
-      const featureOverview = examples['2mol'];
-      examples['linear-test'] = {
-        ...featureOverview,
-        name: 'Linear layout test', nameShort: 'Linear layout test',
-        descriptionShort: 'Exercises the linear RRI option.',
-        vaRRIParams: { ...featureOverview.vaRRIParams, forceLayout: '0', forceLayoutLinearRRI: '1' },
-      };
+      examples['linear-test'] = { ...examples['2mol'], name: 'Linear layout test',
+        nameShort: 'Linear layout test', descriptionShort: 'Static linear RRI.',
+        vaRRIParams: { ...examples['2mol'].vaRRIParams, forceLayout: '0', forceLayoutLinearRRI: '1' } };
     },
   });
   const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
-
-  const forceLayout = document.getElementById('forceLayout');
-  const linearStructure = document.getElementById('forceLayoutLinearStructure');
-  const linearRri = document.getElementById('forceLayoutLinearRRI');
-  const options = document.getElementById('exampleDropdownOptions');
-
-  expect(linearStructure.checked).toBe(false);
-  expect(linearRri.checked).toBe(true);
-  expect(linearStructure.disabled).toBe(false);
-  expect(linearRri.disabled).toBe(false);
-
-  options.querySelector('[data-example="linear-test"]').click();
+  const force = document.getElementById('forceLayout');
+  const rri = document.getElementById('forceLayoutLinearRRI');
+  const structure = document.getElementById('forceLayoutLinearStructure');
+  document.querySelector('[data-example="linear-test"]').click();
   await flush();
-
-  expect(forceLayout.checked).toBe(true);
-  expect(linearStructure.checked).toBe(false);
-  expect(linearRri.checked).toBe(true);
-  expect(renderSpy).toHaveBeenLastCalledWith(
-    expect.any(String),
-    expect.any(Object),
-    expect.objectContaining({
-      forceLayout: true,
-      forceLayoutLinearStructure: false,
-      forceLayoutLinearRRI: true,
-    })
-  );
-
-  options.querySelector('[data-example="2mol"]').click();
+  expect(force.checked).toBe(false);
+  expect(rri.checked).toBe(true);
+  expect(renderSpy).toHaveBeenLastCalledWith(expect.any(String), expect.any(Object),
+    expect.objectContaining({ forceLayout: false, forceLayoutLinearRRI: true, forceLayoutLinearStructure: false }));
+  structure.checked = true;
+  structure.dispatchEvent(new window.Event('change'));
   await flush();
-  expect(linearStructure.checked).toBe(false);
-  expect(linearRri.checked).toBe(true);
-
-  linearStructure.checked = true;
-  linearStructure.dispatchEvent(new window.Event('change'));
-  await flush();
-  expect(forceLayout.checked).toBe(true);
-  expect(renderSpy).toHaveBeenLastCalledWith(
-    expect.any(String),
-    expect.any(Object),
-    expect.objectContaining({
-      forceLayout: true,
-      forceLayoutLinearStructure: true,
-      forceLayoutLinearRRI: true,
-    })
-  );
-
-  linearRri.checked = true;
-  linearRri.dispatchEvent(new window.Event('change'));
-  await flush();
-  expect(forceLayout.checked).toBe(true);
-  expect(renderSpy).toHaveBeenLastCalledWith(
-    expect.any(String),
-    expect.any(Object),
-    expect.objectContaining({
-      forceLayout: true,
-      forceLayoutLinearStructure: true,
-      forceLayoutLinearRRI: true,
-    })
-  );
-
+  expect(force.checked).toBe(false);
+  for (const checked of [true, false]) {
+    force.checked = checked;
+    force.dispatchEvent(new window.Event('change'));
+    await flush();
+    expect(rri.checked).toBe(true);
+    expect(structure.checked).toBe(true);
+    expect(rri.disabled || structure.disabled).toBe(false);
+    expect(renderSpy).toHaveBeenLastCalledWith(expect.any(String), expect.any(Object),
+      expect.objectContaining({ forceLayout: checked, forceLayoutLinearRRI: true, forceLayoutLinearStructure: true }));
+  }
   document.getElementById('openVarriBtn').click();
   await flush();
-  const sharedUrl = new URL(openSpy.mock.calls.at(-1)[0]);
-  expect(sharedUrl.searchParams.get('forceLayoutLinearStructure')).toBe('1');
-  expect(sharedUrl.searchParams.get('forceLayoutLinearRRI')).toBe('1');
-
-  forceLayout.checked = false;
-  forceLayout.dispatchEvent(new window.Event('change'));
-  await flush();
-  expect(linearStructure.checked).toBe(false);
-  expect(linearRri.checked).toBe(false);
-  expect(linearStructure.disabled).toBe(false);
-  expect(linearRri.disabled).toBe(false);
-  expect(renderSpy).toHaveBeenLastCalledWith(
-    expect.any(String),
-    expect.any(Object),
-    expect.objectContaining({
-      forceLayout: false,
-      forceLayoutLinearStructure: false,
-      forceLayoutLinearRRI: false,
-    })
-  );
-
+  const shared = new URL(openSpy.mock.calls.at(-1)[0]);
+  expect(shared.searchParams.get('forceLayout')).toBe('0');
+  expect(shared.searchParams.get('forceLayoutLinearRRI')).toBe('1');
+  expect(shared.searchParams.get('forceLayoutLinearStructure')).toBe('1');
   await close();
 });
 
 test.each([
   'forceLayoutLinearStructure',
   'forceLayoutLinearRRI',
-])('URL-loaded %s enables force layout before the initial render', async optionId => {
+])('URL-loaded %s preserves a static layout before the initial render', async optionId => {
   const url = `http://localhost/?sequence=AAAA&structure=....&forceLayout=0&${optionId}=1`;
   const { renderSpy, close } = await mountViewer({ url });
 
   expect(document.getElementById(optionId).checked).toBe(true);
-  expect(document.getElementById('forceLayout').checked).toBe(true);
+  expect(document.getElementById('forceLayout').checked).toBe(false);
   expect(renderSpy).toHaveBeenLastCalledWith(
     expect.any(String),
     expect.any(Object),
-    expect.objectContaining({ forceLayout: true, [optionId]: true })
+    expect.objectContaining({ forceLayout: false, [optionId]: true })
   );
 
   await close();

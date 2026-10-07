@@ -63,7 +63,6 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
       .map(key => [key, state.fields[key]]));
     if (Object.keys(names).length) api.setSequenceNames(names);
     actions.syncAnnotations();
-    actions.enableForceLayoutForSelectedLinearOptions();
     actions.syncAnimationDependentControls();
     applyBodyClasses();
     if (revealProfilePanel && Object.keys(decoded.fields).some(key => key.startsWith('profileData'))) {
