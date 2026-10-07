@@ -308,16 +308,21 @@ Graph objects remain inside the renderer; text annotations are excluded from
 manual-node counts.
 
 - `selectManuallyPositionedElements()` selects moved nucleotides and numbering labels.
+- `releaseSelectedPositions()` unfixes selected nodes at their current positions,
+  resumes the force when animation is enabled, and removes them from the moved
+  count. Text labels are unaffected. Returns whether any fixation was released.
 - `resetSelectedPositions()` restores selected manual nodes to their positions and
   fixation before the first manual edit. Other elements are retained.
-- `undoCanvasEdit()` undoes the last drag, wheel-rotation burst, or position reset.
+- `undoCanvasEdit()` undoes the last drag, wheel-rotation burst, release, or position reset.
   It restores text positions and anchors when those were edited, and returns
   whether an edit was undone. History holds at most 100 edits for the current render.
 
 Ctrl-click toggles selection; plain element clicks and Ctrl-clicks on the background
 clear it. Drag a selected member to move its group. Ctrl-wheel rotates two or more
 selected elements around the pointer without changing zoom. Ctrl+Z (or Command+Z)
-undoes while the canvas has focus. A new render or cancellation clears history.
+undoes while the canvas has focus. Command works in place of Ctrl for all mouse
+gestures on macOS. Undo a release before resetting a node to its pre-edit position.
+A new render or cancellation clears history.
 
 ## Export
 

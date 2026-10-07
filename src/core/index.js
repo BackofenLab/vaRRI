@@ -12,6 +12,7 @@ export const {
   getCanvasInteractionState,
   selectManuallyPositionedElements,
   resetSelectedPositions,
+  releaseSelectedPositions,
   undoCanvasEdit,
   validate,
   getColors,

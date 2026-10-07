@@ -50,6 +50,20 @@ export function createManualPositions(container, syncGraph) {
     resume(true);
     return true;
   }
+  function release(targets) {
+    const releasable = targets.filter(({ node }) => node &&
+      (node.fixed || node.fx != null || node.fy != null || originals.has(node)));
+    if (!releasable.length) return false;
+    const records = capture(releasable);
+    for (const { node } of releasable) {
+      Object.assign(node, { px: node.x, py: node.y, fx: null, fy: null, vx: 0, vy: 0, fixed: 0 });
+      originals.delete(node);
+    }
+    updateCount();
+    commit(records);
+    resume(true);
+    return true;
+  }
   function undo() {
     const records = history.pop();
     if (!records) return false;
@@ -70,7 +84,7 @@ export function createManualPositions(container, syncGraph) {
     return true;
   }
   return {
-    capture, commit, apply, reset, undo,
+    capture, commit, apply, reset, release, undo,
     has: node => originals.has(node),
     get count() { return originals.size; },
     get canUndo() { return history.length > 0; },

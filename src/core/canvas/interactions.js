@@ -7,6 +7,7 @@ import { createSelectionOverlay, enclosed, interactionTargets, INTERACTION_TARGE
 /** One pointer owner and one selection for nodes, numbering, and free text. */
 export function createCanvasInteractions(container, syncGraph = () => {}) {
   const { svg } = container;
+  const host = container.element || svg;
   const window = svg.ownerDocument.defaultView;
   const selected = new Set();
   const overlay = createSelectionOverlay(svg);
@@ -29,7 +30,7 @@ export function createCanvasInteractions(container, syncGraph = () => {}) {
     container.options?.onCanvasInteractionChange?.(value);
   }
   const focus = () => {
-    const host = container.element || svg;
+    host.setAttribute('data-varri-pointer-focus', 'true');
     if (!host.hasAttribute('tabindex')) host.setAttribute('tabindex', '0');
     host.focus({ preventScroll: true });
   };
@@ -152,11 +153,13 @@ export function createCanvasInteractions(container, syncGraph = () => {}) {
     return changed;
   }
   const keydown = event => {
+    clearPointerFocus();
     if (event.key.toLowerCase() !== 'z' || (!event.ctrlKey && !event.metaKey) || event.shiftKey || event.altKey ||
       event.target.closest?.('input, textarea, select, [contenteditable="true"]')) return;
     if (undo()) { event.preventDefault(); event.stopPropagation(); }
   };
-  const host = container.element || svg;
+  const clearPointerFocus = () => host.removeAttribute('data-varri-pointer-focus');
+  host.addEventListener('blur', clearPointerFocus);
   host.addEventListener('keydown', keydown);
   svg.addEventListener('pointerdown', onStart);
   svg.addEventListener('lostpointercapture', onCancel);
@@ -178,12 +181,21 @@ export function createCanvasInteractions(container, syncGraph = () => {}) {
       refresh();
       return changed;
     },
+    releaseSelected() {
+      if (container.destroyed) return false;
+      stop(); rotation.finish();
+      const changed = positions.release(selectedTargets());
+      refresh();
+      return changed;
+    },
     clear() { stop(); rotation.finish(); selected.clear(); positions.clear(); refresh(); },
     dispose() {
       stop();
       rotation.dispose();
       positions.clear();
       host.removeEventListener('keydown', keydown);
+      host.removeEventListener('blur', clearPointerFocus);
+      clearPointerFocus();
       selected.clear();
       refresh();
       overlay.dispose();

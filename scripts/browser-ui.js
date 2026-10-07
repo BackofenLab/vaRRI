@@ -91,6 +91,13 @@ async function main() {
     phase = 'initial viewer load';
     await page.goto(origin + '/index.html', { waitUntil: 'networkidle' });
     await ready(page);
+    if (process.argv.includes('--positions-only')) {
+      phase = 'manual positions, platform modifiers, responsive controls and help';
+      await exercisePositionControlsUI(page, origin, output);
+      assert.deepEqual(errors, [], 'Browser errors during canvas interaction workflow');
+      console.log(`Canvas interaction UI passed (${browserType.name()} ${browser.version()}).`);
+      return;
+    }
     if (process.argv.includes('--png-only')) {
       phase = 'PNG dialog and download';
       await checkPNGDialog(page, output);

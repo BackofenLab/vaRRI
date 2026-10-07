@@ -1,4 +1,5 @@
 import { viewerComponent } from './context.js';
+import CanvasHelpDialog from './canvas-help-dialog.js';
 
 export default viewerComponent('viewer-panel', `<section class="result-panel">
     <div id="rendering-canvas" tabindex="0" @dragover="actions.overTextAnnotationCanvas($event)"
@@ -15,10 +16,14 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
       <div class="manual-position-controls" role="group" aria-label="Manual positions">
         <button id="selectMovedBtn" type="button" v-on:click="actions.selectMovedElements()"
           v-bind:disabled="!state.canvasInteraction.movedCount" title="Select all manually moved nucleotides and numbering labels. Text labels are not counted.">Moved: {{ state.canvasInteraction.movedCount }}</button>
+        <button id="releasePositionsBtn" type="button" v-on:click="actions.releaseSelectedPositions()"
+          v-bind:disabled="!state.canvasInteraction.selectedNodeCount" title="Unfix selected nodes at their current positions. They resume moving if Force layout is enabled. Text labels are unaffected.">Release</button>
         <button id="resetPositionsBtn" type="button" v-on:click="actions.resetSelectedPositions()"
           v-bind:disabled="!state.canvasInteraction.selectedMovedCount" title="Restore selected nodes to their positions and fixation before manual editing.">Reset</button>
         <button id="undoCanvasBtn" type="button" v-on:click="actions.undoCanvasEdit()"
-          v-bind:disabled="!state.canvasInteraction.canUndo" title="Undo the last drag, selection rotation, or position reset. Ctrl+Z / Command+Z while the canvas is focused.">Undo</button>
+          v-bind:disabled="!state.canvasInteraction.canUndo" title="Undo the last drag, selection rotation, release, or reset. Ctrl+Z / Command+Z while the canvas is focused.">Undo</button>
+        <button id="canvasHelpBtn" type="button" aria-label="Canvas interaction help" title="Canvas interaction help"
+          v-on:click="actions.openDialog('canvasHelpDialog', 'Canvas interactions')">?</button>
       </div>
     </div>
     <div class="export-bar">
@@ -29,4 +34,5 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
       <span class="cite-note">Please
       <a href="citation.html" class="btn btn-cite btn-sm">🤍 Cite vaRRI</a></span>
     </div>
-  </section>`);
+    <CanvasHelpDialog />
+  </section>`, { CanvasHelpDialog });
