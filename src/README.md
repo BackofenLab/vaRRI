@@ -90,7 +90,7 @@ linear-layout listeners, and resolves any pending render as cancelled.
 | `forceLayoutLinearStructure` | `boolean` | `false` | Apply a rigid two-rail constraint independently to intramolecular stems containing bulges or interior loops. Works with or without `forceLayout`; static layouts settle briefly and then stop. |
 | `forceLayoutLinearRRI` | `boolean` | `false` | Keep a noncrossing RRI helix on two parallel rails and rotate the complete two-molecule interaction so its axis is horizontal. Works with or without `forceLayout`; static layouts settle briefly and then stop. |
 | `freeTrailingEnds` | `boolean` | `false` | Relax the external-loop closure scaffold when force layout is active. |
-| `pullPseudoknotBasepairs` | `boolean` | `false` | Increase pseudoknot link strength when force layout is active. |
+| `pullPseudoknotBasepairs` | `boolean` | `false` | Pull pseudoknot basepairs together and stabilize their stacks and interior loops with the ordinary helix scaffolds when force layout is active. |
 | `accessData` | `Object<number, number>\|null` | `null` | Node-ID to probability map. |
 | `accessColors` | `Object\|null` | `null` | Optional `sequence1` and `sequence2` overlay colors. |
 | `accessColorMode` | `Object\|null` | `null` | Optional `sequence1RepresentsOne` and `sequence2RepresentsOne` flags. |

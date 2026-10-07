@@ -80,7 +80,7 @@ Open the **Example** dropdown to choose another RNA-RNA interaction. Each open m
 | **Linear intramolecular stem layout** | Keeps intramolecular stems (i.e. helices containing bulges or interior loops) on straight linear layout. Stems stop at multiloops or crossing pairs. Works with or without Force layout; when it is off, the linear layout settles briefly and then stops. |
 | **Force layout** | When checked, the rendered structure is shown in an interactive force-directed layout. When unchecked, the structure is drawn in a fixed layout. |
 | - **Free trailing ends** | When checked, the trailing ends of the sequences are not fixed in the force-directed layout and can move freely. |
-| - **Pull Pseudoknot Basepairs** | When checked, pseudoknot basepairs are pulled together in the force-directed layout. |
+| - **Pull Pseudoknot Basepairs** | When checked, pulls pseudoknot basepairs together and stabilizes stacked pairs in the force-directed layout. |
 
 ### Region Highlights
 

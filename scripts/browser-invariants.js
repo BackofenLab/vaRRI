@@ -8,6 +8,7 @@ import { exerciseStaticLinearLayouts } from './browser-static-linear.js';
 import { exercisePositionEditing } from './browser-position-editing.js';
 import { exerciseInteractions } from './browser-interactions.js';
 import { exerciseCoreTextAnnotations } from './browser-text-core.js';
+import { exercisePseudoknotStacks } from './browser-pseudoknot-stacks.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const output = path.join(root, 'output/playwright/core-contract');
@@ -141,6 +142,8 @@ async function main() {
       await exercisePositionEditing(page);
       phase = mode + ' text annotations, coordinates, drift and disposal';
       await exerciseCoreTextAnnotations(page);
+      phase = mode + ' pseudoknot stack forces and hidden exports';
+      await exercisePseudoknotStacks(page);
       assert.deepEqual(errors, [], mode + ': interaction browser errors');
       assert.ok(!requests.some(url => /vue|fornac\.js/.test(url)), mode + ': UI-free core dependency graph');
       await page.evaluate(() => window.exportApi.cancelActiveRender());
@@ -148,7 +151,7 @@ async function main() {
     }
     phase = 'native/bundle parity';
     assert.deepEqual(scenes.native, scenes.bundle, 'Native source and standalone bundle render the same scene');
-    console.log(`Browser contracts passed (Chromium ${browser.version()}): native/bundle parity, topology, instance isolation, text placement/drag/rotation/drift, force cancellation, SVG and PNG export.`);
+    console.log(`Browser contracts passed (Chromium ${browser.version()}): native/bundle parity, topology, instance isolation, text placement/drag/rotation/drift, pseudoknot stacks, force cancellation, SVG and PNG export.`);
   } catch (error) {
     if (activePage && !activePage.isClosed()) {
       await activePage.screenshot({ path: path.join(output, 'failure.png'), fullPage: true }).catch(() => {});

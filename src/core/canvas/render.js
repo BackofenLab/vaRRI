@@ -56,7 +56,7 @@ export function cancelActiveRender(session) {
  * @param {boolean} [options.forceLayoutLinearRRI=false]  Enforce a rigid two-rail RRI layout and orient the complete interaction horizontally.
  * @param {boolean} [options.forceLayoutLinearStructure=false]  Enforce the same two-rail geometry within intramolecular helices.
  * @param {boolean} [options.freeTrailingEnds=false]  Remove exterior-loop scaffolds from the force graph, leaving other loop constraints intact.
- * @param {boolean} [options.pullPseudoknotBasepairs=false]  Set pseudoknot link force strength to 10 (default 0), pulling pseudoknot basepairs together in the force layout.
+ * @param {boolean} [options.pullPseudoknotBasepairs=false]  Pull pseudoknot basepairs together and stabilize their stacks and interior loops with ordinary helix scaffolds.
  * @param {Object.<number,number>|null} [options.accessData=null]  Accessibility data map.
  * @param {{sequence1?: string, sequence2?: string}|null} [options.accessColors=null]  Optional accessibility-overlay colors.
  * @param {{sequence1RepresentsOne?: boolean, sequence2RepresentsOne?: boolean}|null} [options.accessColorMode=null]
