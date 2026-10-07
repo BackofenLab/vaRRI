@@ -1,4 +1,5 @@
 import { viewerComponent } from './context.js';
+import CanvasHelpDialog from './canvas-help-dialog.js';
 
 export default viewerComponent('viewer-panel', `<section class="result-panel">
     <div id="rendering-canvas" tabindex="0" @dragover="actions.overTextAnnotationCanvas($event)"
@@ -33,4 +34,5 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
       <span class="cite-note">Please
       <a href="citation.html" class="btn btn-cite btn-sm">🤍 Cite vaRRI</a></span>
     </div>
-  </section>`);
+    <CanvasHelpDialog />
+  </section>`, { CanvasHelpDialog });

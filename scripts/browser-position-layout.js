@@ -5,7 +5,8 @@ import path from 'node:path';
 export async function exercisePositionLayout(page, origin, output) {
   const original = page.viewportSize();
   try {
-    for (const [width, height, embedded] of [[901, 731, false], [1280, 720, false], [640, 480, true]]) {
+    for (const [width, height, embedded] of [[938, 480, false], [1280, 569, false], [938, 569, false],
+      [901, 731, false], [1280, 720, false], [640, 480, true]]) {
       await page.setViewportSize({ width, height });
       await page.goto(origin + '/index.html' + (embedded
         ? '?showRenderingOnly=1&sequence=AAAA%26UUUU&structure=((..%26..))&forceLayout=0' : ''), { waitUntil: 'networkidle' });
@@ -38,14 +39,17 @@ export async function exercisePositionLayout(page, origin, output) {
       }
       const box = await dialog.boundingBox();
       assert.ok(box.x >= 0 && box.y >= 0 && box.x + box.width <= width && box.y + box.height <= height);
-      await page.screenshot({ path: path.join(output, `canvas-help-${width}.png`) });
+      await page.screenshot({ path: path.join(output, `canvas-help-${width}x${height}.png`) });
       await page.keyboard.press('Escape');
       assert.equal(await dialog.evaluate(element => element.open), false);
       assert.equal(await page.locator('#canvasHelpBtn').evaluate(element => element === document.activeElement), true);
       await page.locator('#canvasHelpBtn').click();
       await dialog.getByRole('button', { name: 'Close', exact: true }).click();
       assert.equal(await dialog.evaluate(element => element.open), false);
-      await page.screenshot({ path: path.join(output, `canvas-controls-${width}.png`) });
+      await page.screenshot({ path: path.join(output, `canvas-controls-${width}x${height}.png`) });
     }
+  } catch (error) {
+    await page.screenshot({ path: path.join(output, 'canvas-layout-failure.png') });
+    throw error;
   } finally { await page.setViewportSize(original); }
 }
