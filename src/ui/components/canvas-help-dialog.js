@@ -18,7 +18,7 @@ export default viewerComponent('canvas-help-dialog', `<link rel="stylesheet" hre
           Dragging an unselected element clears the selection. Moved nucleotides and numbering labels stay fixed, even with Force layout enabled.</dd>
         <dt>Rotate</dt><dd>Select at least two elements, then Ctrl/Command-scroll to rotate them around the mouse pointer.
           Text stays upright. Ordinary scrolling zooms, and dragging the background pans.</dd>
-        <dt><span class="canvas-position-key">Moved</span></dt><dd>The count includes manually positioned nucleotides and numbering labels. Click it to select them all.</dd>
+        <dt><span class="canvas-position-key">Moved: X</span></dt><dd>The count 'X' includes manually positioned nucleotides and numbering labels. Click it to select them all.</dd>
         <dt><span class="canvas-position-key">Release</span></dt><dd>Unfix selected nodes at their current positions. They resume moving when Force layout is enabled.
           Released nodes leave the Moved count. Text labels are unaffected.</dd>
         <dt><span class="canvas-position-key">Reset</span></dt><dd>Restore selected manually positioned nodes to their positions and fixation before their first edit.
