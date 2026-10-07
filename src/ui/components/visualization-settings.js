@@ -35,12 +35,16 @@ export default viewerComponent('visualization-settings', `<aside class="panel co
             <label for="distinctBpTypes">Basepair styling <small>(AU,GC=line, GU=dashed, *=dotted)</small></label>
           </div>
           <div class="checkbox-row">
-            <input type="checkbox" id="forceLayout" v-bind:checked="state.fields.forceLayout" v-on:input="actions.inputField('forceLayout', $event)" v-on:change="actions.commitField('forceLayout', $event)">
-            <label for="forceLayout">Force layout</label>
-          </div>
-          <div class="checkbox-row checkbox-row-nested">
             <input type="checkbox" id="forceLayoutLinearRRI" v-bind:checked="state.fields.forceLayoutLinearRRI" v-on:input="actions.inputField('forceLayoutLinearRRI', $event)" v-on:change="actions.commitField('forceLayoutLinearRRI', $event)">
             <label for="forceLayoutLinearRRI">Linear horizontal RRI layout</label>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="forceLayoutLinearStructure" v-bind:checked="state.fields.forceLayoutLinearStructure" v-on:input="actions.inputField('forceLayoutLinearStructure', $event)" v-on:change="actions.commitField('forceLayoutLinearStructure', $event)">
+            <label for="forceLayoutLinearStructure">Linear intramolecular stem layout</label>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="forceLayout" v-bind:checked="state.fields.forceLayout" v-on:input="actions.inputField('forceLayout', $event)" v-on:change="actions.commitField('forceLayout', $event)">
+            <label for="forceLayout">Force layout</label>
           </div>
           <div class="checkbox-row checkbox-row-nested">
             <input type="checkbox" id="forceLayoutFreeTails" v-bind:checked="state.fields.forceLayoutFreeTails" v-on:input="actions.inputField('forceLayoutFreeTails', $event)" v-on:change="actions.commitField('forceLayoutFreeTails', $event)" v-bind:disabled="!state.fields.forceLayout">
@@ -49,10 +53,6 @@ export default viewerComponent('visualization-settings', `<aside class="panel co
           <div class="checkbox-row checkbox-row-nested">
             <input type="checkbox" id="forceLayoutPullCrossing" v-bind:checked="state.fields.forceLayoutPullCrossing" v-on:input="actions.inputField('forceLayoutPullCrossing', $event)" v-on:change="actions.commitField('forceLayoutPullCrossing', $event)" v-bind:disabled="!state.fields.forceLayout">
             <label for="forceLayoutPullCrossing">Pull pseudoknot basepairs</label>
-          </div>
-          <div class="checkbox-row checkbox-row-nested">
-            <input type="checkbox" id="forceLayoutLinearStructure" v-bind:checked="state.fields.forceLayoutLinearStructure" v-on:input="actions.inputField('forceLayoutLinearStructure', $event)" v-on:change="actions.commitField('forceLayoutLinearStructure', $event)">
-            <label for="forceLayoutLinearStructure">Linear intramolecular stem layout</label>
           </div>
         </div>
       </details>

@@ -61,7 +61,11 @@ Linear RRI and intramolecular options construct two-rail helix templates from
 the validated pair structure. Projection preserves handedness, handles bulges
 and interior loops, and respects fixed nodes. Index labels receive a bounded
 outward adjustment. RRI horizontalization is a rigid graph rotation, and the
-viewport refits once at force convergence.
+viewport refits once at force convergence. Both linear options also work with
+Force layout disabled: the same constraints settle for at most 60 synchronous
+ticks, then the force and its constraint listeners stop before rendering is
+shown. This creates a static linear layout without fixing its nodes; dragging,
+release, reset, and undo remain available.
 
 ## Drawing and lifecycle
 

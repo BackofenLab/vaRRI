@@ -19,8 +19,8 @@ See the [viewer guide](viewer-guide.md) and the [Input Format Reference](#input-
 | **`colorRriNodes` / `colorRriRegion` / `colorBasepair`** | Hex color codes for nucleotide highlights, background highlights, and base pairs. |
 | **`distinctBpTypes`** | Toggle display of G-U Wobble base pairs as dashed lines (`true` / `false`). |
 | **`forceLayout`** | Enable or disable the force-layout physics simulation (`true` / `false`). |
-| **`forceLayoutLinearRRI`** | Enforce a linear horizontal layout of all noncrossing RRI helices. Enabling it also enables `forceLayout`. |
-| **`forceLayoutLinearStructure`** | Enforce a linear layout of intramolecular stems containing bulges or interior loops. Enabling it also enables `forceLayout`. |
+| **`forceLayoutLinearRRI`** | Enforce a linear horizontal layout of all noncrossing RRI helices. Independent of `forceLayout`; when it is off, the linear layout settles briefly and then stops. |
+| **`forceLayoutLinearStructure`** | Enforce a linear layout of intramolecular stems containing bulges or interior loops. Independent of `forceLayout`; when it is off, the linear layout settles briefly and then stops. |
 | **`textAnnotations`** | JSON definitions with text, styles, positions, and sequence-name identities. An explicit `[]` leaves names unpositioned; use Share Link to generate this value. |
 
 To simplify sequence and structure input validation, sequence and structure inputs are highlighted with the chosen strand-specific colors.

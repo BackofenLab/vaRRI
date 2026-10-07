@@ -76,11 +76,11 @@ Open the **Example** dropdown to choose another RNA-RNA interaction. Each open m
 | **Base pair color** | Chose the color used for all base pairs (intra- and intermolecular). |
 | **Color Choice** | Use the color pickers to customize the highlighting colors. |
 | **G-U basepairs dashed** | When checked, G-U basepairs are drawn with a dashed stroke. |
+| **Linear horizontal RRI layout** | Keeps all noncrossing intermolecular helixes on straight linear layout and rotates the complete two-molecule interaction so its RRI axis is horizontal. Works with or without Force layout; when it is off, the linear layout settles briefly and then stops. |
+| **Linear intramolecular stem layout** | Keeps intramolecular stems (i.e. helices containing bulges or interior loops) on straight linear layout. Stems stop at multiloops or crossing pairs. Works with or without Force layout; when it is off, the linear layout settles briefly and then stops. |
 | **Force layout** | When checked, the rendered structure is shown in an interactive force-directed layout. When unchecked, the structure is drawn in a fixed layout. |
-| - **Linear horizontal RRI layout** | Keeps all noncrossing intermolecular helixes on straight linear layout and rotates the complete two-molecule interaction so its RRI axis is horizontal. Enabling it also enables the force layout. |
 | - **Free trailing ends** | When checked, the trailing ends of the sequences are not fixed in the force-directed layout and can move freely. |
 | - **Pull Pseudoknot Basepairs** | When checked, pseudoknot basepairs are pulled together in the force-directed layout. |
-| - **Linear intramolecular stem layout** | Keeps intramolecular stems (i.e. helices containing bulges or interior loops) on straight linear layout. Stems stop at multiloops or crossing pairs. Enabling it also enables the force layout. |
 
 ### Region Highlights
 

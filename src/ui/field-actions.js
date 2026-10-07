@@ -50,9 +50,6 @@ export function createFieldActions({ state, actions, document }) {
     if (id === 'hideFooterAndHeader') { actions.applyBodyClasses(); return; }
     if (id === 'seqName1' || id === 'seqName2') { actions.commitSequenceName(id); return; }
     if (validateDraft(id)) return;
-    if ((id === 'forceLayoutLinearRRI' || id === 'forceLayoutLinearStructure') && state.fields[id]) {
-      actions.enableForceLayoutForSelectedLinearOptions();
-    }
     if (id.startsWith('forceLayout')) actions.syncAnimationDependentControls();
     actions.runVisualization();
   }
