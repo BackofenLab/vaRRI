@@ -251,11 +251,6 @@
 .viz-control > .cropping-control { flex: 0.6 1 50px; width: auto; min-width: 50px; }
 .cropping-control > input { width: 100%; display: block; }
 .manual-position-controls { display: flex; flex: none; gap: .25rem; align-items: center; margin-left: auto; }
-.manual-position-controls button {
-  font: inherit; font-size: .75rem; line-height: 18px; height: 20px;
-  padding: 0 .4rem; white-space: nowrap;
-  color: var(--brand-blue-dark); background: #f5f8fb;
-  border: 1px solid #cbd7e2; border-radius: 4px; cursor: pointer;
-}
+.manual-position-controls button { cursor: pointer; }
 .manual-position-controls button:hover:enabled { background: #e8f0f8; }
 .manual-position-controls button:disabled { color: #8b929a; background: #f3f4f5; cursor: default; }
