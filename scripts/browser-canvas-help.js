@@ -49,7 +49,7 @@ export async function checkCanvasHelpStyles(page) {
   assert.ok(Math.abs(box.y + box.height / 2 - viewport.height / 2) < 2, 'Help is vertically centered');
   assert.equal(await dialog.locator('dt').first().evaluate(el => getComputedStyle(el).fontWeight), '700');
   const keys = dialog.locator('dt .canvas-position-key');
-  assert.deepEqual(await keys.allTextContents(), ['Moved', 'Release', 'Reset', 'Undo']);
+  assert.deepEqual(await keys.allTextContents(), ['Moved: X', 'Release', 'Reset', 'Undo']);
   const appearances = await keys.evaluateAll(elements => elements.map(el => {
     const style = getComputedStyle(el);
     return { border: style.border, radius: style.borderRadius, padding: style.padding,
