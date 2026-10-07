@@ -8,8 +8,6 @@
   --text-primary: #1c2b39;
   --text-muted: #4f6478;
   --border-soft: #ccd9e5;
-  /* Keep both columns above the viewport bottom, including in short windows. */
-  --viewer-height: min(max(520px, calc(100vh - 260px)), calc(100vh - 130px));
 }
 
 /* ------------------------------------------------------------------ */
@@ -107,7 +105,7 @@ main {
   
   height: 100%;  
   min-height: 0;
-  max-height: var(--viewer-height);
+  max-height: max(520px, calc(100vh - 260px));
 }
 
 .control-panel {
