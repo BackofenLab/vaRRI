@@ -41,6 +41,7 @@ export function createVaRRI(options = {}) {
       { movedCount: 0, selectedNodeCount: 0, selectedMovedCount: 0, canUndo: false },
     selectManuallyPositionedElements: () => session.runtime.activeContainer?.interactions?.selectMoved(),
     resetSelectedPositions: () => session.runtime.activeContainer?.interactions?.resetSelected() || false,
+    releaseSelectedPositions: () => session.runtime.activeContainer?.interactions?.releaseSelected() || false,
     undoCanvasEdit: () => session.runtime.activeContainer?.interactions?.undo() || false,
     validate: args => validate(args, modelState.colors),
     getColors: getColors.bind(null, modelState),

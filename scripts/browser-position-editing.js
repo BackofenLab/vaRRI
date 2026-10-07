@@ -5,11 +5,11 @@ const point = locator => locator.evaluate(element => {
   return { x, y };
 });
 const near = (a, b, message) => assert.ok(Math.abs(a - b) < 0.6, `${message}: ${a} vs ${b}`);
-async function press(page, locator, control = false) {
+async function press(page, locator, modifier = null) {
   const { x, y } = await point(locator);
-  if (control) await page.keyboard.down('Control');
+  if (modifier) await page.keyboard.down(modifier);
   await page.mouse.click(x, y);
-  if (control) await page.keyboard.up('Control');
+  if (modifier) await page.keyboard.up(modifier);
 }
 async function drag(page, locator, dx, dy) {
   const { x, y } = await point(locator);
@@ -22,6 +22,7 @@ const state = page => page.evaluate(() => window.exportApi.getCanvasInteractionS
 
 /** Review #97: reversible manual positions and pointer-centered selection rotation. */
 export async function exercisePositionEditing(page) {
+  for (const modifier of ['Control', 'Meta'])
   for (const forceLayout of [false, true]) {
     await page.evaluate(async forceLayout => {
       const api = window.exportApi;
@@ -42,18 +43,18 @@ export async function exercisePositionEditing(page) {
     const original = await point(node);
     const box = await svg.boundingBox();
     const selected = () => host.locator('[data-varri-selected]').count();
-    await press(page, node, true);
+    await press(page, node, modifier);
     const plot = await host.locator('.fornac-plot').getAttribute('transform');
-    await page.keyboard.down('Control');
+    await page.keyboard.down(modifier);
     await page.mouse.click(box.x + 15, box.y + 15);
-    await page.keyboard.up('Control');
+    await page.keyboard.up(modifier);
     assert.equal(await selected(), 0, 'Ctrl-click on background clears without dragging');
     assert.equal(await host.locator('.fornac-plot').getAttribute('transform'), plot);
-    await press(page, node, true);
-    await press(page, number, true);
+    await press(page, node, modifier);
+    await press(page, number, modifier);
     await press(page, node);
     assert.equal(await selected(), 0, 'A plain click on a selected member clears selection');
-    await press(page, node, true);
+    await press(page, node, modifier);
     await press(page, number);
     assert.equal(await selected(), 0, 'A plain click on an unselected element also clears');
     assert.equal((await state(page)).movedCount, 0, 'Clicks do not create fixations');
@@ -62,7 +63,7 @@ export async function exercisePositionEditing(page) {
     assert.equal((await state(page)).movedCount, 1);
     await drag(page, node, -8, 2);
     assert.equal((await state(page)).movedCount, 1, 'Repeated drags count a node once');
-    await page.keyboard.press('Control+z');
+    await page.keyboard.press(`${modifier}+z`);
     const afterUndo = await point(node);
     near(afterUndo.x - original.x, -35, 'Undo restores the prior drag x');
     near(afterUndo.y - original.y, 20, 'Undo restores the prior drag y');
@@ -73,7 +74,7 @@ export async function exercisePositionEditing(page) {
     await page.evaluate(() => window.exportApi.selectManuallyPositionedElements());
     assert.equal(await selected(), 2, 'Select moved selects nodes and numbering only');
     assert.equal(await text.getAttribute('data-varri-selected'), null);
-    await press(page, number, true);
+    await press(page, number, modifier);
     await page.evaluate(() => window.exportApi.resetSelectedPositions());
     assert.equal((await state(page)).movedCount, 1, 'Reset changes only selected manual nodes');
     const reset = await point(node);
@@ -86,17 +87,17 @@ export async function exercisePositionEditing(page) {
     assert.equal((await state(page)).movedCount, 2);
 
     await page.evaluate(() => window.exportApi.selectManuallyPositionedElements());
-    await press(page, text, true);
+    await press(page, text, modifier);
     const targets = [node, number, text];
     const before = await Promise.all(targets.map(point));
     const textsBefore = await page.evaluate(() => window.exportApi.getTextAnnotations());
     const pivot = { x: box.x + 330, y: box.y + 240 };
     const viewport = await svg.evaluate(element => ({ ...element.__zoom }));
     await page.mouse.move(pivot.x, pivot.y);
-    await page.keyboard.down('Control');
+    await page.keyboard.down(modifier);
     await page.mouse.wheel(0, 60);
     await page.mouse.wheel(0, 60);
-    await page.keyboard.up('Control');
+    await page.keyboard.up(modifier);
     await page.waitForTimeout(250);
     const after = await Promise.all(targets.map(point));
     const angle = Math.atan2(after[0].y - pivot.y, after[0].x - pivot.x) -
@@ -112,25 +113,46 @@ export async function exercisePositionEditing(page) {
       const m = element.getScreenCTM(); return Math.atan2(m.b, m.a);
     });
     near(textAngle, 0, 'Rotated text stays readable');
-    await page.keyboard.press('Control+z');
+    await page.keyboard.press(`${modifier}+z`);
     const undone = await Promise.all(targets.map(point));
     undone.forEach((p, i) => { near(p.x, before[i].x, `Undo wheel burst ${i} x`); near(p.y, before[i].y, `Undo wheel burst ${i} y`); });
     assert.deepEqual(await page.evaluate(() => window.exportApi.getTextAnnotations()), textsBefore, 'Undo restores model text positions');
 
     await press(page, node);
-    await press(page, node, true);
+    await press(page, node, modifier);
     const single = await point(node);
     await page.mouse.move(pivot.x, pivot.y);
-    await page.keyboard.down('Control');
+    await page.keyboard.down(modifier);
     await page.mouse.wheel(0, 100);
-    await page.keyboard.up('Control');
+    await page.keyboard.up(modifier);
     await page.waitForTimeout(220);
     assert.deepEqual(await point(node), single, 'One selected element cannot rotate');
     assert.deepEqual(await svg.evaluate(element => ({ ...element.__zoom })), viewport, 'Ctrl-wheel is reserved even with one selection');
+
+    const released = await page.evaluate(() => {
+      const node = document.querySelector('#second [data-varri-selected]').__data__;
+      const snapshot = () => ({ x: node.x, y: node.y, fixed: node.fixed, fx: node.fx, fy: node.fy });
+      const before = snapshot();
+      const changed = window.exportApi.releaseSelectedPositions();
+      return { before, after: snapshot(), changed };
+    });
+    assert.equal(released.changed, true);
+    assert.deepEqual(released.after, { ...released.before, fixed: 0, fx: null, fy: null },
+      'Release removes fixation without returning to the original position');
+    if (forceLayout) await page.waitForFunction(before => {
+      const node = document.querySelector('#second [data-varri-selected]').__data__;
+      return Math.hypot(node.x - before.x, node.y - before.y) > 0.01;
+    }, released.before);
+    else assert.deepEqual(await point(node), single, 'Released static nodes stay in place');
+    await page.evaluate(() => window.exportApi.undoCanvasEdit());
+    assert.deepEqual(await node.evaluate(element => {
+      const { x, y, fixed, fx, fy } = element.__data__; return { x, y, fixed, fx, fy };
+    }), released.before, 'Undo restores the position and fixation before release');
 
     await page.evaluate(() => window.exportApi.cancelActiveRender());
     assert.deepEqual(await state(page), { movedCount: 0, selectedNodeCount: 0, selectedMovedCount: 0, canUndo: false },
       'Disposal clears counts and history');
     assert.equal(await page.evaluate(() => window.exportApi.undoCanvasEdit()), false);
+    assert.equal(await page.evaluate(() => window.exportApi.releaseSelectedPositions()), false);
   }
 }

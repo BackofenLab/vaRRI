@@ -6,7 +6,7 @@ export async function exerciseRectangleSelection(page, host) {
   const box = await svg.boundingBox();
   const bounds = await host.locator('g.gnode, [data-varri-text]').evaluateAll(elements => elements.map((element, i) => {
     element.setAttribute('data-test-target', i);
-    const { left, right, top, bottom } = element.getBoundingClientRect();
+    const { left, right, top, bottom } = (element.querySelector('circle[node_type="nucleotide"]') || element).getBoundingClientRect();
     return { i, left, right, top, bottom };
   }));
   const left = box.x + 10, top = box.y + 10;
@@ -16,15 +16,15 @@ export async function exerciseRectangleSelection(page, host) {
   assert.ok(expected.length > 4, 'Rectangle fixture contains several objects');
   const firstViewer = await page.locator('#first').innerHTML();
   const plot = await host.locator('.fornac-plot').getAttribute('transform');
-  for (const reverse of [false, true]) {
-    await page.keyboard.down('Control');
+  for (const [reverse, modifier] of [[false, 'Control'], [true, 'Meta']]) {
+    await page.keyboard.down(modifier);
     await page.mouse.move(reverse ? right : left, reverse ? bottom : top);
     await page.mouse.down();
     await page.mouse.move(reverse ? left : right, reverse ? top : bottom, { steps: 6 });
     assert.equal(await host.locator('[data-varri-interaction-overlay] [stroke-dasharray]').count(), 1,
       'Marquee is drawn during the gesture');
     await page.mouse.up();
-    await page.keyboard.up('Control');
+    await page.keyboard.up(modifier);
     assert.deepEqual(await host.locator('[data-varri-selected]').evaluateAll(elements =>
       elements.map(element => element.getAttribute('data-test-target'))), expected, 'Rectangle selects every fully enclosed element');
     assert.equal(await host.locator('.fornac-plot').getAttribute('transform'), plot, 'Ctrl-drag does not pan');

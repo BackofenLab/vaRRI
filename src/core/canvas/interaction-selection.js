@@ -18,8 +18,14 @@ export function interactionTargets(container) {
   });
 }
 
+/** Direction arrows belong to the backbone, not the selectable nucleotide. */
+export function selectionBounds(element) {
+  const nucleotide = element.querySelector('circle[node_type="nucleotide"]');
+  return (nucleotide || element).getBoundingClientRect();
+}
+
 export function enclosed(element, rectangle) {
-  const box = element.getBoundingClientRect();
+  const box = selectionBounds(element);
   return (box.width > 0 || box.height > 0) && box.left >= rectangle.left &&
     box.right <= rectangle.right && box.top >= rectangle.top && box.bottom <= rectangle.bottom;
 }
@@ -56,7 +62,7 @@ export function createSelectionOverlay(svg) {
   return {
     draw(selected, rectangle) {
       layer.replaceChildren();
-      selected.forEach(element => outline(element.getBoundingClientRect()));
+      selected.forEach(element => outline(selectionBounds(element)));
       if (rectangle) outline(rectangle, true);
     },
     dispose() { layer.remove(); },
