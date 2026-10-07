@@ -9,8 +9,8 @@
   min-width: 0;
   max-width: calc(50vw +350px);
 
-  min-height: 520px;
-  height: max(520px, calc(100vh - 260px));;
+  min-height: 0;
+  height: var(--viewer-height);
 }
 
 .highlight-list {

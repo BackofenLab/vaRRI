@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { exercisePositionLayout } from './browser-position-layout.js';
 import { exerciseNodeSelection } from './browser-node-selection.js';
+import { exerciseStandaloneCanvasHelp } from './browser-canvas-help.js';
 
 export async function exercisePositionControlsUI(page, origin, output) {
+  await exerciseStandaloneCanvasHelp(page, origin);
   await exercisePositionLayout(page, origin, output);
   const params = new URLSearchParams({ sequence: 'AAAA&UUUU', structure: '((..&..))',
     highlighting: 'nothing', backgroundhighlighting: 'nothing', forceLayout: '0', textAnnotations: '[]' });
