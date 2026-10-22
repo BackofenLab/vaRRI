@@ -1,50 +1,11 @@
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
-const { JSDOM } = require('jsdom');
-
-const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
-
-class ResizeObserverStub {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
-// Minimaler Dummy-Mock für marked (gibt den Text einfach unverändert zurück)
-const markedStub = Object.assign(
-  jest.fn((str) => str),
-  { parse: jest.fn((str) => str) }
-);
-
-function installDomGlobals(dom) {
-  global.window = dom.window;
-  global.document = dom.window.document;
-  global.Event = dom.window.Event;
-  global.FileReader = dom.window.FileReader;
-  global.ResizeObserver = ResizeObserverStub;
-  dom.window.ResizeObserver = ResizeObserverStub;
-  global.marked = markedStub;
-  dom.window.marked = markedStub;
-}
+import { jest } from '@jest/globals';
+import { mountViewer } from './helpers/vue-viewer.js';
 
 test('boots through bound UI actions without inline handlers', async () => {
-  jest.resetModules();
-  const vaRRI = require('../src/vaRRI.js');
-  const dom = new JSDOM(html, { url: 'http://localhost/' });
-  installDomGlobals(dom);
-  global.vaRRI = vaRRI;
-
-  require('../example-data.js');
-  const renderSpy = jest.spyOn(vaRRI, 'render').mockResolvedValue({ cancelled: false });
-  require('../index.js');
-
-  window.dispatchEvent(new window.Event('load'));
-  await new Promise(resolve => setTimeout(resolve, 0));
+  const { dom, api: vaRRI, renderSpy, examples: catalog, flush, close } = await mountViewer();
 
   expect(renderSpy).toHaveBeenCalled();
-  expect(document.getElementById('msg').textContent).toContain('Visualisation ready');
+  expect(document.getElementById('msg').textContent).toBe('');
   expect(document.getElementById('sequence').value).not.toBe('');
   expect(document.getElementById('subseqCounterUI').textContent).toBe('(2)');
   expect(document.getElementById('regionCounterUI').textContent).toBe('(1)');
@@ -74,19 +35,27 @@ test('boots through bound UI actions without inline handlers', async () => {
   expect(trigger.textContent).not.toContain(defaultDescription);
   expect(defaultButton.getAttribute('aria-current')).toBe('true');
 
-  const catalog = window.VARRI_EXAMPLES;
   const freeTails = document.getElementById('forceLayoutFreeTails');
   const pullCrossing = document.getElementById('forceLayoutPullCrossing');
   const selectExample = async key => {
     dropdown.open = true;
+    dropdown.dispatchEvent(new window.Event('toggle'));
+    await flush();
     const button = options.querySelector(`[data-example="${key}"]`);
     button.click();
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await flush();
     return button;
   };
 
+  const forceLayout = document.getElementById('forceLayout');
+  forceLayout.checked = true;
+  forceLayout.dispatchEvent(new window.Event('change'));
+  await flush();
   freeTails.checked = true;
+  freeTails.dispatchEvent(new window.Event('change'));
   pullCrossing.checked = true;
+  pullCrossing.dispatchEvent(new window.Event('change'));
+  await flush();
 
   const profileExample = catalog['coronel-tellez-2022'];
   const profileButton = await selectExample('coronel-tellez-2022');
@@ -147,156 +116,84 @@ test('boots through bound UI actions without inline handlers', async () => {
   expect(document.getElementById('profileCounterUI').textContent).toBe('(1)');
 
   dropdown.open = true;
+  dropdown.dispatchEvent(new window.Event('toggle'));
+  await flush();
   dropdown.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  await flush();
   expect(dropdown.open).toBe(false);
 
   dropdown.open = true;
+  dropdown.dispatchEvent(new window.Event('toggle'));
+  await flush();
   document.body.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await flush();
   expect(dropdown.open).toBe(false);
 
   document.getElementById('clearAllBtn').click();
+  await flush();
   expect(document.getElementById('sequence').value).toBe('');
   expect(document.getElementById('subseqCounterUI').textContent).toBe('');
   expect(document.getElementById('selectedExampleName').textContent).toBe('Select an example');
   expect(options.querySelectorAll('[aria-current="true"]')).toHaveLength(0);
 
-  dom.window.close();
+  await close();
 });
 
-test('linear layout controls enable force, survive example loading, share, and forward render flags', async () => {
-  jest.resetModules();
-  const vaRRI = require('../src/vaRRI.js');
-  const dom = new JSDOM(html, { url: 'http://localhost/' });
-  installDomGlobals(dom);
-  global.vaRRI = vaRRI;
-
-  require('../example-data.js');
-  const featureOverview = window.VARRI_EXAMPLES['2mol'];
-  window.VARRI_EXAMPLES['linear-test'] = {
-    ...featureOverview,
-    name: 'Linear layout test',
-    nameShort: 'Linear layout test',
-    descriptionShort: 'Exercises the linear RRI option.',
-    vaRRIParams: {
-      ...featureOverview.vaRRIParams,
-      forceLayout: '0',
-      forceLayoutLinearRRI: '1',
+test('linear controls preserve the force choice through examples, toggles, and sharing', async () => {
+  const { renderSpy, flush, close } = await mountViewer({
+    modifyExamples(examples) {
+      examples['linear-test'] = { ...examples['2mol'], name: 'Linear layout test',
+        nameShort: 'Linear layout test', descriptionShort: 'Static linear RRI.',
+        vaRRIParams: { ...examples['2mol'].vaRRIParams, forceLayout: '0', forceLayoutLinearRRI: '1' } };
     },
-  };
-
-  const renderSpy = jest.spyOn(vaRRI, 'render').mockResolvedValue({ cancelled: false });
+  });
   const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
-  require('../index.js');
-
-  window.dispatchEvent(new window.Event('load'));
-  await new Promise(resolve => setTimeout(resolve, 0));
-
-  const forceLayout = document.getElementById('forceLayout');
-  const linearStructure = document.getElementById('forceLayoutLinearStructure');
-  const linearRri = document.getElementById('forceLayoutLinearRRI');
-  const options = document.getElementById('exampleDropdownOptions');
-
-  expect(linearStructure.checked).toBe(false);
-  expect(linearRri.checked).toBe(true);
-  expect(linearStructure.disabled).toBe(false);
-  expect(linearRri.disabled).toBe(false);
-
-  options.querySelector('[data-example="linear-test"]').click();
-  await new Promise(resolve => setTimeout(resolve, 0));
-
-  expect(forceLayout.checked).toBe(true);
-  expect(linearStructure.checked).toBe(false);
-  expect(linearRri.checked).toBe(true);
-  expect(renderSpy).toHaveBeenLastCalledWith(
-    expect.any(String),
-    expect.any(Object),
-    expect.objectContaining({
-      forceLayout: true,
-      forceLayoutLinearStructure: false,
-      forceLayoutLinearRRI: true,
-    })
-  );
-
-  options.querySelector('[data-example="2mol"]').click();
-  await new Promise(resolve => setTimeout(resolve, 0));
-  expect(linearStructure.checked).toBe(false);
-  expect(linearRri.checked).toBe(true);
-
-  linearStructure.checked = true;
-  linearStructure.dispatchEvent(new window.Event('change'));
-  expect(forceLayout.checked).toBe(true);
-  expect(renderSpy).toHaveBeenLastCalledWith(
-    expect.any(String),
-    expect.any(Object),
-    expect.objectContaining({
-      forceLayout: true,
-      forceLayoutLinearStructure: true,
-      forceLayoutLinearRRI: true,
-    })
-  );
-
-  linearRri.checked = true;
-  linearRri.dispatchEvent(new window.Event('change'));
-  expect(forceLayout.checked).toBe(true);
-  expect(renderSpy).toHaveBeenLastCalledWith(
-    expect.any(String),
-    expect.any(Object),
-    expect.objectContaining({
-      forceLayout: true,
-      forceLayoutLinearStructure: true,
-      forceLayoutLinearRRI: true,
-    })
-  );
-
+  const force = document.getElementById('forceLayout');
+  const rri = document.getElementById('forceLayoutLinearRRI');
+  const structure = document.getElementById('forceLayoutLinearStructure');
+  document.querySelector('[data-example="linear-test"]').click();
+  await flush();
+  expect(force.checked).toBe(false);
+  expect(rri.checked).toBe(true);
+  expect(renderSpy).toHaveBeenLastCalledWith(expect.any(String), expect.any(Object),
+    expect.objectContaining({ forceLayout: false, forceLayoutLinearRRI: true, forceLayoutLinearStructure: false }));
+  structure.checked = true;
+  structure.dispatchEvent(new window.Event('change'));
+  await flush();
+  expect(force.checked).toBe(false);
+  for (const checked of [true, false]) {
+    force.checked = checked;
+    force.dispatchEvent(new window.Event('change'));
+    await flush();
+    expect(rri.checked).toBe(true);
+    expect(structure.checked).toBe(true);
+    expect(rri.disabled || structure.disabled).toBe(false);
+    expect(renderSpy).toHaveBeenLastCalledWith(expect.any(String), expect.any(Object),
+      expect.objectContaining({ forceLayout: checked, forceLayoutLinearRRI: true, forceLayoutLinearStructure: true }));
+  }
   document.getElementById('openVarriBtn').click();
-  const sharedUrl = new URL(openSpy.mock.calls.at(-1)[0]);
-  expect(sharedUrl.searchParams.get('forceLayoutLinearStructure')).toBe('1');
-  expect(sharedUrl.searchParams.get('forceLayoutLinearRRI')).toBe('1');
-
-  forceLayout.checked = false;
-  forceLayout.dispatchEvent(new window.Event('change'));
-  await new Promise(resolve => setTimeout(resolve, 0));
-  expect(linearStructure.checked).toBe(false);
-  expect(linearRri.checked).toBe(false);
-  expect(linearStructure.disabled).toBe(false);
-  expect(linearRri.disabled).toBe(false);
-  expect(renderSpy).toHaveBeenLastCalledWith(
-    expect.any(String),
-    expect.any(Object),
-    expect.objectContaining({
-      forceLayout: false,
-      forceLayoutLinearStructure: false,
-      forceLayoutLinearRRI: false,
-    })
-  );
-
-  dom.window.close();
+  await flush();
+  const shared = new URL(openSpy.mock.calls.at(-1)[0]);
+  expect(shared.searchParams.get('forceLayout')).toBe('0');
+  expect(shared.searchParams.get('forceLayoutLinearRRI')).toBe('1');
+  expect(shared.searchParams.get('forceLayoutLinearStructure')).toBe('1');
+  await close();
 });
 
 test.each([
   'forceLayoutLinearStructure',
   'forceLayoutLinearRRI',
-])('URL-loaded %s enables force layout before the initial render', async optionId => {
-  jest.resetModules();
-  const vaRRI = require('../src/vaRRI.js');
+])('URL-loaded %s preserves a static layout before the initial render', async optionId => {
   const url = `http://localhost/?sequence=AAAA&structure=....&forceLayout=0&${optionId}=1`;
-  const dom = new JSDOM(html, { url });
-  installDomGlobals(dom);
-  global.vaRRI = vaRRI;
-
-  const renderSpy = jest.spyOn(vaRRI, 'render').mockResolvedValue({ cancelled: false });
-  require('../index.js');
-
-  window.dispatchEvent(new window.Event('load'));
-  await new Promise(resolve => setTimeout(resolve, 0));
+  const { renderSpy, close } = await mountViewer({ url });
 
   expect(document.getElementById(optionId).checked).toBe(true);
-  expect(document.getElementById('forceLayout').checked).toBe(true);
+  expect(document.getElementById('forceLayout').checked).toBe(false);
   expect(renderSpy).toHaveBeenLastCalledWith(
     expect.any(String),
     expect.any(Object),
-    expect.objectContaining({ forceLayout: true, [optionId]: true })
+    expect.objectContaining({ forceLayout: false, [optionId]: true })
   );
 
-  dom.window.close();
+  await close();
 });

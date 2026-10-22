@@ -1,0 +1,92 @@
+/* ------------------------------------------------------------------ */
+/* Messages                                                             */
+/* ------------------------------------------------------------------ */
+#msg {
+  border-radius: 6px;
+  padding: .6rem .9rem;
+  font-size: .85rem;
+  margin-top: .6rem;
+  display: none;
+}
+#msg.error   { background: #fdecea; color: #c0392b; display: block; }
+#msg.success { background: #eafaf1; color: #1e8449; display: block; }
+
+/* ------------------------------------------------------------------ */
+/* Legend                                                               */
+/* ------------------------------------------------------------------ */
+
+
+/* Colour-picker swatches in the legend */
+input[type="color"].legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #999;
+  padding: 1px;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: none;
+  vertical-align: middle;
+}
+input[type="color"].legend-color::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 50%;
+}
+input[type="color"].legend-color::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+input[type="color"].legend-color-rect {
+  width: 20px;
+  height: 20px;
+  border-radius: 2px;
+  border: 1px solid #999;
+  padding: 1px;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: none;
+  vertical-align: middle;
+  opacity: 0.8;
+}
+input[type="color"].legend-color-rect::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 2px;
+}
+input[type="color"].legend-color-rect::-webkit-color-swatch {
+  border: none;
+  border-radius: 2px;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Footer                                                              */
+/* ------------------------------------------------------------------ */
+.site-footer {
+  width: 100%;
+  margin: 0 auto 1.5rem;
+  padding: .9rem 1rem 0;
+}
+.footer-content {
+  background: #f6f9ff;
+  border: 1px solid #d7e2f2;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(15, 46, 74, .08);
+  padding: 20px;
+  height: 80px;
+  font-size: .82rem;
+  line-height: 1.1;
+  color: #30455f;
+  text-align: center;
+}
+.footer-content p + p {
+  margin-top: .45rem;
+}
+.footer-content a {
+  color: #1c4f8e;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.footer-content a:hover {
+  color: #133d70;
+}
+

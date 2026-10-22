@@ -1,0 +1,34 @@
+name: Standalone core bundle
+
+on:
+  push:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - name: Install development tools
+        run: npm ci
+      - name: Check boundaries and build embedding distribution
+        run: |
+          npm run test:architecture
+          npm run build
+      - name: Upload standalone core
+        uses: actions/upload-artifact@v7
+        with:
+          name: varri-core-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30

@@ -1,11 +1,9 @@
-'use strict';
-
 /**
  * Print one stable environment preamble before Jest starts any test suite.
  * This keeps the diagnostic requested during review independent of Jest's
  * test-file scheduling order.
  */
-module.exports = async function diagnosticEnvironmentCheck() {
+export default async function diagnosticEnvironmentCheck() {
   const hasUrlSearchParams = typeof global.URLSearchParams !== 'undefined';
 
   console.log('--- JEST DIAGNOSTIC LOG ---');
@@ -18,4 +16,4 @@ module.exports = async function diagnosticEnvironmentCheck() {
   if (!hasUrlSearchParams) {
     throw new Error('The test environment must provide URLSearchParams.');
   }
-};
+}

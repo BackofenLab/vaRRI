@@ -1,0 +1,47 @@
+{
+  "revision": "ddb00d77d0feb3734999edfdb9b1517b65ebbc47",
+  "browser": "153.0.8010.12",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "seed": 83,
+  "forceLayout": false,
+  "fixtures": [
+    {
+      "name": "2mol",
+      "nucleotides": 66,
+      "links": 68,
+      "regions": 4,
+      "subsequences": 2
+    },
+    {
+      "name": "coronel-tellez-2022",
+      "nucleotides": 199,
+      "links": 137,
+      "regions": 0,
+      "subsequences": 4
+    },
+    {
+      "name": "wu-2024",
+      "nucleotides": 76,
+      "links": 92,
+      "regions": 3,
+      "subsequences": 1
+    },
+    {
+      "name": "IntaRNA-seeds",
+      "nucleotides": 145,
+      "links": 182,
+      "regions": 9,
+      "subsequences": 0
+    },
+    {
+      "name": "crossing-rri",
+      "nucleotides": 36,
+      "links": 44,
+      "regions": 4,
+      "subsequences": 0
+    }
+  ]
+}

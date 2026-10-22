@@ -1,0 +1,159 @@
+import { validatePNGOptions } from '../model/png-options.js';
+import { rasterizePNG } from './png-raster.js';
+import { blobDataURL } from './blob-data-url.js';
+
+
+const SVG_STYLE_PROPS = ['fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'font-family', 'font-size', 'font-weight', 'font-style', 'text-anchor', 'dominant-baseline', 'alignment-baseline', 'opacity', 'visibility', 'display', 'marker-start', 'marker-end', 'marker-mid', 'color'];
+
+/**
+ * Walk `originalEl` and `cloneEl` in parallel, reading computed styles
+ * from `originalEl` (which has all browser CSS applied) and writing them
+ * as an inline `style` attribute on `cloneEl`.
+ *
+ * This makes every element carry its own fully-resolved presentation
+ * values so the exported SVG is self-contained — no external stylesheet
+ * is required.  In particular:
+ *  - class-based rules (`.fornac-node`, `.fornac-link`, etc.) are baked in
+ *  - relative units (`0.4em` font-size) are resolved to absolute pixels
+ *  - inline `style` overrides from vaRRI (strand colours, highlights) are
+ *    already included in the computed value, so nothing is lost
+ *
+ * @param {Element} originalEl  Live DOM element (inside the visible SVG).
+ * @param {Element} cloneEl     Corresponding cloned element.
+ */
+export function inlineComputedStyles(session, originalEl, cloneEl) {
+  if (!originalEl || originalEl.nodeType !== 1) return;
+
+  // Leave <style> and <defs> subtrees alone — they hold definitions, not
+  // rendered shapes, and rewriting their style attributes would break them.
+  const tag = (originalEl.tagName || '').toLowerCase();
+  if (tag === 'style' || tag === 'defs') return;
+  const computed = session.window.getComputedStyle(originalEl);
+  let inlined = '';
+  for (const prop of SVG_STYLE_PROPS) {
+    const val = computed.getPropertyValue(prop);
+    if (val) inlined += `${prop}:${val};`;
+  }
+  if (inlined) cloneEl.setAttribute('style', inlined);
+
+  // Recurse into child elements in lock-step.
+  const origKids = originalEl.children;
+  const cloneKids = cloneEl.children;
+  for (let i = 0; i < origKids.length; i++) {
+    if (cloneKids[i]) inlineComputedStyles(session, origKids[i], cloneKids[i]);
+  }
+}
+
+/**
+ * Build a self-contained SVG string from the current visualisation.
+ *
+ * Strategy:
+ *  1. Clone the live SVG element (preserves all D3 transforms and vaRRI
+ *     DOM modifications).
+ *  2. Walk original + clone in parallel and inline every computed
+ *     presentation property so the file is fully self-contained.
+ *  3. Set explicit pixel width/height on the root so viewers render at
+ *     the same size as the browser display.
+ *  4. Prepend a white background rect to match the container's background.
+ *  5. Serialise with XMLSerializer (namespace-aware).
+ *
+ * @param {string} containerId  ID of the container element.
+ * @returns {string}  Full SVG markup.
+ */
+export function buildSVGString(session, containerId) {
+  const container = session.dom.getElementById(containerId);
+  const svgEl = container && container.querySelector('svg');
+  if (!svgEl) throw new Error('No SVG found in container');
+
+  // Clone the live SVG so we can annotate it without touching the DOM.
+  const clone = svgEl.cloneNode(true);
+
+  // Inline all computed presentation styles before any other annotation
+  // so that class-based CSS rules, relative units, and inherited values
+  // are all baked into the clone as plain inline style attributes.
+  inlineComputedStyles(session, svgEl, clone);
+  clone.querySelectorAll('[data-varri-interaction-overlay]').forEach(element => element.remove());
+  clone.querySelectorAll('[data-varri-selected]').forEach(element => element.removeAttribute('data-varri-selected'));
+
+  // Required namespace declarations for a standalone SVG file.
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+  // Derive pixel dimensions from the rendered element so the exported
+  // file renders at the same size as what the user sees in the browser.
+  const w = svgEl.clientWidth || container.clientWidth || 800;
+  const h = svgEl.clientHeight || container.clientHeight || 600;
+  clone.setAttribute('width', w);
+  clone.setAttribute('height', h);
+
+  // Keep (or synthesise) the viewBox so the internal coordinate space
+  // of the renderer maps 1:1 to the exported pixel dimensions.
+  if (!clone.getAttribute('viewBox')) {
+    clone.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  }
+
+  // White background rect — matches the container's background: #fff
+  // so the exported image looks identical to the on-screen visualisation.
+  const bg = session.dom.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bg.setAttribute('width', '100%');
+  bg.setAttribute('height', '100%');
+  bg.setAttribute('fill', 'white');
+  clone.insertBefore(bg, clone.firstChild);
+  return new (session.window?.XMLSerializer || globalThis.XMLSerializer)().serializeToString(clone);
+}
+
+/**
+ * Trigger a browser download of the current visualisation as an SVG file.
+ *
+ * @param {string} containerId  ID of the container element.
+ * @param {string} [filename="vaRRI_output.svg"]
+ */
+export function downloadSVG(session, containerId, filename = 'vaRRI_output.svg') {
+  const svgStr = buildSVGString(session, containerId);
+  const blob = new (session.window?.Blob || globalThis.Blob)([svgStr], {
+    type: 'image/svg+xml'
+  });
+  triggerDownload(session, (session.window?.URL || globalThis.URL).createObjectURL(blob), filename);
+}
+
+/**
+ * Download a PNG with a white background. The legacy numeric scale defaults to
+ * 2; an options object accepts explicit pixel width/height, DPI (default 96),
+ * and an optional AbortSignal. Resolves when the browser download is triggered.
+ */
+export function downloadPNG(session, containerId, filename = 'vaRRI_output.png', scale = 2) {
+  const container = session.dom.getElementById(containerId);
+  const svgEl = container && container.querySelector('svg');
+  if (!svgEl) throw new Error('No SVG found in container');
+  const w = svgEl.clientWidth || container.clientWidth || 800;
+  const h = svgEl.clientHeight || container.clientHeight || 600;
+  const options = typeof scale === 'number'
+    ? { width: Math.floor(w * scale), height: Math.floor(h * scale), dpi: 96 }
+    : scale || {};
+  const dimensions = validatePNGOptions(options);
+  options.signal?.throwIfAborted();
+  return rasterizePNG(session, buildSVGString(session, containerId), {
+    ...dimensions, signal: options.signal,
+  }).then(blob => blobDataURL(session, blob, options.signal)).then(url => {
+    options.signal?.throwIfAborted();
+    // Do not revoke a blob URL while Firefox may still be opening its save
+    // dialog. A data URL keeps the bytes available without cleanup timers.
+    triggerDownload(session, url, filename);
+  });
+}
+
+/**
+ * Create a hidden `<a>` element and programmatically click it to download.
+ *
+ * @param {string} href  URL or data URI.
+ * @param {string} filename
+ */
+export function triggerDownload(session, href, filename) {
+  const a = session.dom.createElement('a');
+  a.href = href;
+  a.download = filename;
+  a.style.display = 'none';
+  session.dom.body.appendChild(a);
+  a.click();
+  session.dom.body.removeChild(a);
+}

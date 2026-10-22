@@ -1,34 +1,33 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { releaseMetadata } from '../scripts/release-metadata.js';
 
-const root = path.resolve(__dirname, '..');
-const packageJson = require('../package.json');
-const { releaseMetadata } = require('../scripts/release-metadata.cjs');
+const root = path.resolve(import.meta.dirname, '..');
+const packageJson = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
 describe('npm package publication', () => {
     test('declares the public package metadata and supported entry points', () => {
         expect(packageJson.name).toBe('varri-js');
-        const lock = require('../package-lock.json');
+        const lock = JSON.parse(fs.readFileSync(new URL('../package-lock.json', import.meta.url), 'utf8'));
         expect(lock.name).toBe(packageJson.name);
         expect(lock.version).toBe(packageJson.version);
         expect(lock.packages[''].name).toBe(packageJson.name);
         expect(lock.packages[''].version).toBe(packageJson.version);
         expect(packageJson.license).toBe('MIT');
         expect(packageJson.repository.url).toBe('git+https://github.com/BackofenLab/vaRRI.git');
-        expect(packageJson.main).toBe('src/vaRRI.js');
-        expect(packageJson.exports['.']).toBe('./src/vaRRI.js');
+        expect(packageJson.main).toBe('dist/varri.cjs');
+        expect(packageJson.exports['.']).toMatchObject({
+            import: './src/vaRRI.js', require: './dist/varri.cjs',
+        });
         expect(packageJson.exports['./fornac/fornac.css']).toBe('./fornac/fornac.css');
         expect(packageJson.publishConfig.access).toBe('public');
     });
 
     test('all non-generated exported files exist in a clean checkout', () => {
-        const generatedExports = new Set([
-            './dist/vaRRI.min.js',
-            './dist/vaRRI.min.js.map',
-        ]);
-
-        Object.values(packageJson.exports)
-            .filter(exportPath => !generatedExports.has(exportPath))
+        const targets = value => typeof value === 'string' ? [value]
+            : Object.values(value).flatMap(targets);
+        targets(packageJson.exports)
+            .filter(exportPath => !exportPath.startsWith('./dist/'))
             .forEach(exportPath => {
                 expect(fs.existsSync(path.join(root, exportPath))).toBe(true);
             });
@@ -42,7 +41,7 @@ describe('npm package publication', () => {
 
         expect(workflow).toMatch(/release:\s*\n\s+types: \[published\]/);
         expect(workflow).toContain('npm run test:ci');
-        expect(workflow).toContain('node scripts/release-metadata.cjs');
+        expect(workflow).toContain('node scripts/release-metadata.js');
         expect(workflow).toContain('npm run test:package');
         expect(workflow).toContain('npm publish');
         expect(workflow).toContain('id-token: write');
