@@ -42,6 +42,33 @@ by the URI-encoded color value. This additive encoding preserves names and
 functional colors without requiring the DOM; existing links still decode as
 before. CSS color interpretation remains the renderer's responsibility.
 
+### Serializable JSON state
+
+`encodeJsonState(state)` returns a formatted, versioned JSON string using the
+same `{ fields, annotations, rotation, showRenderingOnly }` data shape as the URL
+codec. `decodeJsonState(json)` accepts that string or a parsed object and returns
+the data shape. Both are available as named exports, instance methods, and from
+`varri-js/model`, without a DOM. They validate file structure, field types and
+annotation definitions; they do not mutate a viewer or render a canvas.
+
+```javascript
+import { encodeJsonState, decodeJsonState } from './core/index.js';
+const json = encodeJsonState({
+  fields: { sequence: 'ACGU', structure: '(..)', forceLayout: false },
+  annotations: { textAnnotations: [] }, rotation: 15,
+});
+const session = decodeJsonState(json);
+const validated = viewer.validate({ ...session.fields, ...session.annotations });
+```
+
+An embedding application applies the decoded fields as it would URL state,
+registers annotations on its own instance, validates profiles, and passes its
+render options to `render()`. The browser viewer exposes
+`viewer.actions.generateJSON()` and `await viewer.actions.loadJSON(json)` from
+the default `index.js` export. `loadJSON` validates before replacing the current
+session and returns `false` with a visible error for invalid data.
+See the [file-format reference](../docs/sharing-and-input.md#json-session-files).
+
 ### `vaRRI.validate(args)`
 
 Validates and normalizes input, applies optional end cropping, and returns the

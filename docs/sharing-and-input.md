@@ -1,3 +1,79 @@
+## JSON Session Files
+
+Click **{;} Store** to download `vaRRI_session.json`. Click **{;} Load** at the
+right of the **Sequence & Structure Input** heading to choose a saved file, or
+drop one JSON file directly onto that button. Files are read locally in your
+browser. Loading replaces the current inputs and annotations and renders the
+restored figure; omitted settings return to their defaults.
+
+JSON stores the same visualization settings and user annotations as Share:
+sequences and names, structures, signed start indices, colors, highlighting,
+cropping, rotation, layout options, probability profiles, mutations, subsequence
+and region highlights, and text labels with their styles and positions. It also
+records rendering-only mode. Automatically generated regions are recreated from
+the settings. As with share links, manually moved nucleotide/numbering positions,
+pan/zoom, canvas size, and undo history are not saved; use SVG/PNG to preserve the
+current drawing. Unsubmitted annotation/FASTA dialog drafts are not saved.
+
+### Editing a JSON file
+
+The versioned format uses ordinary JSON values, without URL encoding. For example:
+
+```json
+{
+  "format": "vaRRI",
+  "version": 1,
+  "fields": {
+    "sequence": "ACGU&UGCA",
+    "structure": "((..&..))",
+    "startIndex1": -2,
+    "startIndex2": 100,
+    "seqName1": "First strand",
+    "forceLayout": false,
+    "colorSeq1": "#add8e6",
+    "profileData1": "-2 0.2\n-1 0.8",
+    "profileIdxRef1": "start"
+  },
+  "annotations": {
+    "pointMutations": [
+      { "sequence": "1", "position": -1, "replacement": "G", "color": "#006400" }
+    ],
+    "subsequenceHighlights": [
+      { "sequence": "1", "range": [[-2, -1], [1, 2]], "color": "#800080", "alpha": 0.3 }
+    ],
+    "regionHighlights": [
+      { "sequence1Range": [-2, -1], "sequence2Range": [100, 101], "color": "#ff0000", "alpha": 0.2 }
+    ],
+    "textAnnotations": [
+      { "text": "Example label", "bold": true, "italic": false, "size": 16,
+        "color": "#000000", "position": { "x": 0, "y": -50 } }
+    ]
+  },
+  "rotation": 25,
+  "showRenderingOnly": false
+}
+```
+
+`format`, `version`, and the `fields` object are required. Field names match the
+viewer controls listed below; checkbox values are JSON `true`/`false`. Other
+fields use strings; start indices, cropping, and profile index references also
+accept numbers. `profileIdxRef1`/`profileIdxRef2` use `"1"` for one-based input
+positions or `"start"` for biological indices. Field colors use hex strings
+(3, 4, 6, or 8 digits). Annotation colors also accept CSS colors; alpha values are numbers
+between 0 and 1. `rotation` is a number in degrees.
+
+Annotation collections are optional and default to empty. Omitting
+`textAnnotations` creates the initial sequence-name labels; an explicit `[]`
+leaves those names unpositioned. Stored sequence-name labels carry
+`sequenceNameFor: "1"` or `"2"` and may have terminal anchors. Keep those values
+to preserve the relationship between each name field and its label.
+
+Loading checks the file format, field types, sequence/structure, annotations, and
+profile coordinates before replacing the session. If validation fails, an error
+appears and the current session remains intact. Unknown field names and unsupported
+format versions are rejected. Save a working figure first, then edit that file for
+the most complete starting point.
+
 ## URL Parameters & Sharing
 
 **vaRRI** supports state persistence directly via URL parameters, allowing you to pre-fill inputs or share specific visualization configurations using the **🔗 Share Link** button in the export panel. Most parameter names map directly to their corresponding HTML element IDs.

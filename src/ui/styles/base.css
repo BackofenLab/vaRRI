@@ -143,12 +143,29 @@ main {
   padding: .4rem .8rem .35rem;
 }
 
+.control-group > .section-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  list-style: none;
+}
+
+.section-header::-webkit-details-marker { display: none; }
+.section-header::before { content: '▸'; }
+.control-group[open] > .section-header::before { content: '▾'; }
+
+.section-header-action {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 #full-screen-menu {
   display: inline-flex;
-  align-items: sub;
+  align-items: center;
   gap: 6px;
-  vertical-align: middle;
-  margin-left: auto;
-  padding-left: 2rem;
 }
+
+#full-screen-menu label { margin: 0; }
+.json-icon { font-family: monospace; font-size: .8rem; font-weight: 700; line-height: 1; }
+#loadJsonBtn.drag-over { outline: 2px dashed var(--brand-blue); outline-offset: 3px; }
 

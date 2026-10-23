@@ -9,6 +9,7 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
   let generation = 0;
   function clearAll() {
     generation++;
+    actions.cancelJSONLoad();
     if (copiedTimer !== null) window.clearTimeout(copiedTimer);
     copiedTimer = null;
     state.shareCopied = false;
@@ -40,6 +41,9 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
       mutationColor: defaults.mutationColor, subsequenceColor: defaults.subseqColor,
       regionColor: defaults.regionColor, subsequenceAlpha: Number(defaults.subseqAlpha), regionAlpha: Number(defaults.regionAlpha),
     } });
+    applySessionState(decoded, { revealProfilePanel });
+  }
+  function applySessionState(decoded, { revealProfilePanel = true } = {}) {
     Object.entries(decoded.fields).forEach(([key, value]) => {
       if (Object.hasOwn(state.fields, key)) state.fields[key] = Array.isArray(value) ? value.at(-1) : value;
     });
@@ -47,12 +51,12 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
     if (decoded.showRenderingOnly) state.renderingOnly = state.showFullPage = true;
     const methods = { pointMutations: 'registerPointMutation', subsequenceHighlights: 'registerSubsequenceHighlight', regionHighlights: 'registerRegionHighlight' };
     Object.entries(methods).forEach(([key, method]) => {
-      decoded.annotations[key].forEach(item => {
+      (decoded.annotations[key] || []).forEach(item => {
         try { api[method](item, actions.getSequenceContext()); }
         catch (error) { window.console.warn(`Failed to register ${key} from URL: ${error.message}`); }
       });
     });
-    if (params.has('textAnnotations')) {
+    if (Object.hasOwn(decoded.annotations, 'textAnnotations')) {
       api.clearTextAnnotations();
       decoded.annotations.textAnnotations.forEach(item => {
         try { api.registerTextAnnotation(item); }
@@ -66,7 +70,12 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
     actions.syncAnimationDependentControls();
     applyBodyClasses();
     if (revealProfilePanel && Object.keys(decoded.fields).some(key => key.startsWith('profileData'))) {
-      nextTick(() => { const panel = document.getElementById('profileData1')?.closest('details'); if (panel) panel.open = true; });
+      const currentGeneration = generation;
+      nextTick(() => {
+        if (disposed || currentGeneration !== generation) return;
+        const panel = document.getElementById('profileData1')?.closest('details');
+        if (panel) panel.open = true;
+      });
     }
   }
   async function loadExample(key) {
@@ -90,15 +99,19 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
     await actions.runVisualization();
     return true;
   }
-  function generateShareableURL() {
-    const params = encodeUrlState({ fields: state.fields, rotation: state.rotation,
+  function getSessionState() {
+    return { fields: state.fields, rotation: state.rotation,
       annotations: { pointMutations: api.getPointMutations(), subsequenceHighlights: api.getSubsequenceHighlights(),
-        regionHighlights: api.getRegionHighlights(), textAnnotations: api.getTextAnnotations() } });
+        regionHighlights: api.getRegionHighlights(), textAnnotations: api.getTextAnnotations() } };
+  }
+  function generateShareableURL() {
+    const params = encodeUrlState(getSessionState());
     const base = window.location.href.split('?')[0].split('#')[0];
     return `${base}?${params}`;
   }
   return {
     clearAll, loadAllUrlParameters, loadExample, generateShareableURL, applyBodyClasses,
+    getSessionState, applySessionState,
     closeExamples() { state.exampleOpen = false; document.getElementById('exampleDropdownTrigger')?.focus(); },
     selectedExampleName() { const example = examples[state.selectedExample]; return example?.nameShort || example?.name || 'Select an example'; },
     exampleCaption() {

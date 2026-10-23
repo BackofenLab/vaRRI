@@ -217,7 +217,8 @@ npm test
 
 The [viewer guide](docs/viewer-guide.md) covers inputs, annotation controls,
 probability profiles, navigation, and exports. The [sharing and input reference](docs/sharing-and-input.md)
-covers URL parameters, embedding, dot-bracket notation, and biological indices.
+covers [JSON session files](docs/sharing-and-input.md#json-session-files), URL
+parameters, embedding, dot-bracket notation, and biological indices.
 [Open the complete browser help](README.html) to read these guides together.
 
 <!-- include: docs/viewer-guide.md -->

@@ -32,6 +32,7 @@ export function createViewerState(api, colors) {
     annotations: { subsequences: [], regions: [], mutations: [], texts: [] },
     selectedExample: null, exampleOpen: false, rotation: 0, rotationPreview: 0,
     renderingOnly: false, showFullPage: false, shareCopied: false,
+    jsonLoading: false,
     pngExport: { width: '', height: '', dpi: '96', error: '', busy: false },
     inputCaret: { field: '', index: -1 },
     canvasInteraction: { movedCount: 0, selectedNodeCount: 0, selectedMovedCount: 0, canUndo: false },

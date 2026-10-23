@@ -2,8 +2,8 @@ import { viewerComponent } from './context.js';
 
 export default viewerComponent('visualization-settings', `<aside class="panel control-panel" aria-label="Visualization settings">
       <details class="control-group" name="controls-accordion">
-        <summary>Visualization Settings
-          <span id="full-screen-menu">
+        <summary class="section-header"><span>Visualization Settings</span>
+          <span id="full-screen-menu" class="section-header-action" @click.stop @keydown.stop>
             <input type="checkbox" id="hideFooterAndHeader" v-bind:checked="state.fields.hideFooterAndHeader" v-on:input="actions.inputField('hideFooterAndHeader', $event)" v-on:change="actions.commitField('hideFooterAndHeader', $event)">
             <label for="hideFooterAndHeader" title="Toogle to Full Screen mode.">Full Screen</label>
           </span>

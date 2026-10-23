@@ -1,4 +1,5 @@
 import { decodeUrlState, encodeUrlState } from './model/url-state.js';
+import { decodeJsonState, encodeJsonState } from './model/json-state.js';
 import { setColors, getColors, sequenceColoring } from './model/colors.js';
 import { createSubsequenceHighlight, registerSubsequenceHighlight, updateSubsequenceHighlight, removeSubsequenceHighlight, clearSubsequenceHighlights, getSubsequenceHighlights } from './model/subsequences.js';
 import { createTextAnnotation, registerTextAnnotation, updateTextAnnotation, removeTextAnnotation, clearTextAnnotations, getTextAnnotations } from './model/text-annotations.js';
@@ -33,6 +34,8 @@ export function createVaRRI(options = {}) {
     createVaRRI,
     decodeUrlState,
     encodeUrlState,
+    decodeJsonState,
+    encodeJsonState,
     cancelActiveRender: cancelActiveRender.bind(null, session),
     normaliseRotationDegrees: normaliseRotationDegrees,
     render: render.bind(null, session),

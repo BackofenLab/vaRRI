@@ -222,7 +222,7 @@
   margin-top: .75rem;
   flex-wrap: wrap;
 }
-.export-bar span { font-size: .85rem; font-weight: 600; color: var(--brand-blue-dark); }
+.export-bar > span { font-size: .85rem; font-weight: 600; color: var(--brand-blue-dark); }
 .cite-note {
   margin-left: auto;
   color: #666;

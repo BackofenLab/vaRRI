@@ -13,6 +13,7 @@ import { createAnnotationActions } from './annotation-actions.js';
 import { createPNGExportActions } from './png-export-actions.js';
 import { createRenderActions } from './render-actions.js';
 import { createNavigationActions } from './navigation-actions.js';
+import { createJSONFileActions } from './json-file-actions.js';
 import { createDialogActions } from './dialog-actions.js';
 import { createFieldActions } from './field-actions.js';
 import { createInputHighlights } from './input-highlights.js';
@@ -30,7 +31,8 @@ export function createViewerApp(options = {}) {
   const context = { api, state, defaults, initialColors, actions, document, examples, colors };
   [createStateActions, createFastaController, createProfilesController,
     createValidationController, createAnnotationControllers, createAnnotationActions,
-    createRenderActions, createPNGExportActions, createNavigationActions, createDialogActions, createInputHighlights, createFieldActions]
+    createRenderActions, createPNGExportActions, createNavigationActions, createJSONFileActions,
+    createDialogActions, createInputHighlights, createFieldActions]
     .forEach(factory => Object.assign(actions, factory(context)));
   const app = createApp(App);
   app.provide(VIEWER_CONTEXT, { state, actions, examples, colors });
@@ -57,6 +59,7 @@ export function createViewerApp(options = {}) {
     unmount() {
       if (unmounted) return;
       unmounted = true;
+      actions.disposeJSONFiles();
       actions.cancelPNGExport(); actions.cancelRendering(); actions.disposeBackdrops(); actions.disposeDialogs(); actions.disposeNavigation();
       actions.disposeTextAnnotations();
       document.removeEventListener('click', outsideClick);

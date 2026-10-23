@@ -5,6 +5,8 @@ export default vaRRI;
 export const {
   decodeUrlState,
   encodeUrlState,
+  decodeJsonState,
+  encodeJsonState,
   cancelActiveRender,
   normaliseRotationDegrees,
   render,
