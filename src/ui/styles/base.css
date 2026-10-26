@@ -166,6 +166,5 @@ main {
 }
 
 #full-screen-menu label { margin: 0; }
-.json-icon { font-family: monospace; font-size: .8rem; font-weight: 700; line-height: 1; }
 #loadJsonBtn.drag-over { outline: 2px dashed var(--brand-blue); outline-offset: 3px; }
 

@@ -1,6 +1,6 @@
 ## JSON Session Files
 
-Click **{;} Store** to download `vaRRI_session.json`. Click **{;} Load** at the
+Click **⬇ Store** to download `vaRRI_session.json`. Click **⬆ Load** at the
 right of the **Sequence & Structure Input** heading to choose a saved file, or
 drop one JSON file directly onto that button. Files are read locally in your
 browser. Loading replaces the current inputs and annotations and renders the

@@ -29,7 +29,7 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
     <div class="export-bar">
       <button id="exportSvgBtn" class="btn btn-success btn-sm" type="button" title="Download rendering in SVG format." v-on:click="actions.exportSVG($event)">⬇ SVG</button>
       <button id="exportPngBtn" class="btn btn-info btn-sm" type="button" title="Download rendering in PNG format." v-on:click="actions.exportPNG($event)">⬇ PNG</button>
-      <button id="storeJsonBtn" class="btn btn-secondary btn-sm" type="button" title="Store settings and annotations in a JSON file" @click="actions.storeJSON()"><span class="json-icon" aria-hidden="true">{;}</span> Store</button>
+      <button id="storeJsonBtn" class="btn btn-secondary btn-sm" type="button" title="Store settings and annotations in a JSON file" @click="actions.storeJSON()">⬇ Store</button>
       <button id="shareLinkBtn" class="btn btn-shareLink btn-sm" type="button" title="Copy shareable link to clipboard" v-on:click="actions.shareLink($event)">{{ state.shareCopied ? '✓ Copied!' : '🔗 Share' }}</button>
       <button id="openVarriBtn" class="btn btn-openVarri btn-sm" type="button" title="Show this in a new vaRRI browser window" v-on:click="actions.openFullPage($event)" v-show="state.showFullPage">Full Page</button>
       <span class="cite-note">Please

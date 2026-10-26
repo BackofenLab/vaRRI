@@ -8,7 +8,7 @@ export default viewerComponent('sequence-input', `<aside class="panel control-pa
             :aria-busy="state.jsonLoading" @click.stop.prevent="actions.openJSONFile()"
             @keydown.stop @dragover.prevent.stop="actions.dragOver($event)"
             @dragleave="actions.dragLeave($event)" @drop.prevent.stop="actions.dropJSONFile($event)">
-            <span class="json-icon" aria-hidden="true">{;}</span> Load
+            ⬆ Load
           </button>
         </summary>
         <input id="loadJsonInput" type="file" accept=".json,application/json" hidden @change="actions.selectJSONFile($event)">

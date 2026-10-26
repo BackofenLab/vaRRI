@@ -57,8 +57,8 @@ Details about supported sequence and dot-bracket structure encodings are provide
 
 ### Load a Saved Session
 
-Use **{;} Load** at the right of the **Sequence & Structure Input** heading to
-select a JSON file previously downloaded with **{;} Store**. You can also drag
+Use **⬆ Load** at the right of the **Sequence & Structure Input** heading to
+select a JSON file previously downloaded with **⬇ Store**. You can also drag
 one JSON file onto Load. The session's inputs, settings and annotations replace
 the current figure and render automatically. Invalid files show an error without
 replacing your work. See [JSON Session Files](sharing-and-input.md#json-session-files)
@@ -256,7 +256,7 @@ Details about URL encoding are given in the following section [URL Parameters & 
 |---|---|
 | **⬇ SVG** | Downloads a self-contained SVG file with embedded Fornac CSS. |
 | **⬇ PNG** | Opens a dialog for PNG pixel dimensions and DPI, then downloads the image. |
-| **{;} Store** | Downloads inputs, settings, profiles and user annotations as an editable JSON session for later loading. |
+| **⬇ Store** | Downloads inputs, settings, profiles and user annotations as an editable JSON session for later loading. |
 | **🔗 Share Link** | Generate URL encoding of the input for sharing or embedding in other web applications; copied to clipboard. | 
 
 The PNG dialog starts with the current canvas width and height. Editing either
