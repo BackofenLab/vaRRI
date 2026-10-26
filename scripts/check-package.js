@@ -37,6 +37,9 @@ try {
     assert.ok(fs.statSync(path.join(installed, target)).isFile(), `Missing conditional export: ${target}`);
   }
   assert.equal(typeof installedRequire('varri-js').render, 'function');
+  const packagedAPI = installedRequire('varri-js');
+  const sessionJSON = packagedAPI.encodeJsonState({ fields: { sequence: 'ACGU', structure: '(..)' } });
+  assert.equal(packagedAPI.decodeJsonState(sessionJSON).fields.sequence, 'ACGU');
   // Legacy D3 remains a classic/UMD asset even though authored package files are ESM.
   const legacyDom = new JSDOM('<!doctype html><html><body></body></html>');
   const previousGlobals = new Map(['document', 'window', 'd3'].map(name =>

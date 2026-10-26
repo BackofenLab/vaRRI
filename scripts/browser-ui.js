@@ -11,6 +11,7 @@ import { exerciseTextAnnotationUI } from './browser-text-ui.js';
 import { exerciseSequenceNames } from './browser-sequence-names.js';
 import { checkInputHighlights } from './browser-input-highlights.js';
 import { checkCrossingRriExample } from './browser-crossing-rri.js';
+import { checkJSONFiles } from './browser-json-files.js';
 const root = path.resolve(import.meta.dirname, '..');
 const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
@@ -106,6 +107,13 @@ async function main() {
       await checkPNGResize(page, output);
       assert.deepEqual(errors, [], 'Browser errors during PNG workflow');
       console.log(`PNG browser checks passed (${browserType.name()} ${browser.version()}): layout, dragging, cancellation, resize, image content and DPI.`);
+      return;
+    }
+    if (process.argv.includes('--json-only')) {
+      phase = 'JSON file controls';
+      await checkJSONFiles(page, origin, output);
+      assert.deepEqual(errors, [], 'Browser errors during JSON workflow');
+      console.log(`JSON browser checks passed (${browserType.name()} ${browser.version()}).`);
       return;
     }
     phase = 'live Vue and D3 reactivity boundary';
@@ -255,6 +263,8 @@ async function main() {
     await exerciseTextAnnotationUI(page, origin, output);
     phase = 'sequence names, protected labels, text dialogs and FASTA';
     await exerciseSequenceNames(page, origin, output);
+    phase = 'JSON downloads, picker, drop and responsive headers';
+    await checkJSONFiles(page, origin, output);
     phase = 'PNG dialog after resizing';
     await checkPNGResize(page, output);
     assert.deepEqual(errors, [], 'Browser errors during Vue UI workflow');

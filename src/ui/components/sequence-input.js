@@ -2,7 +2,16 @@ import { viewerComponent } from './context.js';
 
 export default viewerComponent('sequence-input', `<aside class="panel control-panel" aria-label="Sequence and structure input">
       <details class="control-group" name="controls-accordion" open="">
-        <summary>Sequence &amp; Structure Input</summary>
+        <summary class="section-header"><span>Sequence &amp; Structure Input</span>
+          <button id="loadJsonBtn" class="btn btn-secondary btn-sm section-header-action" type="button"
+            title="Load a vaRRI JSON session. Drop a JSON file here or click to select one."
+            :aria-busy="state.jsonLoading" @click.stop.prevent="actions.openJSONFile()"
+            @keydown.stop @dragover.prevent.stop="actions.dragOver($event)"
+            @dragleave="actions.dragLeave($event)" @drop.prevent.stop="actions.dropJSONFile($event)">
+            <span class="json-icon" aria-hidden="true">{;}</span> Load
+          </button>
+        </summary>
+        <input id="loadJsonInput" type="file" accept=".json,application/json" hidden @change="actions.selectJSONFile($event)">
         <div class="control-group-body">
         <span id="exampleDropdownLabel" class="example-label">Example</span>
         <div class="examples">

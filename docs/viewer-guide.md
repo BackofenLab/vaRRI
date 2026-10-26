@@ -5,6 +5,7 @@
 - [Usage](#usage)
 - [Sequence and Structure Input Fields](#sequence-and-structure-input-fields)
 - [Example Input](#example-input)
+- [Load a Saved Session](#load-a-saved-session)
 - [Visualisation Settings](#visualisation-settings)
 - [Region Highlights](#region-highlights)
 - [Subsequence Highlights](#subsequence-highlights)
@@ -53,6 +54,15 @@ ACGAAAAAAAGAGCAUACGACAGUAG
 ```
 
 Details about supported sequence and dot-bracket structure encodings are provided in the [Input Format Reference](sharing-and-input.md#input-format-reference) section.
+
+### Load a Saved Session
+
+Use **{;} Load** at the right of the **Sequence & Structure Input** heading to
+select a JSON file previously downloaded with **{;} Store**. You can also drag
+one JSON file onto Load. The session's inputs, settings and annotations replace
+the current figure and render automatically. Invalid files show an error without
+replacing your work. See [JSON Session Files](sharing-and-input.md#json-session-files)
+for the editable file format.
 
 ### Example Input
 
@@ -221,7 +231,7 @@ both positioned and unpositioned labels, including their formatting.
 - **Moving elements**: Drag any nucleotide, numbering label, or text label in either layout mode. Drag a selected element to move the whole selection; dragging an unselected element clears the selection and moves that element alone. Released nodes and numbering labels stay in place until the next render, including in force mode.
 - **Manual positions**: The **Moved** button beside Crop counts manually positioned nucleotides and numbering labels; click it to select them all. **Release** unfixes selected nodes at their current positions, allowing them to move again when Force layout is enabled, and removes them from the Moved count. **Reset** restores selected manual nodes to their positions and fixation before the first edit. Text labels are not counted, released, or reset. **Undo** (or Ctrl+Z / Command+Z while the canvas is focused) reverses the last drag, selection rotation, release, or reset. Undo a release before resetting that node to its original position. History is kept for the current rendering. The **?** button opens the full interaction guide.
 - **Selection rotation**: With at least two elements selected, hold Ctrl (or Command) and use the mouse wheel to rotate them around the pointer. The ordinary wheel still zooms.
-- **Saving positions**: SVG and PNG exports preserve the current layout and omit selection outlines. Share links save text-label positions; manually moved nucleotide and numbering positions last only for the current rendering.
+- **Saving positions**: SVG and PNG exports preserve the current layout and omit selection outlines. Share links and JSON sessions save text-label positions; manually moved nucleotide and numbering positions last only for the current rendering.
 - **Nucleotide tooltips**: Hover to see the nucleotide index and probability value (if present).
 - **Resize Canvas**: The visualisation canvas size can be adjusted by dragging the bottom-right corner of the canvas. This is useful when visualizing large interactions on large screens, or when preparing figures for publication. The canvas size is preserved when exporting the visualisation.
 
@@ -246,6 +256,7 @@ Details about URL encoding are given in the following section [URL Parameters & 
 |---|---|
 | **⬇ SVG** | Downloads a self-contained SVG file with embedded Fornac CSS. |
 | **⬇ PNG** | Opens a dialog for PNG pixel dimensions and DPI, then downloads the image. |
+| **{;} Store** | Downloads inputs, settings, profiles and user annotations as an editable JSON session for later loading. |
 | **🔗 Share Link** | Generate URL encoding of the input for sharing or embedding in other web applications; copied to clipboard. | 
 
 The PNG dialog starts with the current canvas width and height. Editing either
