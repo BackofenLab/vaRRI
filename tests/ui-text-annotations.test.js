@@ -1,6 +1,15 @@
 import { jest } from '@jest/globals';
 import { mountViewer } from './helpers/vue-viewer.js';
 
+const mountAnnotationViewer = () => mountViewer({
+  modifyExamples(examples) {
+    const example = examples['2mol'];
+    examples['2mol'] = { ...example, vaRRIParams: { ...example.vaRRIParams,
+      fields: { ...example.vaRRIParams.fields, seqName1: 'Seq. 1', seqName2: 'Seq. 2' },
+      annotations: { ...example.vaRRIParams.annotations, textAnnotations: [] } } };
+  },
+});
+
 function editField(id, value) {
   const input = document.getElementById(id);
   if (input.type === 'checkbox') input.checked = value;
@@ -32,7 +41,7 @@ async function saveDialog(viewer) {
 }
 
 test('text annotation controls add, style, edit and remove plain text without rerendering the graph', async () => {
-  const viewer = await mountViewer();
+  const viewer = await mountAnnotationViewer();
   try {
     const refresh = jest.spyOn(viewer.api, 'refreshTextAnnotations');
     viewer.renderSpy.mockClear();
@@ -87,7 +96,7 @@ test('text annotation controls add, style, edit and remove plain text without re
 });
 
 test('free text can be added before sequence input, validates style, and clears drafts independently', async () => {
-  const viewer = await mountViewer();
+  const viewer = await mountAnnotationViewer();
   try {
     viewer.view.actions.clearAll();
     await addDialog(viewer);
@@ -119,7 +128,7 @@ test('free text can be added before sequence input, validates style, and clears 
 });
 
 test('text dialogs cancel draft changes and the text panel follows visualization settings', async () => {
-  const viewer = await mountViewer();
+  const viewer = await mountAnnotationViewer();
   try {
     const panels = [...document.querySelectorAll('.controls-column > aside')];
     expect(panels.slice(0, 4).map(panel => panel.getAttribute('aria-label')))
@@ -146,7 +155,7 @@ test('text dialogs cancel draft changes and the text panel follows visualization
 });
 
 test('small canvas labels keep readable list previews without changing their stored or edited size', async () => {
-  const viewer = await mountViewer();
+  const viewer = await mountAnnotationViewer();
   try {
     const annotation = viewer.api.registerTextAnnotation({ text: 'Seq. 1', size: 6.4 });
     viewer.view.actions.syncAnnotations();
@@ -162,7 +171,7 @@ test('small canvas labels keep readable list previews without changing their sto
 });
 
 test('text styles and placement survive shared URLs while editor drafts are omitted', async () => {
-  const viewer = await mountViewer();
+  const viewer = await mountAnnotationViewer();
   try {
     viewer.api.registerTextAnnotation({ text: 'Label α: &, + <tag>', bold: true, italic: true,
       size: 21, color: '#123456', position: { x: -24.5, y: 3.25 } });
@@ -184,7 +193,7 @@ test('text styles and placement survive shared URLs while editor drafts are omit
 });
 
 test('list drops accept only this viewer drag and delegate client coordinates to the core', async () => {
-  const viewer = await mountViewer();
+  const viewer = await mountAnnotationViewer();
   try {
     const annotation = viewer.api.registerTextAnnotation({ text: 'Drag me' });
     viewer.view.actions.syncAnnotations();
@@ -213,7 +222,7 @@ test('list drops accept only this viewer drag and delegate client coordinates to
 });
 
 test('clearing the viewer cancels pending text placement', async () => {
-  const viewer = await mountViewer();
+  const viewer = await mountAnnotationViewer();
   try {
     viewer.api.registerTextAnnotation({ text: 'Cancel this drag' });
     viewer.view.actions.syncAnnotations();

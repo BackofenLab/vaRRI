@@ -1,5 +1,6 @@
 import { nextTick } from 'vue';
 import { decodeUrlState, encodeUrlState } from '../core/model/url-state.js';
+import { decodeJsonState } from '../core/model/json-state.js';
 import { marked } from './vendor/marked.js';
 
 export function createNavigationActions({ api, state, defaults, initialColors, actions, document, examples }) {
@@ -81,14 +82,13 @@ export function createNavigationActions({ api, state, defaults, initialColors, a
   async function loadExample(key) {
     const example = examples[key];
     if (!example?.vaRRIParams) return false;
+    const decoded = decodeJsonState(example.vaRRIParams);
     api.setColors(initialColors);
     clearAll();
     const selectionGeneration = generation;
-    const params = new URLSearchParams();
-    Object.entries(example.vaRRIParams).forEach(([key, value]) => {
-      if (key !== 'showRenderingOnly' && value !== undefined && value !== null) params.set(key, value);
-    });
-    loadAllUrlParameters(params, { revealProfilePanel: false });
+    const fields = { ...defaults, ...decoded.fields };
+    state.renderingOnly = state.showFullPage = decoded.showRenderingOnly;
+    applySessionState({ ...decoded, fields }, { revealProfilePanel: false });
     actions.resetFastaForm(); actions.resetSubseqForm(); actions.resetRegionForm(); actions.resetMutationForm();
     actions.resetTextAnnotationForm();
     state.selectedExample = key;

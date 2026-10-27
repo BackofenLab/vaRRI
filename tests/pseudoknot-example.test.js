@@ -5,7 +5,11 @@ import { createVaRRI } from '../src/core/index.js';
 import { applyPseudoknotLinkStrength, relaxForceGraphScaffold } from '../src/core/canvas/layout/scaffold.js';
 import examples from '../example-data.js';
 
-const input = () => createVaRRI().validate(examples['crossing-rri'].vaRRIParams);
+const input = () => {
+  const api = createVaRRI();
+  const session = api.decodeJsonState(examples['crossing-rri'].vaRRIParams);
+  return api.validate({ ...session.fields, ...session.annotations });
+};
 const makeGraph = structure => createRnaGraph(structure, {
   sequence: structure.replaceAll(/[^&]/g, 'A'), labelInterval: 0,
 });

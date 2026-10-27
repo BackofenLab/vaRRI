@@ -143,8 +143,8 @@ async function main() {
       await page.locator('#exampleDropdownTrigger').click();
       await page.locator(`[data-example="${id}"]`).click();
       await ready(page);
-      assert.equal(await page.locator('#sequence').inputValue(), example.vaRRIParams.sequence);
-      assert.equal(await page.locator('#structure').inputValue(), example.vaRRIParams.structure);
+      assert.equal(await page.locator('#sequence').inputValue(), example.vaRRIParams.fields.sequence);
+      assert.equal(await page.locator('#structure').inputValue(), example.vaRRIParams.fields.structure);
       assert.ok(await page.locator('#rendering-canvas circle[node_type="nucleotide"]').count() > 0);
       if (id === 'crossing-rri') await checkCrossingRriExample(page, output);
     }

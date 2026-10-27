@@ -7,7 +7,7 @@ test('Vue state remains serializable and does not proxy the visualization API', 
   expect(isReactive(viewer.view.state)).toBe(true);
   expect(isProxy(viewer.api)).toBe(false);
   const state = JSON.parse(JSON.stringify(viewer.view.state));
-  expect(state.fields.sequence).toBe(viewer.examples['2mol'].vaRRIParams.sequence);
+  expect(state.fields.sequence).toBe(viewer.examples['2mol'].vaRRIParams.fields.sequence);
   expect(state.annotations.subsequences).toHaveLength(2);
   expect(state.annotations.mutations).toHaveLength(2);
   expect(state).not.toHaveProperty('force');

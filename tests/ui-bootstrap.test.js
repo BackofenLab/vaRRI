@@ -65,8 +65,8 @@ test('boots through bound UI actions without inline handlers', async () => {
   expect(trigger.textContent.trim()).toBe(profileExample.nameShort);
   expect(trigger.textContent).not.toContain(profileExample.descriptionShort);
   expect(profileButton.getAttribute('aria-current')).toBe('true');
-  expect(document.getElementById('sequence').value).toBe(profileExample.vaRRIParams.sequence);
-  expect(document.getElementById('structure').value).toBe(profileExample.vaRRIParams.structure);
+  expect(document.getElementById('sequence').value).toBe(profileExample.vaRRIParams.fields.sequence);
+  expect(document.getElementById('structure').value).toBe(profileExample.vaRRIParams.fields.structure);
   expect(document.getElementById('cropping').value).toBe('3');
   expect(document.getElementById('highlighting').value).toBe('basepairs');
   expect(document.getElementById('backgroundhighlighting').value).toBe('nothing');
@@ -91,8 +91,8 @@ test('boots through bound UI actions without inline handlers', async () => {
 
   expect(trigger.textContent.trim()).toBe(mutationExample.nameShort);
   expect(mutationButton.getAttribute('aria-current')).toBe('true');
-  expect(document.getElementById('sequence').value).toBe(mutationExample.vaRRIParams.sequence);
-  expect(document.getElementById('structure').value).toBe(mutationExample.vaRRIParams.structure);
+  expect(document.getElementById('sequence').value).toBe(mutationExample.vaRRIParams.fields.sequence);
+  expect(document.getElementById('structure').value).toBe(mutationExample.vaRRIParams.fields.structure);
   expect(document.getElementById('startIndex1').value).toBe('-35');
   expect(document.getElementById('startIndex2').value).toBe('2');
   expect(document.getElementById('cropping').value).toBe('-1');
@@ -144,7 +144,8 @@ test('linear controls preserve the force choice through examples, toggles, and s
     modifyExamples(examples) {
       examples['linear-test'] = { ...examples['2mol'], name: 'Linear layout test',
         nameShort: 'Linear layout test', descriptionShort: 'Static linear RRI.',
-        vaRRIParams: { ...examples['2mol'].vaRRIParams, forceLayout: '0', forceLayoutLinearRRI: '1' } };
+        vaRRIParams: { ...examples['2mol'].vaRRIParams,
+          fields: { ...examples['2mol'].vaRRIParams.fields, forceLayout: false, forceLayoutLinearRRI: true } } };
     },
   });
   const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
