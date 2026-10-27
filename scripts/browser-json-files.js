@@ -28,7 +28,7 @@ export async function checkJSONFiles(page, origin, output) {
   assert.ok(before.annotations.textAnnotations.length >= 2, 'Sequence-name labels are saved');
   assert.equal(await page.locator('#storeJsonBtn').evaluate(button => button.nextElementSibling.id), 'shareLinkBtn');
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Store', exact: true }).click();
+  await page.getByRole('button', { name: /Store$/ }).click();
   const download = await downloadPromise;
   assert.equal(download.suggestedFilename(), 'vaRRI_session.json');
   const filename = path.join(output, 'session.json');
@@ -39,7 +39,7 @@ export async function checkJSONFiles(page, origin, output) {
   const inputPanel = page.locator('#loadJsonBtn').locator('xpath=ancestor::details[1]');
   const wasOpen = await inputPanel.evaluate(element => element.open);
   const chooserPromise = page.waitForEvent('filechooser');
-  await page.getByRole('button', { name: 'Load', exact: true }).focus();
+  await page.getByRole('button', { name: /Load$/ }).focus();
   await page.keyboard.press('Enter');
   const chooser = await chooserPromise;
   assert.equal(await inputPanel.evaluate(element => element.open), wasOpen, 'Load must not toggle its section');

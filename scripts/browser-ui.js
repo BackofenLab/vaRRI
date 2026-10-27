@@ -12,6 +12,7 @@ import { exerciseSequenceNames } from './browser-sequence-names.js';
 import { checkInputHighlights } from './browser-input-highlights.js';
 import { checkCrossingRriExample } from './browser-crossing-rri.js';
 import { checkJSONFiles } from './browser-json-files.js';
+import { checkExampleDropdownOverlay } from './browser-example-dropdown.js';
 const root = path.resolve(import.meta.dirname, '..');
 const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
@@ -93,6 +94,8 @@ async function main() {
     phase = 'initial viewer load';
     await page.goto(origin + '/index.html', { waitUntil: 'networkidle' });
     await ready(page);
+    phase = 'example dropdown overlay';
+    await checkExampleDropdownOverlay(page);
     if (process.argv.includes('--positions-only')) {
       phase = 'manual positions, platform modifiers, responsive controls and help';
       await exercisePositionControlsUI(page, origin, output);
@@ -269,7 +272,7 @@ async function main() {
     await checkPNGResize(page, output);
     assert.deepEqual(errors, [], 'Browser errors during Vue UI workflow');
     await page.close();
-    console.log(`Vue browser UI passed (${browserType.name()} ${browser.version()}): five examples, input highlights, edits, FASTA, sequence names, annotation CRUD, text drag/drop and sharing, profiles, force, export, render-only.`);
+    console.log(`Vue browser UI passed (${browserType.name()} ${browser.version()}): overlay examples, five examples, input highlights, edits, FASTA, sequence names, annotation CRUD, text drag/drop and sharing, profiles, force, export, render-only.`);
   } catch (error) {
     if (page && !page.isClosed()) {
       await page.screenshot({ path: path.join(output, 'failure.png'), fullPage: true }).catch(() => {});
