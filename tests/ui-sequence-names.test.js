@@ -1,6 +1,15 @@
 import { jest } from '@jest/globals';
 import { mountViewer } from './helpers/vue-viewer.js';
 
+const mountSequenceNameViewer = () => mountViewer({
+  modifyExamples(examples) {
+    const example = examples['2mol'];
+    examples['2mol'] = { ...example, vaRRIParams: { ...example.vaRRIParams,
+      fields: { ...example.vaRRIParams.fields, seqName1: 'Seq. 1', seqName2: 'Seq. 2' },
+      annotations: { ...example.vaRRIParams.annotations, textAnnotations: [] } } };
+  },
+});
+
 function changeField(id, value) {
   const input = document.getElementById(id);
   input.value = value;
@@ -9,7 +18,7 @@ function changeField(id, value) {
 }
 
 test('sequence name fields and named annotation dialogs synchronize without rerendering RNA', async () => {
-  const viewer = await mountViewer();
+  const viewer = await mountSequenceNameViewer();
   try {
     const names = document.querySelector('fieldset.sequence-names');
     expect(names.querySelector('legend').textContent).toBe('Sequence Names');
@@ -62,7 +71,7 @@ test('sequence name fields and named annotation dialogs synchronize without rere
 });
 
 test('deleting or clearing sequence-name labels only unpositions them', async () => {
-  const viewer = await mountViewer();
+  const viewer = await mountSequenceNameViewer();
   try {
     const annotation = viewer.api.registerTextAnnotation({ text: 'RNA alpha', sequenceNameFor: '1',
       position: { x: 12, y: 34 } });
@@ -88,7 +97,7 @@ test('deleting or clearing sequence-name labels only unpositions them', async ()
 test.each([
   { seqName1: 'Explicit α & β', seqName2: 'Other RNA' },
 ])('sequence name URL fields override label text and survive shared links: %j', async nameFields => {
-  const viewer = await mountViewer();
+  const viewer = await mountSequenceNameViewer();
   try {
     const params = new URLSearchParams({ sequence: 'ACGU&UGCA', structure: '((..&..))',
       ...nameFields, textAnnotations: JSON.stringify([
@@ -111,7 +120,7 @@ test.each([
 });
 
 test('a retained name for an absent strand is identified and cannot start a list drag', async () => {
-  const viewer = await mountViewer();
+  const viewer = await mountSequenceNameViewer();
   try {
     const annotation = viewer.api.registerTextAnnotation({ text: 'Second RNA', sequenceNameFor: '2' });
     viewer.view.state.fields.sequence = 'ACGU';

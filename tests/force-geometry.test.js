@@ -10,12 +10,17 @@ const radius = nodes => {
   const y = nodes.reduce((sum, node) => sum + node.y, 0) / nodes.length;
   return nodes.reduce((sum, node) => sum + Math.hypot(node.x - x, node.y - y), 0) / nodes.length;
 };
+const exampleInput = (api, name) => {
+  const session = api.decodeJsonState(examples[name].vaRRIParams);
+  return { ...session.fields, ...session.annotations };
+};
 
 test('all-in-one retains both exterior loop radii with ordinary force layout', () => {
   const dom = new JSDOM('<div id="rna"></div>');
   const container = createGraphCanvas(dom.window.document.getElementById('rna'));
   try {
-    const v = createVaRRI().validate(examples['2mol'].vaRRIParams);
+    const api = createVaRRI();
+    const v = api.validate(exampleInput(api, '2mol'));
     const graph = container.addRNA(v.structure, { sequence: v.sequence });
     const loops = graph.nodes.filter(node => node.num === -1 && node.scaffoldType === 'exterior')
       .map(hub => hub.nucs.map(index => graph.nodes[index - 1]).filter(node => node.nodeType === 'nucleotide'));
@@ -44,7 +49,7 @@ test.each(Object.keys(examples).flatMap(name => ['ordinary', 'linear', 'free-cro
   const api = createVaRRI({ root });
   const container = createGraphCanvas(root);
   try {
-    const v = api.validate(examples[name].vaRRIParams);
+    const v = api.validate(exampleInput(api, name));
     const graph = container.addRNA(v.structure, { sequence: v.sequence });
     if (mode === 'linear') api.applyLinearHelixSprings(container, v, { rri: true, structure: true });
     if (mode === 'free-crossing') {

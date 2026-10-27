@@ -38,6 +38,21 @@ function serve() {
   });
 }
 
+async function exampleParameters(example) {
+  if (example.vaRRIParams.format !== 'vaRRI') {
+    return new URLSearchParams({ ...example.vaRRIParams,
+      forceLayout: '0', forceLayoutLinearRRI: '0', forceLayoutLinearStructure: '0',
+      freeTrailingEnds: '0', pullPseudoknotBasepairs: '0', textAnnotations: '[]' });
+  }
+  const codec = await import(pathToFileURL(path.join(root, 'src/core/model/index.js')).href);
+  const decoded = codec.decodeJsonState(example.vaRRIParams);
+  return codec.encodeUrlState({ ...decoded,
+    fields: { ...decoded.fields, forceLayout: false, forceLayoutLinearRRI: false,
+      forceLayoutLinearStructure: false, forceLayoutFreeTails: false, forceLayoutPullCrossing: false },
+    annotations: { ...decoded.annotations, textAnnotations: [] },
+  });
+}
+
 async function pixels(file) {
   const image = await loadImage(file);
   const canvas = createCanvas(image.width, image.height);
@@ -125,9 +140,7 @@ async function main() {
         let seed = 83;
         Math.random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
       });
-      const parameters = new URLSearchParams({ ...examples[name].vaRRIParams,
-        forceLayout: '0', forceLayoutLinearRRI: '0', forceLayoutLinearStructure: '0',
-        freeTrailingEnds: '0', pullPseudoknotBasepairs: '0', textAnnotations: '[]' });
+      const parameters = await exampleParameters(examples[name]);
       await page.goto(`${origin}/index.html?${parameters}`, { waitUntil: 'networkidle' });
       await page.waitForFunction(() => document.querySelector('#rendering-canvas circle[node_num]') &&
         document.getElementById('rendering-canvas')?.style.visibility !== 'hidden');

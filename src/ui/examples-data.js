@@ -1,13 +1,4 @@
-const featureOverviewProfile = [
-  '# unpaired probabilities',
-  '1 0.9',
-  '2 0.7',
-  '3 0.3',
-  '4 0.1',
-  '7 0.3',
-  '8 0.7',
-  '9 0.6',
-].join('\n');
+import featureOverview from './examples/feature-overview.js';
 
 const coronelTellezProfile1 = [
   '61 0.6',
@@ -106,32 +97,15 @@ const coronelTellezProfile2 = [
   '107 0.6',
 ].join('\n');
 
+// vaRRIParams uses the Store/Load JSON session shape so a stored visualization
+// can replace an example payload without conversion.
 const examples = {
   '2mol': {
     name: 'RNA–RNA interaction feature overview',
     nameShort: 'All feature showcase',
     description: 'Demonstrates cropping, probability profiles, region and subsequence highlights, and point mutations in one interaction.',
     descriptionShort: 'Showcases all features of vaRRI.',
-    vaRRIParams: {
-      sequence:  'ACGAUCAUGUGGUUUAGAGCAUUUUCGACAGCAG&ACGAAAAAAAGAGCAGACAGUAG',
-      structure: '..<<..<<...>>>>...((....(((...((..&............)))))..))..',
-      startIndex1: -6,
-      startIndex2: 100,
-      coloring: 'strand',
-      highlighting: 'region',
-      backgroundhighlighting: 'basepairs',
-      forceLayoutLinearRRI: 1,
-      distinctBpTypes: 1,
-      cropping: 2,
-      forceLayout: 0,
-      regionHighlights: '21-25&113-114:0d00ff:0.2',
-      subseqHighlights: '1:15-18:338a29:1,2:117-118:1e1ee4:0.7',
-      mutations: '1:20G:338a29,2:115C:1e1ee4',
-      profileData1: featureOverviewProfile,
-      profileIdxRef1: 1,
-      profileColorRepresentsOne1: 1,
-      profileColorRepresentsOne2: 0,
-    },
+    vaRRIParams: featureOverview,
   },
   'coronel-tellez-2022': {
     name: 'sRNA-controlled iron sparing response in Staphylococci',
@@ -141,23 +115,22 @@ const examples = {
     description: 'Reproduction of *Figure 6A-bottom* [(Coronel-Tellez, et al., 2022)](http://dx.doi.org/10.1093/nar/gkac648) showing an interaction with position-specific SHAPE probing data annotation and subsequence highlighting. The long input sequences are cropped to the region of interaction +3 nucleotides.',
     descriptionShort: 'Position-specific SHAPE probing data annotation and cropping of long sequences to RRI region.',
     vaRRIParams: {
-      sequence: 'AAUUCUAUCUGAAAGAUGUGUGGGGCAUCGUUAUUUUAGGUGGAUAUGAGCAAUUUAUUAAAAGUCAUUUACGGAAAAUAUAUAUAGACGGGGUGAGUAAUAUGCAAGAACAUUUGGUGGUUACACUUGAUAGCAAAGGAGAAGAACUU&UUGAAAAUGAUUAUCAAUACCACAUAGAACAUCCCCCCCACAACGUUUCGUUCUUGUUGGAUUGGUCAUUUUCAAAUAUUCCCCUUUUAUAUGCCCGUAAAAGACAAUAUACGUUAUAACAACGUUUUAUAAAAGCAGUAAACCCUUACGACACUUUAGGUUUACUGCUUUUGU',
-      structure: '...............................................................(((.(((((((......((((((((.((((.((((((.(((.............................................&..................................................................))))......))))))))))))))))).))))))).))).....................................................................',
-      colorSeq1: 'c9c1c9',
-      colorSeq2: 'c9c1c9',
-      startIndex1: 1,
-      startIndex2: 1,
-      cropping: 3,
-      forceLayout: 'off',
-      backgroundhighlighting: 'nothing',
-      highlighting: 'basepairs',
-      subseqHighlights: '1:88-93:0f50b8:1,1:102-104:0e7a06:1,2:81-84:e012dd:1,2:94-96:e012dd:1',
-      profileData1: coronelTellezProfile1,
-      profileColorRepresentsOne1: 1,
-      profileColor1: 'ea373c',
-      profileData2: coronelTellezProfile2,
-      profileColorRepresentsOne2: 1,
-      profileColor2: 'ea373c',
+      format: 'vaRRI', version: 1,
+      fields: {
+        sequence: 'AAUUCUAUCUGAAAGAUGUGUGGGGCAUCGUUAUUUUAGGUGGAUAUGAGCAAUUUAUUAAAAGUCAUUUACGGAAAAUAUAUAUAGACGGGGUGAGUAAUAUGCAAGAACAUUUGGUGGUUACACUUGAUAGCAAAGGAGAAGAACUU&UUGAAAAUGAUUAUCAAUACCACAUAGAACAUCCCCCCCACAACGUUUCGUUCUUGUUGGAUUGGUCAUUUUCAAAUAUUCCCCUUUUAUAUGCCCGUAAAAGACAAUAUACGUUAUAACAACGUUUUAUAAAAGCAGUAAACCCUUACGACACUUUAGGUUUACUGCUUUUGU',
+        structure: '...............................................................(((.(((((((......((((((((.((((.((((((.(((.............................................&..................................................................))))......))))))))))))))))).))))))).))).....................................................................',
+        colorSeq1: '#c9c1c9', colorSeq2: '#c9c1c9', startIndex1: '1', startIndex2: '1', cropping: '3',
+        forceLayout: false, backgroundhighlighting: 'nothing', highlighting: 'basepairs',
+        profileData1: coronelTellezProfile1, profileColorRepresentsOne1: true, profileColor1: '#ea373c',
+        profileData2: coronelTellezProfile2, profileColorRepresentsOne2: true, profileColor2: '#ea373c',
+      },
+      annotations: { subsequenceHighlights: [
+        { sequence: '1', range: [[88, 93]], color: '#0f50b8', alpha: 1 },
+        { sequence: '1', range: [[102, 104]], color: '#0e7a06', alpha: 1 },
+        { sequence: '2', range: [[81, 84]], color: '#e012dd', alpha: 1 },
+        { sequence: '2', range: [[94, 96]], color: '#e012dd', alpha: 1 },
+      ] },
+      rotation: 0, showRenderingOnly: false,
     },
   },
   'wu-2024': {
@@ -168,13 +141,22 @@ const examples = {
     description: 'Reproduction of Figure 4C [(Wu et al., 2024)](https://doi.org/10.1101/2024.06.23.600155) showing an interaction with 4 mutations and a subsequence highlighting within a sequence context upstream of the start codon.',
     descriptionShort: 'Subsequence highlighting and mutations within a sequence context.',
     vaRRIParams: {
-      sequence: 'AACUCGCGAAAGCCAUAAAAACCAGGGAGACA&UUCCCUGGUGUUGGCGCAGUAUUCGCGCA',
-      structure: '....((((((.((((.....((((((((....&.))))))))..))))......))))))..',
-      startIndex1: -35,
-      startIndex2: 2,
-      subseqHighlights: '1:-12--6:0dec3f:0.9',
-      mutations: '1:-14G:fb0bcb,1:-13G:fb0bcb,2:8C:fb0bcb,2:9C:fb0bcb',
-      forceLayout: 'off',
+      format: 'vaRRI', version: 1,
+      fields: {
+        sequence: 'AACUCGCGAAAGCCAUAAAAACCAGGGAGACA&UUCCCUGGUGUUGGCGCAGUAUUCGCGCA',
+        structure: '....((((((.((((.....((((((((....&.))))))))..))))......))))))..',
+        startIndex1: '-35', startIndex2: '2', forceLayout: false,
+      },
+      annotations: {
+        subsequenceHighlights: [{ sequence: '1', range: [[-12, -6]], color: '#0dec3f', alpha: 0.9 }],
+        pointMutations: [
+          { sequence: '1', position: -14, replacement: 'G', color: '#fb0bcb' },
+          { sequence: '1', position: -13, replacement: 'G', color: '#fb0bcb' },
+          { sequence: '2', position: 8, replacement: 'C', color: '#fb0bcb' },
+          { sequence: '2', position: 9, replacement: 'C', color: '#fb0bcb' },
+        ],
+      },
+      rotation: 0, showRenderingOnly: false,
     },
   },    
   'IntaRNA-seeds': {
@@ -183,20 +165,19 @@ const examples = {
     description: 'Highlighting of the two potential seed interactions considered by IntaRNA to predict the shown interaction between the two sequences. The highlighting is done using a semi-transparent purple color, which allows to show overlapping regions.',
     descriptionShort: 'Opaque highlighting of multiple potential IntaRNA seed regions.',
     vaRRIParams: {
-      sequence:'CUUAGCCGUAAUUGGAUUAGCUGAUGAACAAACUUCUCGUGAGUCUGCUGUUGACCCUGGGUCUGAC&GAGAGACCCACGCAGUCGGACUCUUCAGAUUAUCUCCUCAUCAGGCUAAUCACGGUUUUU',
-      colorSeq1:'#add8e6',
-      startIndex1:-23,
-      colorSeq2:'#f4bb44',
-      startIndex2:64,
-      structure:'...((((((.....(((((((((((((.......(((...((((((((((.......(((((((...&...)))))))..))).)))))))...)))........)))))).)))))))))))))...',
-      colorBasepair:'#ff0000',
-      coloring:'strand',
-      highlighting:'region',
-      colorRriNodes:'#ff0000',
-      forceLayoutLinearRRI: 1,
-      distinctBpTypes:1,
-      regionHighlights:'35-41&67-73:0D00FF:0.4,-9--3&108-114:0D00FF:0.4',
-      forceLayout: 'off',
+      format: 'vaRRI', version: 1,
+      fields: {
+        sequence: 'CUUAGCCGUAAUUGGAUUAGCUGAUGAACAAACUUCUCGUGAGUCUGCUGUUGACCCUGGGUCUGAC&GAGAGACCCACGCAGUCGGACUCUUCAGAUUAUCUCCUCAUCAGGCUAAUCACGGUUUUU',
+        structure: '...((((((.....(((((((((((((.......(((...((((((((((.......(((((((...&...)))))))..))).)))))))...)))........)))))).)))))))))))))...',
+        colorSeq1: '#add8e6', startIndex1: '-23', colorSeq2: '#f4bb44', startIndex2: '64',
+        colorBasepair: '#ff0000', coloring: 'strand', highlighting: 'region', colorRriNodes: '#ff0000',
+        forceLayoutLinearRRI: true, distinctBpTypes: true, forceLayout: false,
+      },
+      annotations: { regionHighlights: [
+        { sequence1Range: [35, 41], sequence2Range: [67, 73], color: '#0D00FF', alpha: 0.4 },
+        { sequence1Range: [-9, -3], sequence2Range: [108, 114], color: '#0D00FF', alpha: 0.4 },
+      ] },
+      rotation: 0, showRenderingOnly: false,
     },
   },
   'crossing-rri': {
@@ -205,13 +186,14 @@ const examples = {
     descriptionShort: 'Crossing RNA–RNA interaction resolved via relaxed force-field layout.',
     description: 'Crossing RNA–RNA interactions (w.r.t. the underlying joint-structure layout algorithm of fornac) are typically problematic since their base pairing forms a crossing pseudoknot structure. Some can be layouted when relaxing the force field (see Visualization Settings).',
     vaRRIParams: {
-      sequence: 'NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNN',
-      structure:'((..((...<<<..<<<&))))...>>>>>>',
-      distinctBpTypes: 0,
-      forceLayout: 1,
-      forceLayoutFreeTails: 1,
-      forceLayoutPullCrossing: 1,
-    },  
+      format: 'vaRRI', version: 1,
+      fields: {
+        sequence: 'NNNNNNNNNNNNNNNNN&NNNNNNNNNNNNN',
+        structure: '((..((...<<<..<<<&))))...>>>>>>',
+        distinctBpTypes: false, forceLayout: true, forceLayoutFreeTails: true, forceLayoutPullCrossing: true,
+      },
+      annotations: {}, rotation: 0, showRenderingOnly: false,
+    },
   },    
 };
 
