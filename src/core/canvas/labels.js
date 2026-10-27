@@ -88,7 +88,9 @@ export function setIndexLabels(session, v) {
     if (mutation.nodeId) mutationByNodeId[mutation.nodeId] = mutation;
   });
   if (v.molecules === '2') {
-    getIntermolBasepairRegion(v.structure1, v.structure2).flat().forEach(highlightLabel.bind(null, session));
+    getIntermolBasepairRegion(v.structure1, v.structure2).flat().forEach(position => {
+      if (!mutationByNodeId[position]) highlightLabel(session, position);
+    });
   }
 
   // Apply labels
