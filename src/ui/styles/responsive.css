@@ -68,6 +68,15 @@
   .group-logo {
     height: 57px;
   }
+  .view-controls-panel {
+    bottom: 0;
+    box-shadow: 5px 0 12px rgba(15, 46, 74, .18);
+    left: 2.45rem;
+    position: absolute;
+    top: 0;
+    width: min(205px, calc(100% - 2.45rem));
+    z-index: 5;
+  }
 }
 
 /* ------------------------------------------------------------------ */

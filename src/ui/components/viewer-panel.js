@@ -2,30 +2,54 @@ import { viewerComponent } from './context.js';
 import CanvasHelpDialog from './canvas-help-dialog.js';
 
 export default viewerComponent('viewer-panel', `<section class="result-panel">
-    <div id="rendering-canvas" tabindex="0" @dragover="actions.overTextAnnotationCanvas($event)"
-      @dragleave="actions.leaveTextAnnotationCanvas($event)" @drop="actions.dropTextAnnotation($event)"></div>
-    <div id="rendering-caption" v-html="actions.exampleCaption()" v-show="state.selectedExample"></div>
-    <div class="viz-control">
-      <label for="rotationSlider">Rotate: <span id="rotation" class="rotation-value" v-on:click="actions.openNumberDialog('rotation', $event)">{{ state.rotationPreview }}°</span></label>
-      <input type="range" id="rotationSlider" min="-180" max="180" step="1" v-bind:value="state.fields.rotationSlider" v-on:input="actions.inputField('rotationSlider', $event)" v-on:change="actions.commitField('rotationSlider', $event)">
-      <label for="cropping">Crop: <span id="cropping-value" class="cropping-value" v-on:click="actions.openNumberDialog('cropping', $event)">{{ state.fields.cropping }}</span></label>
-      <div class="input-wrap cropping-control" v-bind:class="{'has-error': state.errors.cropping}">
-        <input type="range" id="cropping" min="-1" max="10" title="-1 disables cropping. Higher values crop the ends to resp. unpaired positions." v-bind:value="state.fields.cropping" v-on:input="actions.inputField('cropping', $event)" v-on:change="actions.commitField('cropping', $event)">
-        <span class="field-tooltip">{{ state.errors.cropping || '' }}</span>
-      </div>
-      <div class="manual-position-controls" role="group" aria-label="Manual positions">
-        <button id="selectMovedBtn" type="button" v-on:click="actions.selectMovedElements()"
-          v-bind:disabled="!state.canvasInteraction.movedCount" title="Select all manually moved nucleotides and numbering labels. Text labels are not counted.">Moved: {{ state.canvasInteraction.movedCount }}</button>
-        <button id="releasePositionsBtn" type="button" v-on:click="actions.releaseSelectedPositions()"
-          v-bind:disabled="!state.canvasInteraction.selectedNodeCount" title="Unfix selected nodes at their current positions. They resume moving if Force layout is enabled. Text labels are unaffected.">Release</button>
-        <button id="resetPositionsBtn" type="button" v-on:click="actions.resetSelectedPositions()"
-          v-bind:disabled="!state.canvasInteraction.selectedMovedCount" title="Restore selected nodes to their positions and fixation before manual editing.">Reset</button>
-        <button id="undoCanvasBtn" type="button" v-on:click="actions.undoCanvasEdit()"
-          v-bind:disabled="!state.canvasInteraction.canUndo" title="Undo the last drag, selection rotation, release, or reset. Ctrl+Z / Command+Z while the canvas is focused.">Undo</button>
-        <button id="canvasHelpBtn" type="button" aria-label="Canvas interaction help" title="Canvas interaction help"
-          v-on:click="actions.openDialog('canvasHelpDialog', 'Canvas interactions')">?</button>
-      </div>
+    <div class="canvas-workspace" v-bind:class="{'view-controls-open': state.viewControlsOpen}">
+      <button id="viewControlsToggle" class="view-controls-toggle" type="button"
+        aria-controls="viewControlsPanel" v-bind:aria-expanded="state.viewControlsOpen"
+        v-bind:title="state.viewControlsOpen ? 'Hide view controls' : 'Show view controls'"
+        v-on:click="actions.toggleViewControls()">
+        <span class="view-controls-toggle-label">View controls</span>
+        <span class="view-controls-toggle-arrow" aria-hidden="true">{{ state.viewControlsOpen ? '‹' : '›' }}</span>
+      </button>
+      <aside id="viewControlsPanel" class="view-controls-panel" aria-label="View controls"
+        v-bind:aria-hidden="!state.viewControlsOpen" v-show="state.viewControlsOpen">
+        <h2>View controls</h2>
+        <div class="view-control-field">
+          <div class="view-control-heading">
+            <label for="rotationSlider">Rotation</label>
+            <button id="rotation" class="rotation-value" type="button" title="Enter a precise rotation"
+              v-on:click="actions.openNumberDialog('rotation', $event)">{{ state.rotationPreview }}°</button>
+          </div>
+          <input type="range" id="rotationSlider" min="-180" max="180" step="1" v-bind:value="state.fields.rotationSlider" v-on:input="actions.inputField('rotationSlider', $event)" v-on:change="actions.commitField('rotationSlider', $event)">
+        </div>
+        <div class="view-control-field">
+          <div class="view-control-heading">
+            <label for="cropping">Cropping</label>
+            <button id="cropping-value" class="cropping-value" type="button" title="Enter a precise crop value"
+              v-on:click="actions.openNumberDialog('cropping', $event)">{{ state.fields.cropping }}</button>
+          </div>
+          <div class="input-wrap cropping-control" v-bind:class="{'has-error': state.errors.cropping}">
+            <input type="range" id="cropping" min="-1" max="10" title="-1 disables cropping. Higher values crop the ends to resp. unpaired positions." v-bind:value="state.fields.cropping" v-on:input="actions.inputField('cropping', $event)" v-on:change="actions.commitField('cropping', $event)">
+            <span class="field-tooltip">{{ state.errors.cropping || '' }}</span>
+          </div>
+        </div>
+        <div class="manual-position-controls" role="group" aria-label="Manual positions">
+          <h3>Manual positions</h3>
+          <button id="selectMovedBtn" type="button" v-on:click="actions.selectMovedElements()"
+            v-bind:disabled="!state.canvasInteraction.movedCount" title="Select all manually moved nucleotides and numbering labels. Text labels are not counted.">Moved: {{ state.canvasInteraction.movedCount }}</button>
+          <button id="releasePositionsBtn" type="button" v-on:click="actions.releaseSelectedPositions()"
+            v-bind:disabled="!state.canvasInteraction.selectedNodeCount" title="Unfix selected nodes at their current positions. They resume moving if Force layout is enabled. Text labels are unaffected.">Release</button>
+          <button id="resetPositionsBtn" type="button" v-on:click="actions.resetSelectedPositions()"
+            v-bind:disabled="!state.canvasInteraction.selectedMovedCount" title="Restore selected nodes to their positions and fixation before manual editing.">Reset</button>
+          <button id="undoCanvasBtn" type="button" v-on:click="actions.undoCanvasEdit()"
+            v-bind:disabled="!state.canvasInteraction.canUndo" title="Undo the last drag, selection rotation, release, or reset. Ctrl+Z / Command+Z while the canvas is focused.">Undo</button>
+          <button id="canvasHelpBtn" type="button" aria-label="Canvas interaction help" title="Open canvas interaction help"
+            v-on:click="actions.openDialog('canvasHelpDialog', 'Canvas interactions')">Help</button>
+        </div>
+      </aside>
+      <div id="rendering-canvas" tabindex="0" @dragover="actions.overTextAnnotationCanvas($event)"
+        @dragleave="actions.leaveTextAnnotationCanvas($event)" @drop="actions.dropTextAnnotation($event)"></div>
     </div>
+    <div id="rendering-caption" v-html="actions.exampleCaption()" v-show="state.selectedExample"></div>
     <div class="export-bar">
       <button id="exportSvgBtn" class="btn btn-success btn-sm" type="button" title="Download rendering in SVG format." v-on:click="actions.exportSVG($event)">⬇ SVG</button>
       <button id="exportPngBtn" class="btn btn-info btn-sm" type="button" title="Download rendering in PNG format." v-on:click="actions.exportPNG($event)">⬇ PNG</button>

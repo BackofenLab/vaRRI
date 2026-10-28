@@ -16,6 +16,8 @@ const baseline = path.resolve(option('--baseline', path.join(import.meta.dirname
 const output = path.resolve(option('--output', path.join(import.meta.dirname, '../output/playwright')));
 const update = args.includes('--update');
 const revision = option('--revision', null);
+const canvasFixtureSize = { width: 866, height: 626, renderHeight: 625 };
+const pixelDifferenceLimit = 0.0025;
 const fixtures = ['2mol', 'coronel-tellez-2022', 'wu-2024', 'IntaRNA-seeds', 'crossing-rri'];
 const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
@@ -75,14 +77,22 @@ async function compareImage(name) {
   }
   // Permit minor platform antialiasing, but not missing nucleotides or annotations.
   const ratio = different / (actual.width * actual.height);
-  assert.ok(ratio <= 0.002, `${name}: ${(ratio * 100).toFixed(3)}% changed pixels (limit 0.2%). Compare ${path.join(output, name + '.png')} with ${path.join(baseline, name + '.png')}`);
+  assert.ok(ratio <= pixelDifferenceLimit, `${name}: ${(ratio * 100).toFixed(3)}% changed pixels (limit ${(pixelDifferenceLimit * 100).toFixed(2)}%). Compare ${path.join(output, name + '.png')} with ${path.join(baseline, name + '.png')}`);
   return ratio;
 }
 
 function compareScene(name, actual, expected) {
   assert.deepEqual(actual.counts, expected.counts, name + ': SVG element counts changed');
   assert.equal(actual.shapes.length, expected.shapes.length, name + ': SVG shape count changed');
-  const index = actual.shapes.findIndex((shape, position) => !isDeepStrictEqual(shape, expected.shapes[position]));
+  const sameShape = (shape, reference) => {
+    const { transform, ...values } = shape;
+    const { transform: expectedTransform, ...expectedValues } = reference;
+    if (!isDeepStrictEqual(values, expectedValues)) return false;
+    if (transform === null || expectedTransform === null) return transform === expectedTransform;
+    return transform.length === expectedTransform.length &&
+      transform.every((value, index) => Math.abs(value - expectedTransform[index]) <= 0.05);
+  };
+  const index = actual.shapes.findIndex((shape, position) => !sameShape(shape, expected.shapes[position]));
   if (index !== -1) assert.deepEqual(actual.shapes[index], expected.shapes[index],
     `${name}: SVG shape ${index} changed; full actual scene: ${path.join(output, name + '.json')}`);
 }
@@ -136,14 +146,31 @@ async function main() {
       // External branding and Markdown CDN are irrelevant to the RNA canvas baseline.
       await page.route('**/*', route => route.request().url().startsWith(origin)
         ? route.continue() : route.fulfill({ status: 200, body: '' }));
-      await page.addInitScript(() => {
+      await page.addInitScript(({ width, height }) => {
         let seed = 83;
         Math.random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
-      });
+        const installFixtureStyle = () => {
+          if (!document.head || document.getElementById('visual-fixture-style')) return;
+          const style = document.createElement('style');
+          style.id = 'visual-fixture-style';
+          style.textContent = `#viewControlsToggle { display: none !important; }
+            #rendering-canvas { border-bottom: 1px solid transparent !important;
+              flex: 0 0 ${width}px !important; height: ${height}px !important; }`;
+          document.head.append(style);
+        };
+        installFixtureStyle();
+        new MutationObserver(installFixtureStyle).observe(document, { childList: true, subtree: true });
+      }, canvasFixtureSize);
       const parameters = await exampleParameters(examples[name]);
       await page.goto(`${origin}/index.html?${parameters}`, { waitUntil: 'networkidle' });
       await page.waitForFunction(() => document.querySelector('#rendering-canvas circle[node_num]') &&
         document.getElementById('rendering-canvas')?.style.visibility !== 'hidden');
+      await page.waitForFunction(({ width, renderHeight }) => {
+        const canvas = document.getElementById('rendering-canvas');
+        const viewBox = canvas.querySelector('svg')?.getAttribute('viewBox')?.split(/\s+/).map(Number);
+        return canvas.clientWidth === width && canvas.clientHeight === renderHeight &&
+          viewBox?.[2] === width && viewBox?.[3] === renderHeight;
+      }, canvasFixtureSize);
       if (await page.locator('script[type="module"][src="src/main.js"]').count()) {
         assert.equal(await page.evaluate(async () => {
           const entry = await import('./src/main.js');

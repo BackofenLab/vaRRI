@@ -12,6 +12,16 @@ export async function exercisePositionControlsUI(page, origin, output) {
   await page.goto(`${origin}/index.html?${params}`, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => document.querySelector('#rendering-canvas circle') &&
     document.getElementById('rendering-canvas').style.visibility !== 'hidden');
+  const viewControls = page.locator('#viewControlsToggle');
+  assert.equal(await viewControls.getAttribute('aria-expanded'), 'false');
+  await viewControls.click();
+  assert.equal(await viewControls.getAttribute('aria-expanded'), 'true');
+  await page.waitForFunction(() => {
+    const canvas = document.getElementById('rendering-canvas');
+    const values = canvas.querySelector('svg')?.getAttribute('viewBox')?.split(/\s+/).map(Number);
+    return values?.length === 4 && Math.abs(values[2] - canvas.clientWidth) < 1 &&
+      Math.abs(values[3] - canvas.clientHeight) < 1;
+  });
   const moved = page.locator('#selectMovedBtn'), reset = page.locator('#resetPositionsBtn'), undo = page.locator('#undoCanvasBtn');
   const release = page.locator('#releasePositionsBtn');
   assert.equal(await moved.textContent(), 'Moved: 0');
@@ -41,8 +51,11 @@ export async function exercisePositionControlsUI(page, origin, output) {
   assert.equal(await release.isEnabled(), true);
   const cropBox = await page.locator('#cropping').boundingBox();
   const movedBox = await moved.boundingBox();
-  assert.ok(movedBox.x >= cropBox.x + cropBox.width, 'Manual controls sit to the right of Crop');
-  assert.ok(Math.abs(movedBox.y - cropBox.y) < 15, 'Controls fit on the same compact row');
+  const panelBox = await page.locator('#viewControlsPanel').boundingBox();
+  const canvasBox = await page.locator('#rendering-canvas').boundingBox();
+  assert.ok(panelBox.x < canvasBox.x && panelBox.x + panelBox.width <= canvasBox.x + 1,
+    'View controls sit to the left of the canvas');
+  assert.ok(movedBox.y >= cropBox.y + cropBox.height, 'Manual controls follow Cropping in the side panel');
   await page.screenshot({ path: path.join(output, 'manual-position-controls.png'), fullPage: true });
   const edited = await node.evaluate(element => ({ x: element.__data__.x, y: element.__data__.y }));
   await release.click();

@@ -16,6 +16,25 @@ test('boots through bound UI actions without inline handlers', async () => {
   const profilePanel = document.getElementById('profileData1').closest('details');
   expect(profilePanel.open).toBe(false);
 
+  const viewControlsToggle = document.getElementById('viewControlsToggle');
+  const viewControlsPanel = document.getElementById('viewControlsPanel');
+  const canvasWorkspace = document.querySelector('.canvas-workspace');
+  expect(viewControlsToggle.textContent).toContain('View controls');
+  expect(viewControlsToggle.getAttribute('aria-expanded')).toBe('false');
+  expect(viewControlsPanel.style.display).toBe('none');
+  expect([...canvasWorkspace.children]).toEqual([
+    viewControlsToggle, viewControlsPanel, document.getElementById('rendering-canvas'),
+  ]);
+  viewControlsToggle.click();
+  await flush();
+  expect(viewControlsToggle.getAttribute('aria-expanded')).toBe('true');
+  expect(viewControlsPanel.style.display).not.toBe('none');
+  expect(viewControlsPanel.contains(document.getElementById('rotationSlider'))).toBe(true);
+  expect(viewControlsPanel.contains(document.getElementById('cropping'))).toBe(true);
+  viewControlsToggle.click();
+  await flush();
+  expect(viewControlsToggle.getAttribute('aria-expanded')).toBe('false');
+
   const dropdown = document.getElementById('exampleDropdown');
   const trigger = document.getElementById('exampleDropdownTrigger');
   const options = document.getElementById('exampleDropdownOptions');
