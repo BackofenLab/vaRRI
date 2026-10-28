@@ -91,6 +91,17 @@ try {
     'licenses/Fornac-Apache-2.0.txt', 'licenses/Fornac-NOTICE.md']) {
     assert.ok(fs.statSync(path.join(installed, 'dist', name)).size > 0, `Missing embedding asset: ${name}`);
   }
+  const demoDirectory = path.join(installed, 'doc', 'demos');
+  const demoManifest = JSON.parse(fs.readFileSync(path.join(demoDirectory, 'manifest.json'), 'utf8'));
+  assert.equal(demoManifest.schemaVersion, 1);
+  assert.equal(demoManifest.clips.length, 12, 'All reviewed help demonstrations are packaged');
+  for (const clip of demoManifest.clips) {
+    assert.ok(clip.transcript.length > 1, `${clip.id}: packaged transcript`);
+    for (const asset of Object.values(clip.assets)) {
+      const content = fs.readFileSync(path.join(demoDirectory, asset.file));
+      assert.equal(content.length, asset.bytes, `${clip.id}: packaged ${asset.file} size`);
+    }
+  }
   // Markdown embeds are loaded by README.html after parsing, so inspect them too.
   for (const name of helpDocuments) {
     const markdown = fs.readFileSync(path.join(installed, name), 'utf8');

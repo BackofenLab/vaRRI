@@ -3,6 +3,7 @@ import { node, selected, selectPair } from './helpers.js';
 
 export default {
   id: 'select-nodes', title: 'Select nodes',
+  placements: ['canvas-help:select', 'docs:additional-features'],
   description: 'Hold Ctrl (Command on macOS) and click nodes to add them to the selection. Click a selected node with the same modifier to remove it.',
   async run(capture, page) {
     await selectPair(capture, page);

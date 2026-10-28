@@ -1,6 +1,6 @@
 /* Recording-only framing. The viewer and its controls remain the actual app. */
 html, body { overflow: hidden !important; }
-.result-panel {
+body[data-demo-stage="canvas"] .result-panel {
   position: fixed !important;
   inset: 0 !important;
   width: var(--demo-width) !important;
@@ -13,8 +13,50 @@ html, body { overflow: hidden !important; }
   resize: none !important;
   overflow: hidden !important;
 }
-#rendering-canvas { margin-top: 70px; }
-.result-panel > .export-bar, #rendering-caption { display: none !important; }
+body[data-demo-stage="canvas"] #rendering-canvas { margin-top: 70px; }
+body[data-demo-stage="canvas"] .result-panel > .export-bar,
+body[data-demo-stage="canvas"] #rendering-caption { display: none !important; }
+
+body[data-demo-stage]:not([data-demo-stage="canvas"]) header,
+body[data-demo-stage]:not([data-demo-stage="canvas"]) footer { display: none !important; }
+body[data-demo-stage]:not([data-demo-stage="canvas"]) main {
+  position: fixed !important;
+  inset: 70px 0 0 !important;
+  width: var(--demo-width) !important;
+  height: calc(var(--demo-height) - 70px) !important;
+  max-width: none !important;
+  padding: 10px 16px 14px !important;
+  grid-template-columns: 340px minmax(0, 1fr) !important;
+  gap: 14px !important;
+  overflow: hidden !important;
+}
+body[data-demo-stage]:not([data-demo-stage="canvas"]) .controls-column {
+  height: 100% !important;
+  max-height: none !important;
+  overflow: auto !important;
+}
+body[data-demo-stage]:not([data-demo-stage="canvas"]) .result-panel {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  resize: none !important;
+  overflow: hidden !important;
+}
+body[data-demo-stage="dialog"] dialog.app-dialog,
+body[data-demo-stage="export-dialog"] dialog.app-dialog {
+  max-height: calc(var(--demo-height) - 92px) !important;
+}
+body[data-demo-stage="dialog"] #fastaDialog {
+  left: 140px !important;
+  top: 78px !important;
+  width: 680px !important;
+  max-width: calc(var(--demo-width) - 280px) !important;
+  overflow: auto !important;
+}
+body[data-demo-stage="dialog"] #fastaInput { min-width: 0 !important; height: 112px !important; }
+body[data-demo-stage="dialog"] #fastaSequence,
+body[data-demo-stage="dialog"] #fastaStructure { height: 50px !important; }
 *, *::before, *::after { animation: none !important; transition: none !important; }
 [data-demo-heading] {
   position: fixed;

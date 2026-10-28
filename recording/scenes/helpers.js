@@ -12,3 +12,15 @@ export async function selectPair(capture, page) {
   await capture.click(node(page, 4), 'Control');
   assert.equal(await selected(page), 2, 'Both nodes must actually be selected');
 }
+
+export async function openPanel(page, selector) {
+  const details = page.locator(selector).locator('xpath=ancestor::details[1]');
+  if (await details.count() && !(await details.evaluate(element => element.open))) {
+    await details.locator('summary').click();
+  }
+  await details.evaluate(element => element.scrollIntoView({ block: 'nearest' }));
+}
+
+export const ready = page => page.waitForFunction(() =>
+  document.getElementById('rendering-canvas')?.style.visibility !== 'hidden' &&
+  document.querySelector('#rendering-canvas circle[node_type="nucleotide"]'));

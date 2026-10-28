@@ -10,6 +10,8 @@ import { scenes } from './scenes/index.js';
 import { writeGallery } from './lib/gallery.js';
 import { verifyVideos } from './lib/verify.js';
 
+const sha256 = content => createHash('sha256').update(content).digest('hex');
+
 const help = `Generate short, verified vaRRI WebM demos.
 
 npm run demos -- [--only select-nodes] [--out output/playwright/demos]
@@ -81,7 +83,8 @@ async function main() {
         const file = path.join(staging, `${scene.id}.webm`);
         capture = new Capture(page, encoder, options, file);
         await capture.caption(scene.title);
-        await page.screenshot({ path: path.join(staging, `${scene.id}.png`) });
+        const posterFile = path.join(staging, `${scene.id}.png`);
+        await page.screenshot({ path: posterFile });
         // The first recorded instruction starts at zero; the poster has the title.
         capture.cues = [];
         await scene.run(capture, page);
@@ -91,11 +94,18 @@ async function main() {
         if (content.length > options.maxBytes) {
           throw new Error(`${scene.id}: ${(content.length / 1024).toFixed(1)} KiB exceeds ${options.maxBytes / 1024} KiB. Increase --crf, shorten the scene, or explicitly raise --max-kib.`);
         }
-        await writeCaptions(path.join(staging, `${scene.id}.vtt`), capture.cues, duration);
+        const captionsFile = path.join(staging, `${scene.id}.vtt`);
+        await writeCaptions(captionsFile, capture.cues, duration);
+        const poster = await fs.readFile(posterFile);
+        const captions = await fs.readFile(captionsFile);
         clips.push({ id: scene.id, title: scene.title, description: scene.description,
+          kind: scene.stage && scene.stage !== 'canvas' ? 'walkthrough' : 'micro',
+          placements: scene.placements, stage: scene.stage || 'canvas',
           file: `${scene.id}.webm`, poster: `${scene.id}.png`, captions: `${scene.id}.vtt`,
           ...viewport, duration, bytes: content.length, codec: encoder.codec,
-          fps: options.fps, crf: options.crf, sha256: createHash('sha256').update(content).digest('hex'),
+          fps: options.fps, crf: options.crf, sha256: sha256(content),
+          posterBytes: poster.length, posterSha256: sha256(poster),
+          captionsBytes: captions.length, captionsSha256: sha256(captions),
           cues: capture.cues });
         console.log(`  ${duration.toFixed(1)} s, ${(content.length / 1024).toFixed(1)} KiB`);
       } catch (error) {
@@ -111,7 +121,8 @@ async function main() {
     await fs.writeFile(path.join(staging, 'manifest.json'), JSON.stringify({
       generatedAt: new Date().toISOString(), revision: revision.status === 0 ? revision.stdout.trim() : null,
       dirty: status.status === 0 ? Boolean(status.stdout.trim()) : null,
-      sizeBudgetBytes: options.maxBytes, clips,
+      sizeBudgetBytes: options.maxBytes,
+      aggregateWebmBytes: clips.reduce((sum, clip) => sum + clip.bytes, 0), clips,
     }, null, 2) + '\n');
     await fs.mkdir(output, { recursive: true });
     for (const file of await fs.readdir(staging)) await fs.copyFile(path.join(staging, file), path.join(output, file));

@@ -234,10 +234,13 @@ The `src` directory provides a [detailed vaRRI Library API documentation](src/RE
 
 ## Recording short interface demos
 
-In a source checkout, run `npm run demos` to create small WebM clips of selection,
-group movement, and reset/undo, together with posters, captions, and a preview gallery. The
-[demo pipeline guide](https://github.com/BackofenLab/vaRRI/blob/main/recording/README.md) explains setup, size controls,
-adding scenes, embedding videos, and the manual GitHub Actions workflow.
+In a source checkout, run `npm run demos` to create the 12 short WebM demonstrations
+used by the viewer guide and canvas question-mark help. They cover input, selection,
+movement, rotation, annotations, position controls, sessions, and PNG export. Each clip
+has a poster, captions, a written transcript, and a preview-gallery entry. The
+[demo pipeline guide](https://github.com/BackofenLab/vaRRI/blob/main/recording/README.md)
+explains recording, review-gated publishing, size controls, adding scenes, and the
+manual GitHub Actions workflow.
 
 
 ---

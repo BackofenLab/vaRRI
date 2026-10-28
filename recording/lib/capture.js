@@ -7,10 +7,11 @@ import { defaultParameters } from '../config.js';
 export async function prepareStage(page, origin, scene) {
   const parameters = new URLSearchParams({ ...defaultParameters, ...scene.parameters });
   await page.goto(`${origin}/index.html?${parameters}`, { waitUntil: 'networkidle' });
-  await page.evaluate(size => {
+  await page.evaluate(({ size, stage }) => {
     document.documentElement.style.setProperty('--demo-width', `${size.width}px`);
     document.documentElement.style.setProperty('--demo-height', `${size.height}px`);
-  }, viewport);
+    document.body.dataset.demoStage = stage;
+  }, { size: viewport, stage: scene.stage || 'canvas' });
   await page.addStyleTag({ path: path.join(import.meta.dirname, 'stage.css') });
   await page.evaluate(title => {
     const heading = document.createElement('div');
@@ -35,11 +36,13 @@ export async function prepareStage(page, origin, scene) {
   await page.evaluate(() => document.fonts.ready);
   // Allow the real viewer's ResizeObserver to refit after framing, before capture.
   await page.waitForTimeout(350);
-  // Zoom using the real viewer gesture, keeping labels legible at embed sizes.
-  const canvas = await page.locator('#rendering-canvas').boundingBox();
-  await page.mouse.move(canvas.x + canvas.width / 2, canvas.y + canvas.height / 2);
-  await page.mouse.wheel(0, -400);
-  await page.waitForTimeout(250);
+  if (scene.zoom !== false) {
+    // Zoom using the real viewer gesture, keeping labels legible at embed sizes.
+    const canvas = await page.locator('#rendering-canvas').boundingBox();
+    await page.mouse.move(canvas.x + canvas.width / 2, canvas.y + canvas.height / 2);
+    await page.mouse.wheel(0, scene.stage && scene.stage !== 'canvas' ? -180 : -400);
+    await page.waitForTimeout(250);
+  }
   await page.mouse.move(35, 110);
 }
 
@@ -127,15 +130,64 @@ export class Capture {
     await this.hold(0.4);
   }
 
-  async drag(locator, dx, dy) {
+  async dragBetween(start, destination, modifier, seconds = 1.3) {
+    if (modifier) await this.page.keyboard.down(modifier);
+    try {
+      await this.move(start);
+      await this.page.mouse.down();
+      await this.pressed(true);
+      await this.hold(0.2);
+      await this.move(destination, seconds);
+      await this.page.mouse.up();
+      await this.pressed(false);
+    } finally {
+      if (modifier) await this.page.keyboard.up(modifier);
+    }
+    await this.hold(0.5);
+  }
+
+  async drag(locator, dx, dy, modifier) {
     const start = await center(locator);
-    await this.move(start);
-    await this.page.mouse.down();
-    await this.pressed(true);
-    await this.hold(0.2);
-    await this.move({ x: start.x + dx, y: start.y + dy }, 1.3);
-    await this.page.mouse.up();
-    await this.pressed(false);
+    await this.dragBetween(start, { x: start.x + dx, y: start.y + dy }, modifier);
+  }
+
+  async dragTo(locator, destination, modifier) {
+    await this.dragBetween(await center(locator), destination, modifier);
+  }
+
+  async fill(locator, value) {
+    await this.move(await center(locator));
+    await this.page.mouse.click(this.pointer.x, this.pointer.y);
+    await this.page.keyboard.press('Control+A');
+    await this.page.keyboard.press('Backspace');
+    const chunks = String(value).match(/[\s\S]{1,24}/g) || [''];
+    for (const chunk of chunks) {
+      await this.page.keyboard.insertText(chunk);
+      await this.frame(Math.max(1, Math.round(this.fps * 0.12)));
+    }
+    await this.page.locator('[data-demo-pointer]').evaluate(element => element.toggleAttribute('data-pressed', false));
+    await this.hold(0.35);
+  }
+
+  async select(locator, value) {
+    await this.move(await center(locator));
+    await locator.selectOption(value);
+    await this.hold(0.6);
+  }
+
+  async wheel(locator, deltaY, modifier) {
+    await this.move(await center(locator));
+    if (modifier) await this.page.keyboard.down(modifier);
+    try {
+      await this.page.mouse.wheel(0, deltaY);
+      await this.hold(0.7);
+    } finally { if (modifier) await this.page.keyboard.up(modifier); }
+  }
+
+  async press(key, modifier) {
+    if (modifier) await this.page.keyboard.down(modifier);
+    try { await this.page.keyboard.press(key); }
+    finally { if (modifier) await this.page.keyboard.up(modifier); }
     await this.hold(0.5);
   }
 
@@ -159,6 +211,10 @@ export async function center(locator) {
 }
 
 export async function writeCaptions(file, cues, duration) {
+  if (!cues.length || cues.some((cue, index) => !cue.text || /[\r\n]/.test(cue.text) ||
+    cue.start < 0 || cue.start >= duration || (index && cue.start <= cues[index - 1].start))) {
+    throw new Error('Captions require ordered, nonempty, single-line cues within the clip duration.');
+  }
   const timestamp = seconds => new Date(Math.round(seconds * 1000)).toISOString().slice(11, 23);
   const blocks = cues.map((cue, index) => `${index + 1}\n${timestamp(cue.start)} --> ` +
     `${timestamp(cues[index + 1]?.start ?? duration)}\n${cue.text}\n`);

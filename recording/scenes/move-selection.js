@@ -4,6 +4,7 @@ import { node, near, selectPair } from './helpers.js';
 
 export default {
   id: 'move-selection', title: 'Move a selection',
+  placements: ['canvas-help:move', 'docs:additional-features'],
   description: 'Select two nodes with Ctrl/Command-click, release the modifier, then drag either selected node. Both move together and retain their new positions.',
   async run(capture, page) {
     await selectPair(capture, page);

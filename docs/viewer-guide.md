@@ -55,6 +55,8 @@ ACGAAAAAAAGAGCAUACGACAGUAG
 
 Details about supported sequence and dot-bracket structure encodings are provided in the [Input Format Reference](sharing-and-input.md#input-format-reference) section.
 
+<div data-help-demo="import-fasta"></div>
+
 ### Load a Saved Session
 
 Use **⬆ Load** at the right of the **Sequence & Structure Input** heading to
@@ -63,6 +65,8 @@ one JSON file onto Load. The session's inputs, settings and annotations replace
 the current figure and render automatically. Invalid files show an error without
 replacing your work. See [JSON Session Files](sharing-and-input.md#json-session-files)
 for the editable file format.
+
+<div data-help-demo="store-load-session"></div>
 
 ### Example Input
 
@@ -115,6 +119,8 @@ Behaviour of generated list entries:
 - When set to `region`, vaRRI computes the overall intermolecular interaction region and displays it as a generated, non-removable region entry.
 - When set to `basepairs`, vaRRI computes one or more generated region entries that correspond to intermolecular basepair stacks and displays them as non-removable entries.
 - Generated entries are refreshed automatically from the current structure and settings; they are not exported as user-defined region highlights in share links.
+
+<div data-help-demo="add-region-highlight"></div>
 
 
 
@@ -175,6 +181,8 @@ Finally, the following fields are available to define the visualization of the p
 > [!IMPORTANT] 
 > The indices of the given probability profile are validated against the sequence and start index of the respective molecule, and a warning is shown if any indices are invalid.
 
+<div data-help-demo="apply-probability-profile"></div>
+
 ### Point Mutations
 
 RNA-RNA interaction visualizations are often used to discuss the effect of point mutations on the interaction. 
@@ -217,6 +225,8 @@ The initial **Seq. 1** and **Seq. 2** labels follow their sequence endpoints unt
 you drag them. Positioned labels appear in SVG and PNG exports. Share links save
 both positioned and unpositioned labels, including their formatting.
 
+<div data-help-demo="place-text-annotation"></div>
+
 
 4. Changing selects and checkboxes rerenders immediately. Typed fields rerender when you commit the edit by leaving the field, and single-line inputs also rerender when you press Enter.
 
@@ -228,9 +238,15 @@ both positioned and unpositioned labels, including their formatting.
 - **Rotation**: Use the *Rotation* slider below the visualisation to rotate the structure. Rotation preserves text orientation and is useful to align the structure for better visibility or to match a certain orientation in a publication figure.
 - **Cropping**: Use the *Crop* slider to reduce the unpaired nucleotides at the ends of each sequence to the given number. This is useful to focus on the interaction region and reduce the size of the visualisation. A value of `-1` disables cropping and shows the full sequences.
 - **Selection**: Ctrl-click a nucleotide, numbering label, or text label to add it to or remove it from the selection. Ctrl-drag the background to replace the selection with all elements fully inside the rectangle. An empty rectangle, Ctrl-click on the background, or a plain click on an element clears the selection. Command also works on macOS.
+  <div data-help-demo="select-nodes"></div>
+  <div data-help-demo="rectangle-selection"></div>
 - **Moving elements**: Drag any nucleotide, numbering label, or text label in either layout mode. Drag a selected element to move the whole selection; dragging an unselected element clears the selection and moves that element alone. Released nodes and numbering labels stay in place until the next render, including in force mode.
+  <div data-help-demo="move-selection"></div>
 - **Manual positions**: The **Moved** button beside Crop counts manually positioned nucleotides and numbering labels; click it to select them all. **Release** unfixes selected nodes at their current positions, allowing them to move again when Force layout is enabled, and removes them from the Moved count. **Reset** restores selected manual nodes to their positions and fixation before the first edit. Text labels are not counted, released, or reset. **Undo** (or Ctrl+Z / Command+Z while the canvas is focused) reverses the last drag, selection rotation, release, or reset. Undo a release before resetting that node to its original position. History is kept for the current rendering. The **?** button opens the full interaction guide.
+  <div data-help-demo="release-positions"></div>
+  <div data-help-demo="reset-positions"></div>
 - **Selection rotation**: With at least two elements selected, hold Ctrl (or Command) and use the mouse wheel to rotate them around the pointer. The ordinary wheel still zooms.
+  <div data-help-demo="rotate-selection"></div>
 - **Saving positions**: SVG and PNG exports preserve the current layout and omit selection outlines. Share links and JSON sessions save text-label positions; manually moved nucleotide and numbering positions last only for the current rendering.
 - **Nucleotide tooltips**: Hover to see the nucleotide index and probability value (if present).
 - **Resize Canvas**: The visualisation canvas size can be adjusted by dragging the bottom-right corner of the canvas. This is useful when visualizing large interactions on large screens, or when preparing figures for publication. The canvas size is preserved when exporting the visualisation.
@@ -270,5 +286,7 @@ encoder controls lossless compression, so no compression setting is offered.
 Click **Export PNG** to start the normal browser download. The browser's download
 settings determine whether it prompts for a file name and location or saves to
 the default download folder. **Cancel** or Escape closes the dialog without saving.
+
+<div data-help-demo="export-png"></div>
 
 ---

@@ -74,6 +74,8 @@ appears and the current session remains intact. Unknown field names and unsuppor
 format versions are rejected. Save a working figure first, then edit that file for
 the most complete starting point.
 
+<div data-help-demo="store-load-session"></div>
+
 ## URL Parameters & Sharing
 
 **vaRRI** supports state persistence directly via URL parameters, allowing you to pre-fill inputs or share specific visualization configurations using the **🔗 Share Link** button in the export panel. Most parameter names map directly to their corresponding HTML element IDs.

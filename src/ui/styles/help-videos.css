@@ -1,0 +1,60 @@
+.help-demo {
+  position: relative;
+  margin: .65rem 0;
+  color: #1c2b39;
+  font: 13px/1.45 "Segoe UI", Tahoma, Geneva, sans-serif;
+}
+.help-demo-trigger {
+  min-height: 32px;
+  padding: .35rem .65rem;
+  border: 1px solid #9fb9d4;
+  border-radius: 4px;
+  background: #f7fbff;
+  color: #0f4676;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.help-demo-trigger:hover { background: #eaf2f8; }
+.help-demo-trigger:focus-visible { outline: 2px solid #145a96; outline-offset: 2px; }
+.help-demo-teaser {
+  position: absolute;
+  z-index: 20;
+  width: min(320px, calc(100vw - 32px));
+  padding: 8px;
+  border: 1px solid #ccd9e5;
+  border-left: 4px solid #f4bb44;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(15, 46, 74, .18);
+}
+.help-demo-teaser img { display: block; width: 100%; height: auto; margin-bottom: 6px; }
+.help-demo-teaser span { display: block; color: #4f6478; }
+.help-demo-player {
+  max-width: 720px;
+  margin: .7rem 0 1rem;
+  padding: 10px;
+  border: 1px solid #ccd9e5;
+  border-left: 4px solid #f4bb44;
+  border-radius: 6px;
+  background: #f8fbff;
+}
+.help-demo-player video { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; background: #edf2f9; }
+.help-demo-player figcaption { margin-top: .55rem; color: #334b60; }
+.help-demo-transcript { margin-top: .45rem; }
+.help-demo-transcript summary { cursor: pointer; color: #0f4676; font-weight: 700; }
+.help-demo-transcript ol { margin: .4rem 0 .2rem 1.4rem; }
+.help-demo-download { display: inline-block; margin-top: .45rem; color: #145a96; }
+.help-demo-compact { margin: .45rem 0 .2rem; }
+.help-demo-compact .help-demo-player { max-width: 620px; }
+.help-demo-unavailable { color: #6b7280; font-style: italic; }
+[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .help-demo-trigger, .help-demo-teaser { transition: none !important; }
+}
+
+@media (max-width: 520px), (hover: none) {
+  .help-demo-teaser { display: none !important; }
+  .help-demo-player { padding: 6px; }
+}

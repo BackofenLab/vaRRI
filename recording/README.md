@@ -17,6 +17,7 @@ Agents extending the recorder should start with [AGENTS.md](AGENTS.md).
 | File | Responsibility |
 | --- | --- |
 | `record.js` | CLI, scene execution, size checks, manifest, verified output |
+| `publish.js` | Review-gated promotion into the served `doc/demos/` catalog |
 | `preview.js` | Local gallery server |
 | `config.js` | Shared viewport and RNA input defaults |
 | `scenes/index.js` | Scene registration and metadata validation |
@@ -77,7 +78,16 @@ output. Successful runs remove their temporary files.
 | --- | --- |
 | `select-nodes` | Add and remove nodes with Ctrl/Command-click |
 | `move-selection` | Select two nodes, drag them together, keep their new positions |
+| `release-positions` | Release a moved node while retaining its current position |
 | `reset-positions` | Move a node, select Moved, Reset, then Undo |
+| `rectangle-selection` | Drag a selection rectangle around several nodes |
+| `rotate-selection` | Rotate selected nodes with the canvas rotation handle |
+| `place-text-annotation` | Add and position a text annotation |
+| `import-fasta` | Load sequence and structure data from the FASTA dialog |
+| `apply-probability-profile` | Apply a probability profile to nucleotide styling |
+| `store-load-session` | Store the current viewer state and load it again |
+| `export-png` | Export the annotated canvas as a PNG image |
+| `add-region-highlight` | Add a region highlight from the annotation panel |
 
 For each scene the output contains:
 
@@ -176,10 +186,33 @@ For a new gesture, keep pointer feedback and frame capture together in a new
 `Capture` method; a bare `page.click()` in a scene would omit its visible movement.
 Waits for a render finish are separate from `hold()` and do not add video time.
 
-## Embed in the interface or help
+## Review and publish into help
 
-Copy the selected `.webm`, poster `.png`, and `.vtt` files into a served directory
-such as `doc/demos/`. Retain useful explanatory text beside each video:
+First review every clip, poster, caption track, transcript, and decoded final frame
+from a clean checkout. Then promote the complete set into the served catalog:
+
+```bash
+npm run demos
+npm run demos:preview
+npm run demos:publish
+npm run demos:check-published
+```
+
+`demos:publish` rejects dirty or revision-mismatched output. It atomically copies
+only `.webm`, poster `.png`, and `.vtt` deliverables into `doc/demos/`, writes their
+checksums and written transcripts to the production manifest, and excludes QA-only
+review frames. `demos:check-published` verifies the tracked catalog against that
+manifest and rejects missing, modified, or orphaned assets.
+
+The viewer guide and canvas question-mark dialog contain `data-help-demo` anchors.
+`src/ui/help-videos.js` matches those anchors to the catalog. Hovering or focusing a
+help control reveals only its poster teaser; clicking or pressing Enter explicitly
+expands the player and attaches the WebM and captions lazily. Playback never starts
+or loops automatically, only one clip plays at a time, and the transcript remains
+available beside the native controls. This keeps the ordinary interface compact
+while preserving keyboard and touch access.
+
+For another integration, retain useful explanatory text beside each video:
 
 ```html
 <figure>
@@ -198,13 +231,9 @@ such as `doc/demos/`. Retain useful explanatory text beside each video:
 Style the video with `max-width: 100%; height: auto`. `preload="none"` defers video
 downloads until requested; the poster supplies the initial image. Native controls
 allow pausing, replaying, and keyboard access. The generated gallery starts only
-on request, pauses other clips when a new one starts, and disables looping for
-`prefers-reduced-motion`. Copy its player module if the embedded videos should
-share that behavior. Avoid automatically playing several help videos at once.
-
-The pipeline does not modify the live viewer or deploy assets. Embedding is a
-separate editorial step after reviewing the generated clips. For browsers outside
-your WebM support targets, an additional MP4 source can be supplied.
+on request, pauses other clips when a new one starts, and never loops. Avoid
+automatically playing several help videos at once. For browsers outside your WebM
+support targets, an additional MP4 source can be supplied.
 
 ## GitHub Actions
 

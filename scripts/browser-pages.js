@@ -8,7 +8,7 @@ import { chromium } from 'playwright';
 const root = path.resolve(import.meta.dirname, '..');
 const output = path.join(root, 'output/playwright/pages');
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
-  '.svg': 'image/svg+xml', '.png': 'image/png' };
+  '.svg': 'image/svg+xml', '.png': 'image/png', '.webm': 'video/webm', '.vtt': 'text/vtt' };
 
 async function serve() {
   const server = http.createServer((request, response) => {
@@ -35,7 +35,7 @@ async function main() {
   const origin = `http://127.0.0.1:${server.address().port}`;
   let browser, page;
   let phase = 'browser startup';
-  const errors = [], modules = [];
+  const errors = [], modules = [], mediaRequests = [];
   try {
     browser = await chromium.launch({ headless: true,
       ...(process.env.VARRI_BROWSER_PATH ? { executablePath: process.env.VARRI_BROWSER_PATH } : {}) });
@@ -45,6 +45,7 @@ async function main() {
       if (response.url().startsWith(origin) && response.status() >= 400) errors.push(response.url());
     });
     page.on('request', request => { if (request.resourceType() === 'script') modules.push(request.url()); });
+    page.on('request', request => { if (/\.(?:webm|vtt)(?:\?|$)/.test(request.url())) mediaRequests.push(request.url()); });
     page.on('requestfailed', request => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
     await page.route('**/*', route => route.request().url().startsWith(origin)
       ? route.continue() : route.fulfill({ status: 200, body: '' }));
@@ -60,6 +61,20 @@ async function main() {
     const brokenAnchors = await page.evaluate(() => [...document.querySelectorAll('#markdown-text a[href^="#"]')]
       .map(link => link.getAttribute('href')).filter(href => href.length > 1 && !document.getElementById(decodeURIComponent(href.slice(1)))));
     assert.deepEqual(brokenAnchors, [], 'Composed help links must target existing sections');
+    await page.waitForFunction(() => document.querySelectorAll('[data-help-demo-ready]').length >= 12);
+    assert.equal(mediaRequests.filter(url => /\.webm(?:\?|$)/.test(url)).length, 0,
+      'Composed help must not request WebM before explicit expansion');
+    const fastaDemo = page.locator('[data-help-demo="import-fasta"]');
+    const trigger = fastaDemo.getByRole('button', { name: /Watch .* demo/ });
+    await trigger.focus();
+    assert.equal(await fastaDemo.locator('.help-demo-teaser').isVisible(), true, 'Keyboard focus reveals the poster teaser');
+    await trigger.click();
+    const video = fastaDemo.locator('video');
+    assert.equal(await video.isVisible(), true, 'Explicit activation expands the player');
+    assert.equal(await video.getAttribute('autoplay'), null);
+    assert.equal(await video.getAttribute('loop'), null);
+    assert.equal(await video.locator('track[kind="captions"]').count(), 1);
+    assert.equal(await fastaDemo.locator('.help-demo-transcript li').count() > 1, true);
     await page.locator('#markdown-text a[href="#region-highlights"]').first().click();
     assert.equal(new URL(page.url()).hash, '#region-highlights');
     assert.equal(await page.locator('#markdown-text img').evaluateAll(images =>
@@ -98,7 +113,7 @@ async function main() {
     assert.ok(modules.every(url => url.startsWith(origin + '/src/')), 'Page scripts are native source modules');
     assert.deepEqual(errors, [], 'Ancillary page browser errors');
     await page.screenshot({ path: path.join(output, 'citation.png') });
-    console.log(`Native pages passed (Chromium ${browser.version()}): complete help, anchors, images, citation tabs and five downloads.`);
+    console.log(`Native pages passed (Chromium ${browser.version()}): complete help, lazy captioned demos, anchors, images, citation tabs and five downloads.`);
   } catch (error) {
     if (page) {
       await page.screenshot({ path: path.join(output, 'failure.png'), fullPage: true }).catch(() => {});

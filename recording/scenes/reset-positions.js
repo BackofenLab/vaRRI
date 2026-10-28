@@ -4,6 +4,7 @@ import { node, selected, near } from './helpers.js';
 
 export default {
   id: 'reset-positions', title: 'Reset moved nodes',
+  placements: ['canvas-help:reset', 'canvas-help:undo', 'docs:additional-features'],
   description: 'Drag a node, click Moved to select manually positioned nodes, then click Reset to restore their original positions. Undo can reverse the reset.',
   async run(capture, page) {
     const original = await center(node(page, 3));
@@ -13,7 +14,7 @@ export default {
     const moved = await center(node(page, 3));
     near(moved.x - original.x, -90);
     near(moved.y - original.y, -70);
-    await capture.caption('Click Moved to select manually positioned nodes');
+    await capture.caption('Moved selects fixed nodes');
     await capture.click(page.locator('#selectMovedBtn'));
     assert.equal(await selected(page), 1);
     await capture.caption('Reset restores the original position');

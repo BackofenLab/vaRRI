@@ -23,6 +23,7 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
         <button id="undoCanvasBtn" type="button" v-on:click="actions.undoCanvasEdit()"
           v-bind:disabled="!state.canvasInteraction.canUndo" title="Undo the last drag, selection rotation, release, or reset. Ctrl+Z / Command+Z while the canvas is focused.">Undo</button>
         <button id="canvasHelpBtn" type="button" aria-label="Canvas interaction help" title="Canvas interaction help"
+          aria-haspopup="dialog" aria-controls="canvasHelpDialog"
           v-on:click="actions.openDialog('canvasHelpDialog', 'Canvas interactions')">?</button>
       </div>
     </div>

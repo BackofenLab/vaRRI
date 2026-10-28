@@ -1,6 +1,7 @@
 // Recording-only defaults. These do not change the production viewer.
 export const viewport = { width: 960, height: 640 };
 export const defaultParameters = {
+  demoRecording: '1',
   sequence: 'GGGAAACCC&GGGUUUCCC',
   structure: '(((...(((&)))...)))',
   forceLayout: '0',
