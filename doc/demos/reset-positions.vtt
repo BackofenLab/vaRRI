@@ -1,0 +1,17 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.600
+Drag a node to a new position
+
+2
+00:00:03.600 --> 00:00:04.667
+Moved selects fixed nodes
+
+3
+00:00:04.667 --> 00:00:06.533
+Reset restores the original position
+
+4
+00:00:06.533 --> 00:00:09.333
+Undo reverses the reset
