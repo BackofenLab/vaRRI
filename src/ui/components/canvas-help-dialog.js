@@ -29,7 +29,8 @@ export default viewerComponent('canvas-help-dialog', `<link rel="stylesheet" hre
           Text labels are unaffected. To reset a released node, undo its release first.
           <div data-help-demo="reset-positions"></div></dd>
         <dt><span class="canvas-position-key">Undo</span></dt><dd>Reverse the last drag, rotation, release, or reset, including text movements.
-          Ctrl/Command+Z also works while the canvas is focused. Up to 100 edits are kept for the current rendering.</dd>
+          Ctrl/Command+Z also works while the canvas is focused. Up to 100 edits are kept for the current rendering.
+          The Reset demo above also shows Undo reversing the reset.</dd>
       </dl>
       <p>Rerendering clears temporary node positions and undo history. SVG and PNG exports preserve the layout without selection outlines.
         Share links preserve text-label positions only.</p>

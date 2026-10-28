@@ -75,7 +75,7 @@ async function publish(source) {
       await fs.copyFile(path.join(source, asset.file), path.join(next, asset.file));
     }
   }
-  await fs.writeFile(path.join(next, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+  await fs.writeFile(path.join(next, 'manifest.json'), JSON.stringify(manifest) + '\n');
   await verifyManifest(manifest, next);
   const backup = path.join(root, 'doc', `.demos-backup-${process.pid}`);
   await fs.rm(backup, { recursive: true, force: true });

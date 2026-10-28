@@ -5,7 +5,7 @@ export default {
   id: 'add-region-highlight', title: 'Add a paired region highlight', stage: 'dialog', zoom: false,
   placements: ['docs:region-highlights'],
   parameters: { hideFooterAndHeader: '1', sequence: 'ACGU&UGCA', structure: '((..&..))', backgroundhighlighting: 'nothing' },
-  description: 'Enter matching ranges for the two RNA strands and add a translucent paired-region highlight.',
+  description: 'Enter one range for each RNA strand and add a translucent paired-region highlight.',
   async prepare(page) { await openPanel(page, '#regionSubmitBtn'); },
   async run(capture, page) {
     await capture.caption('Add a paired region highlight');

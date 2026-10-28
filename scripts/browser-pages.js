@@ -68,6 +68,8 @@ async function main() {
     const trigger = fastaDemo.getByRole('button', { name: /Watch .* demo/ });
     await trigger.focus();
     assert.equal(await fastaDemo.locator('.help-demo-teaser').isVisible(), true, 'Keyboard focus reveals the poster teaser');
+    assert.equal(await fastaDemo.locator('.help-demo-teaser img').evaluate(image =>
+      image.complete && image.naturalWidth > 0), true, 'The revealed teaser poster resolves');
     await trigger.click();
     const video = fastaDemo.locator('video');
     assert.equal(await video.isVisible(), true, 'Explicit activation expands the player');
@@ -77,8 +79,9 @@ async function main() {
     assert.equal(await fastaDemo.locator('.help-demo-transcript li').count() > 1, true);
     await page.locator('#markdown-text a[href="#region-highlights"]').first().click();
     assert.equal(new URL(page.url()).hash, '#region-highlights');
-    assert.equal(await page.locator('#markdown-text img').evaluateAll(images =>
-      images.every(image => image.complete && image.naturalWidth > 0)), true, 'Help images resolve after guide extraction');
+    assert.equal(await page.locator('#markdown-text img').evaluateAll(images => images
+      .filter(image => !image.closest('.help-demo-teaser'))
+      .every(image => image.complete && image.naturalWidth > 0)), true, 'Help images resolve after guide extraction');
     await page.screenshot({ path: path.join(output, 'readme.png') });
 
     phase = 'citation tabs and downloads';
