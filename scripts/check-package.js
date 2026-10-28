@@ -1,11 +1,13 @@
 // Exercise the tarball, not the source checkout: missing files must fail CI.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { JSDOM } from 'jsdom';
+import { scenes } from '../recording/scenes/index.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'varri-package-check-'));
@@ -94,12 +96,16 @@ try {
   const demoDirectory = path.join(installed, 'doc', 'demos');
   const demoManifest = JSON.parse(fs.readFileSync(path.join(demoDirectory, 'manifest.json'), 'utf8'));
   assert.equal(demoManifest.schemaVersion, 1);
-  assert.equal(demoManifest.clips.length, 12, 'All reviewed help demonstrations are packaged');
+  assert.deepEqual(demoManifest.clips.map(clip => clip.id).sort(), scenes.map(scene => scene.id).sort(),
+    'All registered help demonstrations are packaged exactly once');
   for (const clip of demoManifest.clips) {
-    assert.ok(clip.transcript.length > 1, `${clip.id}: packaged transcript`);
+    assert.ok(clip.transcript.length > 0 && clip.transcript.every(step => typeof step === 'string' && step.trim()),
+      `${clip.id}: packaged transcript`);
     for (const asset of Object.values(clip.assets)) {
       const content = fs.readFileSync(path.join(demoDirectory, asset.file));
       assert.equal(content.length, asset.bytes, `${clip.id}: packaged ${asset.file} size`);
+      assert.equal(createHash('sha256').update(content).digest('hex'), asset.sha256,
+        `${clip.id}: packaged ${asset.file} checksum`);
     }
   }
   // Markdown embeds are loaded by README.html after parsing, so inspect them too.

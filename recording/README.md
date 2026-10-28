@@ -17,7 +17,7 @@ Agents extending the recorder should start with [AGENTS.md](AGENTS.md).
 | File | Responsibility |
 | --- | --- |
 | `record.js` | CLI, scene execution, size checks, manifest, verified output |
-| `publish.js` | Review-gated promotion into the served `doc/demos/` catalog |
+| `publish.js` | Validated promotion into the served `doc/demos/` catalog after manual review |
 | `preview.js` | Local gallery server |
 | `config.js` | Shared viewport and RNA input defaults |
 | `scenes/index.js` | Scene registration and metadata validation |
@@ -81,7 +81,7 @@ output. Successful runs remove their temporary files.
 | `release-positions` | Release a moved node while retaining its current position |
 | `reset-positions` | Move a node, select Moved, Reset, then Undo |
 | `rectangle-selection` | Drag a selection rectangle around several nodes |
-| `rotate-selection` | Rotate selected nodes with the canvas rotation handle |
+| `rotate-selection` | Ctrl/Command-scroll to rotate selected nodes around the pointer |
 | `place-text-annotation` | Add and position a text annotation |
 | `import-fasta` | Load sequence and structure data from the FASTA dialog |
 | `apply-probability-profile` | Apply a probability profile to nucleotide styling |
@@ -93,7 +93,7 @@ For each scene the output contains:
 
 - `.webm`: silent video, 960 × 640, 15 fps by default.
 - `.png`: full-size poster, generated before the first action.
-- `.vtt`: optional timed English captions; instructions also appear in the video.
+- `.vtt`: required timed English captions; instructions also appear in the video.
 - `-review.png`: the last decoded video frame for visual review.
 
 `index.html`, `gallery.css`, and `gallery-player.js` provide the preview.
@@ -126,8 +126,9 @@ Fonts and browser/platform differences can still change pixels and encoded bytes
 ## Add a scene
 
 Create `recording/scenes/move-one-node.js` using the complete example below.
-Each scene exports a unique filename-safe `id`, `title`, `description`, optional
-URL `parameters`, optional `prepare(page)`, and `async run(capture, page)`.
+Each scene exports a unique filename-safe `id`, `title`, `description`, a nonempty
+`placements` array, and `async run(capture, page)`. Optional fields are URL
+`parameters`, `stage`, `zoom`, and `prepare(page)`.
 Use lowercase hyphenated IDs such as `move-one-node`.
 
 ```javascript
@@ -137,6 +138,7 @@ export default {
   id: 'move-one-node',
   title: 'Move one node',
   description: 'Drag an individual nucleotide to reposition it.',
+  placements: ['docs:additional-features'],
   async run(capture, page) {
     const target = page.locator('#rendering-canvas circle[node_type="nucleotide"]').nth(3);
     const before = await target.boundingBox();
@@ -154,6 +156,11 @@ export default {
 Import this module in `scenes/index.js` and append it to the exported `scenes`
 array. Run `npm run demos -- --only move-one-node`, watch the preview, and inspect
 the decoded final frame. Run all scenes when shared helpers or framing change.
+`placements` describes intended help locations, such as `canvas-help:move` or
+`docs:additional-features`; these names are metadata, not DOM selectors. To display
+the new demo, add `<div data-help-demo="move-one-node"></div>` beside its written
+instructions in the relevant guide or help component, then republish the complete
+catalog after review. Registering a scene alone does not add a player to the UI.
 
 Use real mouse/keyboard events for demonstrated actions and assertions for their
 results. Do not assign node positions or fake selection classes.
@@ -161,18 +168,25 @@ results. Do not assign node positions or fake selection classes.
 shows a modifier-click; omit the modifier for a regular click.
 `capture.move({x, y}, seconds)` moves the visible pointer and actual mouse together.
 `capture.caption(text)` updates the instruction and the transcript/VTT timeline.
+Every scene must produce at least one nonempty, single-line caption. Separate
+caption changes with captured frames so their start times increase.
 
 The fixture and viewport are in `config.js`; readiness checks, zoom, and the
 recording overlay are in `lib/capture.js`. Override the fixture for one scene with
 `parameters: { sequence: '...', structure: '...' }`. The common readiness check
 expects an explicitly supplied sequence and counts its real nucleotides.
 
-The framing is isolated in `lib/stage.css`: it shows the actual canvas and manual
-position controls with an instruction band above. For demos of input panels,
-use `async prepare(page)` to adjust framing with `page.addStyleTag()` and prepare
-the desired controls before capture. If changing the shared framing, review all
-scenes. When an action rerenders the viewer, wait for its new state before the next
-frame. Instructions and visible gestures belong in `run`, after setup finishes.
+The framing is isolated in `lib/stage.css`. The default `stage: 'canvas'` shows
+the actual canvas and manual position controls with an instruction band above.
+Use `stage: 'full-ui'` for input panels, `'dialog'` for input/annotation dialogs,
+or `'export-dialog'` for PNG export. `zoom: false` disables the setup wheel zoom.
+`async prepare(page)` runs after common framing, readiness, and zoom but before
+the poster or capture; use it to open the relevant panel or prepare a fixture.
+Shared `openPanel(page, selector)` and `ready(page)` helpers support that setup.
+Scene-specific CSS can be added there when the stage profiles are insufficient.
+If changing shared framing, review all scenes. When an action rerenders the
+viewer, wait for its new state before the next frame. Instructions and visible
+gestures belong in `run`, after setup finishes.
 
 | Capture helper | Effect |
 | --- | --- |
@@ -180,7 +194,13 @@ frame. Instructions and visible gestures belong in `run`, after setup finishes.
 | `hold(seconds)` | Repeat the current frame for a reading pause |
 | `move({ x, y }, seconds?)` | Move actual mouse and visible pointer together |
 | `click(locator, modifier?)` | Approach and click; optionally hold `Control`/`Meta` |
-| `drag(locator, dx, dy)` | Approach, press, drag by screen pixels, release |
+| `drag(locator, dx, dy, modifier?)` | Approach, press, drag by screen pixels, release |
+| `dragBetween(start, destination, modifier?, seconds?)` | Drag between two screen points |
+| `dragTo(locator, destination, modifier?)` | Drag an element to a screen point |
+| `fill(locator, value)` | Focus a field and replace its text with keyboard input |
+| `select(locator, value)` | Move to a select and set its value with input/change events |
+| `wheel(locator, deltaY, modifier?)` | Move to an element and scroll, optionally holding a modifier |
+| `press(key, modifier?)` | Send a keyboard action, optionally holding a modifier |
 
 For a new gesture, keep pointer feedback and frame capture together in a new
 `Capture` method; a bare `page.click()` in a scene would omit its visible movement.
@@ -188,8 +208,11 @@ Waits for a render finish are separate from `hold()` and do not add video time.
 
 ## Review and publish into help
 
-First review every clip, poster, caption track, transcript, and decoded final frame
-from a clean checkout. Then promote the complete set into the served catalog:
+Record the complete set from a clean checkout, then review every clip, poster,
+caption track, transcript, and decoded final frame before promoting it into the
+served catalog. Human review is required; the publisher cannot verify that it
+occurred. Stop the preview server after reviewing to run the following commands
+in the same terminal, or use a second terminal:
 
 ```bash
 npm run demos
@@ -198,11 +221,15 @@ npm run demos:publish
 npm run demos:check-published
 ```
 
-`demos:publish` rejects dirty or revision-mismatched output. It atomically copies
-only `.webm`, poster `.png`, and `.vtt` deliverables into `doc/demos/`, writes their
+`record.js` writes generated previews under `output/playwright/`; `publish.js`
+separately updates the tracked `doc/demos/` catalog. `demos:publish` requires a
+clean checkout and matching recorded source revision, validates the recorded
+asset checksums and metadata, and promotes the complete registered scene set.
+It copies only `.webm`, poster `.png`, and `.vtt` deliverables, writes their
 checksums and written transcripts to the production manifest, and excludes QA-only
-review frames. `demos:check-published` verifies the tracked catalog against that
-manifest and rejects missing, modified, or orphaned assets.
+review frames. `demos:check-published` verifies the catalog schema and asset hashes
+and rejects missing, modified, duplicate, or orphaned assets. Neither check replaces
+visual review of the instructions and demonstrated behavior.
 
 The viewer guide and canvas question-mark dialog contain `data-help-demo` anchors.
 `src/ui/help-videos.js` matches those anchors to the catalog. Hovering or focusing a

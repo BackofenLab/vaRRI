@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import { chromium } from 'playwright';
@@ -9,6 +8,7 @@ import { prepareStage, Capture, writeCaptions } from './lib/capture.js';
 import { scenes } from './scenes/index.js';
 import { writeGallery } from './lib/gallery.js';
 import { verifyVideos } from './lib/verify.js';
+import { readSourceState, recordingSourceState } from './lib/source-state.js';
 
 const sha256 = content => createHash('sha256').update(content).digest('hex');
 
@@ -45,6 +45,7 @@ async function main() {
   if (values.list) { scenes.forEach(scene => console.log(`${scene.id}: ${scene.title}`)); return; }
   const chosen = values.only ? scenes.filter(scene => scene.id === values.only) : scenes;
   if (!chosen.length) throw new Error(`Unknown scene: ${values.only}. Use --list.`);
+  const sourceBefore = readSourceState(root);
   const encoder = await findEncoder();
   const options = { fps: number(values.fps, 15, 10, 30, '--fps'),
     crf: number(values.crf, encoder.codec === 'vp9' ? 32 : 10, 4, 50, '--crf'),
@@ -116,11 +117,9 @@ async function main() {
     }
     await writeGallery(staging, clips);
     await verifyVideos(browser, staging, clips);
-    const revision = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' });
-    const status = spawnSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' });
+    const sourceState = recordingSourceState(sourceBefore, readSourceState(root));
     await fs.writeFile(path.join(staging, 'manifest.json'), JSON.stringify({
-      generatedAt: new Date().toISOString(), revision: revision.status === 0 ? revision.stdout.trim() : null,
-      dirty: status.status === 0 ? Boolean(status.stdout.trim()) : null,
+      generatedAt: new Date().toISOString(), ...sourceState,
       sizeBudgetBytes: options.maxBytes,
       aggregateWebmBytes: clips.reduce((sum, clip) => sum + clip.bytes, 0), clips,
     }, null, 2) + '\n');

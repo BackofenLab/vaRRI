@@ -20,7 +20,8 @@ const browserType = process.argv.includes('--firefox') ? firefox : chromium;
 const outputName = browserType === firefox ? 'ui-firefox' : 'ui';
 const output = path.join(root, 'output/playwright', outputName + (process.env.VARRI_BROWSER_CHANNEL ? '-channel' : ''));
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
-  '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json' };
+  '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json',
+  '.webm': 'video/webm', '.vtt': 'text/vtt' };
 
 async function serve() {
   const server = http.createServer((request, response) => {

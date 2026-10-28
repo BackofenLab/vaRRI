@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { exerciseCanvasHelpVideoTeaser } from './browser-help-videos.js';
 
 /** The panel must supply working help even when its host knows only ViewerPanel. */
 export async function exerciseStandaloneCanvasHelp(page, origin) {
@@ -28,10 +29,10 @@ export async function exerciseStandaloneCanvasHelp(page, origin) {
     assert.equal(await dialog.isVisible(), true, 'Keyboard activation opens visible help');
     assert.equal(await dialog.evaluate(element => element.matches(':modal')), true, 'Help enters the modal top layer');
     await page.waitForFunction(() => document.querySelectorAll('#canvasHelpDialog [data-help-demo-ready]').length === 6);
+    await exerciseCanvasHelpVideoTeaser(page);
     const demoTrigger = dialog.locator('[data-help-demo="move-selection"] .help-demo-trigger');
     await demoTrigger.focus();
-    assert.equal(await dialog.locator('[data-help-demo="move-selection"] .help-demo-teaser').isVisible(), true,
-      'Keyboard focus reveals the demo poster');
+    await dialog.locator('[data-help-demo="move-selection"] .help-demo-teaser').waitFor({ state: 'visible' });
     await demoTrigger.press('Enter');
     const video = dialog.locator('[data-help-demo="move-selection"] video');
     assert.equal(await video.isVisible(), true, 'Enter expands the requested demonstration');

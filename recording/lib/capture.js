@@ -3,6 +3,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { viewport } from './runtime.js';
 import { defaultParameters } from '../config.js';
+import { serializeCaptions } from './captions.js';
 
 export async function prepareStage(page, origin, scene) {
   const parameters = new URLSearchParams({ ...defaultParameters, ...scene.parameters });
@@ -211,12 +212,5 @@ export async function center(locator) {
 }
 
 export async function writeCaptions(file, cues, duration) {
-  if (!cues.length || cues.some((cue, index) => !cue.text || /[\r\n]/.test(cue.text) ||
-    cue.start < 0 || cue.start >= duration || (index && cue.start <= cues[index - 1].start))) {
-    throw new Error('Captions require ordered, nonempty, single-line cues within the clip duration.');
-  }
-  const timestamp = seconds => new Date(Math.round(seconds * 1000)).toISOString().slice(11, 23);
-  const blocks = cues.map((cue, index) => `${index + 1}\n${timestamp(cue.start)} --> ` +
-    `${timestamp(cues[index + 1]?.start ?? duration)}\n${cue.text}\n`);
-  await fs.writeFile(file, 'WEBVTT\n\n' + blocks.join('\n'));
+  await fs.writeFile(file, serializeCaptions(cues, duration));
 }

@@ -30,6 +30,7 @@ jobs:
         run: |
           npm run test:architecture
           npm run test:ci
+          npm run demos:check-published
 
       - name: Verify installed package contents
         run: npm run test:package

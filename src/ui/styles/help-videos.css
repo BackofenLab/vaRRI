@@ -19,6 +19,8 @@
 .help-demo-trigger:focus-visible { outline: 2px solid #145a96; outline-offset: 2px; }
 .help-demo-teaser {
   position: absolute;
+  box-sizing: border-box;
+  overflow: auto;
   z-index: 20;
   width: min(320px, calc(100vw - 32px));
   padding: 8px;
@@ -28,7 +30,7 @@
   background: #fff;
   box-shadow: 0 8px 22px rgba(15, 46, 74, .18);
 }
-.help-demo-teaser img { display: block; width: 100%; height: auto; margin-bottom: 6px; }
+.help-demo-teaser img { display: block; width: 100%; height: auto; object-fit: contain; margin-bottom: 6px; }
 .help-demo-teaser span { display: block; color: #4f6478; }
 .help-demo-player {
   max-width: 720px;
@@ -46,6 +48,7 @@
 .help-demo-transcript ol { margin: .4rem 0 .2rem 1.4rem; }
 .help-demo-download { display: inline-block; margin-top: .45rem; color: #145a96; }
 .help-demo-compact { margin: .45rem 0 .2rem; }
+.help-demo-compact .help-demo-trigger { scroll-margin-block: 8px 56px; }
 .help-demo-compact .help-demo-player { max-width: 620px; }
 .help-demo-unavailable { color: #6b7280; font-style: italic; }
 [hidden] { display: none !important; }

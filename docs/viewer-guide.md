@@ -181,6 +181,10 @@ Finally, the following fields are available to define the visualization of the p
 > [!IMPORTANT] 
 > The indices of the given probability profile are validated against the sequence and start index of the respective molecule, and a warning is shown if any indices are invalid.
 
+The demo below uses **Start 1** (RNA 1's start index) set to **-2**. Its four profile positions
+are `-2`, `-1`, `1`, and `2`: biological numbering skips zero. Set that start index
+in **Sequence & Structure Input** before trying the same values.
+
 <div data-help-demo="apply-probability-profile"></div>
 
 ### Point Mutations

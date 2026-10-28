@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { exerciseDocsHelpVideos } from './browser-help-videos.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const output = path.join(root, 'output/playwright/pages');
@@ -66,10 +67,17 @@ async function main() {
       'Composed help must not request WebM before explicit expansion');
     const fastaDemo = page.locator('[data-help-demo="import-fasta"]');
     const trigger = fastaDemo.getByRole('button', { name: /Watch .* demo/ });
+    // A slow poster response must not turn a correct lazy player into a flaky test.
+    await page.route(origin + '/doc/demos/import-fasta.png*', async route => {
+      await new Promise(resolve => setTimeout(resolve, 150));
+      await route.continue();
+    });
     await trigger.focus();
-    assert.equal(await fastaDemo.locator('.help-demo-teaser').isVisible(), true, 'Keyboard focus reveals the poster teaser');
-    assert.equal(await fastaDemo.locator('.help-demo-teaser img').evaluate(image =>
-      image.complete && image.naturalWidth > 0), true, 'The revealed teaser poster resolves');
+    await fastaDemo.locator('.help-demo-teaser').waitFor({ state: 'visible' });
+    await page.waitForFunction(() => {
+      const image = document.querySelector('[data-help-demo="import-fasta"] .help-demo-teaser img');
+      return image?.complete && image.naturalWidth > 0;
+    });
     await trigger.click();
     const video = fastaDemo.locator('video');
     assert.equal(await video.isVisible(), true, 'Explicit activation expands the player');
@@ -77,6 +85,7 @@ async function main() {
     assert.equal(await video.getAttribute('loop'), null);
     assert.equal(await video.locator('track[kind="captions"]').count(), 1);
     assert.equal(await fastaDemo.locator('.help-demo-transcript li').count() > 1, true);
+    await exerciseDocsHelpVideos(page);
     await page.locator('#markdown-text a[href="#region-highlights"]').first().click();
     assert.equal(new URL(page.url()).hash, '#region-highlights');
     assert.equal(await page.locator('#markdown-text img').evaluateAll(images => images

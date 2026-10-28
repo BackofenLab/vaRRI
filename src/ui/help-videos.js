@@ -31,9 +31,14 @@ function createPlayer(target, clip) {
   trigger.setAttribute('aria-expanded', 'false');
   trigger.setAttribute('aria-controls', id);
   trigger.textContent = `▶ Watch ${Math.ceil(clip.duration)} s demo`;
+  const watchLabel = `Watch ${Math.ceil(clip.duration)} s demo: ${clip.title}`;
+  trigger.setAttribute('aria-label', watchLabel);
 
   const teaser = document.createElement('div');
   teaser.className = 'help-demo-teaser';
+  teaser.id = `${id}-preview`;
+  teaser.setAttribute('role', 'tooltip');
+  trigger.setAttribute('aria-describedby', teaser.id);
   teaser.hidden = true;
   const teaserImage = document.createElement('img');
   teaserImage.alt = '';
@@ -103,19 +108,55 @@ function createPlayer(target, clip) {
 
   let expanded = false;
   let teaserTimer;
-  const hideTeaser = () => { clearTimeout(teaserTimer); teaser.hidden = true; };
+  let pointerInside = false;
+  let focusedInside = false;
+  let previewDismissed = false;
+  const dialog = target.closest('dialog');
+  const hideTeaser = () => { clearTimeout(teaserTimer); teaserTimer = undefined; teaser.hidden = true; };
+  const positionTeaser = () => {
+    if (teaser.hidden) return;
+    const anchor = target.getBoundingClientRect();
+    const bounds = { left: 8, right: window.innerWidth - 8, top: 8, bottom: window.innerHeight - 8 };
+    if (dialog) {
+      const box = dialog.getBoundingClientRect();
+      bounds.left = Math.max(bounds.left, box.left + 8);
+      bounds.right = Math.min(bounds.right, box.right - 8);
+      bounds.top = Math.max(bounds.top, box.top + 8);
+      bounds.bottom = Math.min(bounds.bottom, box.bottom - 8);
+      const footer = dialog.querySelector('.dialog-actions')?.getBoundingClientRect();
+      if (footer && footer.top < bounds.bottom && footer.bottom > bounds.top) bounds.bottom = footer.top;
+    }
+    if (anchor.bottom <= bounds.top || anchor.top >= bounds.bottom) { hideTeaser(); return; }
+    teaser.style.maxWidth = `${Math.max(0, bounds.right - bounds.left)}px`;
+    teaser.style.maxHeight = '';
+    teaserImage.style.maxHeight = '';
+    const below = Math.max(0, bounds.bottom - anchor.bottom);
+    const above = Math.max(0, anchor.top - bounds.top);
+    const showAbove = teaser.getBoundingClientRect().height > below && above > below;
+    const available = showAbove ? above : below;
+    const descriptionHeight = teaser.getBoundingClientRect().height - teaserImage.getBoundingClientRect().height;
+    teaserImage.style.maxHeight = `${Math.max(0, available - descriptionHeight)}px`;
+    teaser.style.maxHeight = `${available}px`;
+    const size = teaser.getBoundingClientRect();
+    teaser.style.left = `${Math.max(bounds.left, Math.min(anchor.left, bounds.right - size.width)) - anchor.left}px`;
+    teaser.style.top = `${showAbove ? -size.height : anchor.height}px`;
+  };
   const showTeaser = delay => {
-    if (expanded) return;
+    if (expanded || previewDismissed) return;
     clearTimeout(teaserTimer);
     teaserTimer = setTimeout(() => {
+      teaserTimer = undefined;
       if (!teaserImage.src) teaserImage.src = assetUrl(clip.assets.poster);
       teaser.hidden = false;
+      positionTeaser();
     }, delay);
   };
   const collapse = () => {
+    hideTeaser();
     expanded = false;
     trigger.setAttribute('aria-expanded', 'false');
     trigger.textContent = `▶ Watch ${Math.ceil(clip.duration)} s demo`;
+    trigger.setAttribute('aria-label', watchLabel);
     figure.hidden = true;
     if (video) { video.pause(); video.currentTime = 0; }
   };
@@ -125,22 +166,41 @@ function createPlayer(target, clip) {
     buildVideo();
     trigger.setAttribute('aria-expanded', 'true');
     trigger.textContent = 'Hide demo';
+    trigger.setAttribute('aria-label', `Hide demo: ${clip.title}`);
     figure.hidden = false;
   };
   const toggle = () => expanded ? collapse() : expand();
   const pointerEnter = event => {
-    if (event.pointerType !== 'touch' && window?.matchMedia?.('(hover: hover)').matches) showTeaser(300);
+    if (event.pointerType !== 'touch' && window?.matchMedia?.('(hover: hover)').matches) {
+      pointerInside = true;
+      showTeaser(300);
+    }
   };
-  const pointerLeave = () => { if (!expanded) hideTeaser(); };
-  const focusIn = () => showTeaser(0);
-  const focusOut = event => { if (!target.contains(event.relatedTarget) && !expanded) hideTeaser(); };
+  const leavePreview = () => {
+    if (!pointerInside && !focusedInside) { hideTeaser(); previewDismissed = false; }
+  };
+  const pointerLeave = () => { pointerInside = false; leavePreview(); };
+  const focusIn = () => { focusedInside = true; showTeaser(0); };
+  const focusOut = event => {
+    if (!target.contains(event.relatedTarget)) { focusedInside = false; leavePreview(); }
+  };
+  const dismissPreview = event => {
+    if (event.key !== 'Escape' || teaser.hidden) return;
+    event.preventDefault();
+    event.stopPropagation();
+    previewDismissed = true;
+    hideTeaser();
+  };
   trigger.addEventListener('click', toggle);
   target.addEventListener('pointerenter', pointerEnter);
   target.addEventListener('pointerleave', pointerLeave);
   target.addEventListener('focusin', focusIn);
   target.addEventListener('focusout', focusOut);
+  document.addEventListener('keydown', dismissPreview);
+  window.addEventListener('resize', positionTeaser);
+  window.addEventListener('scroll', positionTeaser, true);
+  teaserImage.addEventListener('load', positionTeaser);
   target.append(trigger, teaser, figure);
-  const dialog = target.closest('dialog');
   dialog?.addEventListener('close', collapse);
   return () => {
     clearTimeout(teaserTimer);
@@ -150,6 +210,10 @@ function createPlayer(target, clip) {
     target.removeEventListener('pointerleave', pointerLeave);
     target.removeEventListener('focusin', focusIn);
     target.removeEventListener('focusout', focusOut);
+    document.removeEventListener('keydown', dismissPreview);
+    window.removeEventListener('resize', positionTeaser);
+    window.removeEventListener('scroll', positionTeaser, true);
+    teaserImage.removeEventListener('load', positionTeaser);
     dialog?.removeEventListener('close', collapse);
   };
 }
