@@ -45,6 +45,9 @@ jobs:
           npm run test:pages
           npm run test:visual
 
+      - name: Record and verify interaction demos
+        run: npm run demos
+
       - name: Upload browser diagnostics
         if: failure()
         uses: actions/upload-artifact@v7

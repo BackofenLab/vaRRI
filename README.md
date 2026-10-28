@@ -232,6 +232,13 @@ the classic bundle includes D3, and neither entry requires Vue or Fornac scripts
 
 The `src` directory provides a [detailed vaRRI Library API documentation](src/README.md)
 
+## Recording short interface demos
+
+In a source checkout, run `npm run demos` to create small WebM clips of selection,
+group movement, and reset/undo, together with posters, captions, and a preview gallery. The
+[demo pipeline guide](https://github.com/BackofenLab/vaRRI/blob/main/recording/README.md) explains setup, size controls,
+adding scenes, embedding videos, and the manual GitHub Actions workflow.
+
 
 ---
 
