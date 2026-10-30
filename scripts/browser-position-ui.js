@@ -13,8 +13,6 @@ export async function exercisePositionControlsUI(page, origin, output) {
   await page.waitForFunction(() => document.querySelector('#rendering-canvas circle') &&
     document.getElementById('rendering-canvas').style.visibility !== 'hidden');
   const viewControls = page.locator('#viewControlsToggle');
-  assert.equal(await viewControls.getAttribute('aria-expanded'), 'false');
-  await viewControls.click();
   assert.equal(await viewControls.getAttribute('aria-expanded'), 'true');
   await page.waitForFunction(() => {
     const canvas = document.getElementById('rendering-canvas');
@@ -53,8 +51,10 @@ export async function exercisePositionControlsUI(page, origin, output) {
   const movedBox = await moved.boundingBox();
   const panelBox = await page.locator('#viewControlsPanel').boundingBox();
   const canvasBox = await page.locator('#rendering-canvas').boundingBox();
-  assert.ok(panelBox.x < canvasBox.x && panelBox.x + panelBox.width <= canvasBox.x + 1,
-    'View controls sit to the left of the canvas');
+  const toggleBox = await viewControls.boundingBox();
+  assert.ok(panelBox.x >= canvasBox.x && panelBox.x + panelBox.width <= toggleBox.x + 1 &&
+    toggleBox.x + toggleBox.width <= canvasBox.x + canvasBox.width + 1,
+  'View controls overlay the right side of the canvas');
   assert.ok(movedBox.y >= cropBox.y + cropBox.height, 'Manual controls follow Cropping in the side panel');
   await page.screenshot({ path: path.join(output, 'manual-position-controls.png'), fullPage: true });
   const edited = await node.evaluate(element => ({ x: element.__data__.x, y: element.__data__.y }));

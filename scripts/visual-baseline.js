@@ -153,7 +153,7 @@ async function main() {
           if (!document.head || document.getElementById('visual-fixture-style')) return;
           const style = document.createElement('style');
           style.id = 'visual-fixture-style';
-          style.textContent = `#viewControlsToggle { display: none !important; }
+          style.textContent = `#viewControlsToggle, #viewControlsPanel { display: none !important; }
             #rendering-canvas { border-bottom: 1px solid transparent !important;
               flex: 0 0 ${width}px !important; height: ${height}px !important; }`;
           document.head.append(style);

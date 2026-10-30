@@ -21,18 +21,46 @@ export async function exercisePositionLayout(page, origin, output) {
       }
       const toggle = page.locator('#viewControlsToggle');
       const panel = page.locator('#viewControlsPanel');
-      assert.equal(await toggle.getAttribute('aria-expanded'), 'false', 'View controls start hidden');
-      assert.equal(await panel.isVisible(), false, 'The hidden panel does not cover the canvas');
-      const closedGeometry = await page.locator('.canvas-workspace').evaluate(element => {
-        const button = element.querySelector('#viewControlsToggle').getBoundingClientRect();
-        const canvas = element.querySelector('#rendering-canvas').getBoundingClientRect();
-        return { buttonLeft: button.left, canvasLeft: canvas.left };
+      const readGeometry = () => page.locator('.canvas-workspace').evaluate(element => {
+        const rect = selector => {
+          const { left, top, right, bottom, width: rectWidth, height: rectHeight } =
+            element.querySelector(selector).getBoundingClientRect();
+          return { left, top, right, bottom, width: rectWidth, height: rectHeight };
+        };
+        const { left, top, right, bottom, width: rectWidth, height: rectHeight } =
+          element.getBoundingClientRect();
+        return { workspace: { left, top, right, bottom, width: rectWidth, height: rectHeight },
+          button: rect('#viewControlsToggle'), panel: rect('#viewControlsPanel'),
+          canvas: rect('#rendering-canvas') };
       });
-      assert.ok(Math.abs(closedGeometry.buttonLeft - closedGeometry.canvasLeft) < 1,
-        'The View controls button sits on the canvas left edge without resizing it');
+      const assertCanvasUnmoved = (actual, expected, state) => {
+        for (const property of ['left', 'top', 'right', 'bottom', 'width', 'height']) {
+          assert.ok(Math.abs(actual.canvas[property] - expected.canvas[property]) < 1,
+            `Folding ${state} must not change the canvas ${property}`);
+        }
+      };
+      assert.equal(await toggle.getAttribute('aria-expanded'), 'true', 'View controls start open');
+      assert.equal(await panel.isVisible(), true, 'The open panel is visible by default');
+      const openGeometry = await readGeometry();
+      assert.ok(Math.abs(openGeometry.button.right - openGeometry.canvas.right) < 1,
+        'The View controls button sits on the canvas right edge');
+      assert.ok(Math.abs(openGeometry.panel.right - openGeometry.button.left) < 1 &&
+        openGeometry.panel.left >= openGeometry.canvas.left - 1,
+      'View controls expand leftward over the right side of the canvas');
+      assert.ok(Math.abs(openGeometry.canvas.left - openGeometry.workspace.left) < 1 &&
+        Math.abs(openGeometry.canvas.right - openGeometry.workspace.right) < 1,
+      'The overlaid controls leave the canvas at full workspace width');
+      await toggle.click();
+      assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
+      assert.equal(await panel.isVisible(), false);
+      const foldedGeometry = await readGeometry();
+      assertCanvasUnmoved(foldedGeometry, openGeometry, 'closed');
+      assert.ok(Math.abs(foldedGeometry.button.right - foldedGeometry.canvas.right) < 1,
+        'The folded View controls button remains on the canvas right edge');
       await toggle.click();
       assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
       assert.equal(await panel.isVisible(), true);
+      assertCanvasUnmoved(await readGeometry(), openGeometry, 'open');
       const panelControls = page.locator('.view-controls-panel button, .view-controls-panel input');
       for (let index = 0; index < await panelControls.count(); index += 1) {
         const control = panelControls.nth(index);

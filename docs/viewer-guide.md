@@ -225,7 +225,7 @@ both positioned and unpositioned labels, including their formatting.
 
 - **Zooming**: Use the mouse wheel to zoom in and out.
 - **Panning**: Click and drag the empty background to pan around. This is useful when zoomed in to focus on a certain region of the structure.
-- **View controls**: Select the *View controls* button on the left of the visualisation to open or hide rotation, cropping, and manual-position controls. The panel starts hidden so the visualisation keeps the available canvas space.
+- **View controls**: Select the *View controls* button on the right of the visualisation to fold or unfold rotation, cropping, and manual-position controls. The panel starts open and overlays the unused side of the canvas, so toggling it does not resize or move the visualisation or other page elements.
 - **Rotation**: Use the *Rotation* slider in *View controls* to rotate the structure. Rotation preserves text orientation and is useful to align the structure for better visibility or to match a certain orientation in a publication figure.
 - **Cropping**: Use the *Cropping* slider in *View controls* to reduce the unpaired nucleotides at the ends of each sequence to the given number. This is useful to focus on the interaction region and reduce the size of the visualisation. A value of `-1` disables cropping and shows the full sequences.
 - **Selection**: Ctrl-click a nucleotide, numbering label, or text label to add it to or remove it from the selection. Ctrl-drag the background to replace the selection with all elements fully inside the rectangle. An empty rectangle, Ctrl-click on the background, or a plain click on an element clears the selection. Command also works on macOS.

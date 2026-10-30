@@ -8,7 +8,7 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
         v-bind:title="state.viewControlsOpen ? 'Hide view controls' : 'Show view controls'"
         v-on:click="actions.toggleViewControls()">
         <span class="view-controls-toggle-label">View controls</span>
-        <span class="view-controls-toggle-arrow" aria-hidden="true">{{ state.viewControlsOpen ? '‹' : '›' }}</span>
+        <span class="view-controls-toggle-arrow" aria-hidden="true">{{ state.viewControlsOpen ? '›' : '‹' }}</span>
       </button>
       <aside id="viewControlsPanel" class="view-controls-panel" aria-label="View controls"
         v-bind:aria-hidden="!state.viewControlsOpen" v-show="state.viewControlsOpen">

@@ -31,7 +31,7 @@ export function createViewerState(api, colors) {
     fields: { ...defaults }, errors: {}, message: { text: '', type: '' },
     annotations: { subsequences: [], regions: [], mutations: [], texts: [] },
     selectedExample: null, exampleOpen: false, rotation: 0, rotationPreview: 0,
-    renderingOnly: false, showFullPage: false, shareCopied: false, viewControlsOpen: false,
+    renderingOnly: false, showFullPage: false, shareCopied: false, viewControlsOpen: true,
     jsonLoading: false,
     pngExport: { width: '', height: '', dpi: '96', error: '', busy: false },
     inputCaret: { field: '', index: -1 },
