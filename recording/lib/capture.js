@@ -4,6 +4,8 @@ import { spawn } from 'node:child_process';
 import { viewport } from './runtime.js';
 import { defaultParameters } from '../config.js';
 import { serializeCaptions } from './captions.js';
+import { installPresentation, raisePresentation, showInstruction, hideInstruction,
+  showAction, hideAction, readingSeconds } from './presentation.js';
 
 export async function prepareStage(page, origin, scene) {
   const parameters = new URLSearchParams({ ...defaultParameters, ...scene.parameters });
@@ -14,21 +16,7 @@ export async function prepareStage(page, origin, scene) {
     document.body.dataset.demoStage = stage;
   }, { size: viewport, stage: scene.stage || 'canvas' });
   await page.addStyleTag({ path: path.join(import.meta.dirname, 'stage.css') });
-  await page.evaluate(title => {
-    const heading = document.createElement('div');
-    heading.dataset.demoHeading = '';
-    const name = document.createElement('div');
-    name.dataset.demoTitle = '';
-    name.textContent = `vaRRI / ${title}`;
-    const caption = document.createElement('div');
-    caption.dataset.demoCaption = '';
-    heading.append(name, caption);
-    const pointer = document.createElement('div');
-    pointer.dataset.demoPointer = '';
-    pointer.style.transform = 'translate(35px, 110px)';
-    pointer.innerHTML = '<svg viewBox="0 0 28 34"><path d="M3 2 L3 26 L9 20 L15 31 L20 28 L14 18 L24 18 Z" fill="#173e55" stroke="white" stroke-width="2"/></svg>';
-    document.body.append(heading, pointer);
-  }, scene.title);
+  await installPresentation(page, scene.title);
   await page.waitForFunction(count => {
     const canvas = document.querySelector('#rendering-canvas');
     return canvas?.style.visibility !== 'hidden' &&
@@ -53,6 +41,9 @@ export class Capture {
     this.fps = options.fps;
     this.frames = 0;
     this.cues = [];
+    this.timeline = [];
+    this.maxSeconds = options.maxSeconds ?? 45;
+    this.pendingCaption = null;
     this.pointer = { x: 35, y: 110 };
     const args = ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe',
       '-c:v', 'mjpeg', '-r', String(this.fps), '-i', 'pipe:0', '-an',
@@ -77,23 +68,60 @@ export class Capture {
       if (this.process.exitCode !== null) { await this.finished; throw new Error('Encoder exited early'); }
       await new Promise((resolve, reject) => this.process.stdin.write(image, error => error ? reject(error) : resolve()));
       this.frames++;
-      if (this.frames > this.fps * 20) throw new Error('A demo exceeded the 20-second duration budget.');
+      if (this.frames > this.fps * this.maxSeconds) {
+        throw new Error(`A demo exceeded the ${this.maxSeconds}-second duration budget.`);
+      }
     }
   }
 
   async frame(count = 1) {
+    await raisePresentation(this.page);
     await this.write(await this.page.screenshot({ type: 'jpeg', quality: 95,
       clip: { x: 0, y: 0, ...viewport } }), count);
   }
 
   async hold(seconds) { await this.frame(Math.max(1, Math.round(seconds * this.fps))); }
 
+  async poster(text) {
+    await showInstruction(this.page, text, 0);
+    await raisePresentation(this.page);
+  }
+
   async caption(text) {
-    this.cues.push({ start: this.frames / this.fps, text });
-    await this.page.locator('[data-demo-caption]').evaluate((element, value) => { element.textContent = value; }, text);
+    if (this.pendingCaption) await this.clearCaption();
+    const cue = { start: this.frames / this.fps, text };
+    this.cues.push(cue);
+    this.pendingCaption = cue;
+    await showInstruction(this.page, text, this.cues.length);
+  }
+
+  async clearCaption() {
+    if (!this.pendingCaption) return;
+    const cue = this.pendingCaption;
+    const remaining = readingSeconds(cue.text) - (this.frames / this.fps - cue.start);
+    if (remaining > 0) await this.hold(remaining);
+    this.timeline.push({ type: 'instruction', start: cue.start,
+      end: this.frames / this.fps, text: cue.text });
+    this.pendingCaption = null;
+    await hideInstruction(this.page);
+    await this.hold(0.27);
+  }
+
+  async pulse(text, box = null, seconds = 0.4) {
+    const steps = Math.max(2, Math.round(seconds * this.fps));
+    for (let step = 0; step < steps; step++) {
+      await showAction(this.page, this.pointer, text, box, step / steps);
+      await this.frame();
+    }
+  }
+
+  markAction(type, text) {
+    this.timeline.push({ type, start: this.frames / this.fps, text,
+      x: this.pointer.x, y: this.pointer.y });
   }
 
   async move(destination, seconds = 0.55) {
+    await this.clearCaption();
     const from = this.pointer;
     const steps = Math.max(1, Math.round(seconds * this.fps));
     for (let step = 1; step <= steps; step++) {
@@ -108,6 +136,7 @@ export class Capture {
       await this.page.locator('[data-demo-pointer]').evaluate((element, point) => {
         element.style.transform = `translate(${point.x}px, ${point.y}px)`;
       }, next);
+      if (this.dragLabel) await showAction(this.page, next, this.dragLabel);
       await this.frame();
     }
     this.pointer = destination;
@@ -119,30 +148,42 @@ export class Capture {
   }
 
   async click(locator, modifier) {
+    await this.clearCaption();
+    const box = await locator.boundingBox();
     await this.move(await center(locator));
+    const label = modifier ? 'Ctrl / ⌘ + click' : 'Click';
+    this.markAction('click', label);
     if (modifier) await this.page.keyboard.down(modifier);
     try {
       await this.page.mouse.down();
       await this.pressed(true);
-      await this.hold(0.15);
+      await this.pulse(label, box);
       await this.page.mouse.up();
       await this.pressed(false);
     } finally { if (modifier) await this.page.keyboard.up(modifier); }
+    await this.pulse(label, box, 0.27);
+    await hideAction(this.page);
     await this.hold(0.4);
   }
 
   async dragBetween(start, destination, modifier, seconds = 1.3) {
+    await this.clearCaption();
     if (modifier) await this.page.keyboard.down(modifier);
     try {
       await this.move(start);
+      this.dragLabel = modifier ? 'Ctrl / ⌘ + drag' : 'Drag';
+      this.markAction('drag', this.dragLabel);
       await this.page.mouse.down();
       await this.pressed(true);
-      await this.hold(0.2);
+      await this.pulse(this.dragLabel, null, 0.27);
       await this.move(destination, seconds);
       await this.page.mouse.up();
       await this.pressed(false);
+      await this.pulse('Release', null, 0.27);
     } finally {
+      this.dragLabel = null;
       if (modifier) await this.page.keyboard.up(modifier);
+      await hideAction(this.page);
     }
     await this.hold(0.5);
   }
@@ -157,8 +198,9 @@ export class Capture {
   }
 
   async fill(locator, value) {
-    await this.move(await center(locator));
-    await this.page.mouse.click(this.pointer.x, this.pointer.y);
+    await this.click(locator);
+    this.markAction('type', 'Type');
+    await showAction(this.page, this.pointer, 'Type', await locator.boundingBox());
     await this.page.keyboard.press('Control+A');
     await this.page.keyboard.press('Backspace');
     const chunks = String(value).match(/[\s\S]{1,24}/g) || [''];
@@ -166,33 +208,75 @@ export class Capture {
       await this.page.keyboard.insertText(chunk);
       await this.frame(Math.max(1, Math.round(this.fps * 0.12)));
     }
-    await this.page.locator('[data-demo-pointer]').evaluate(element => element.toggleAttribute('data-pressed', false));
     await this.hold(0.35);
+    await hideAction(this.page);
+  }
+
+  async paste(locator, value) {
+    await this.click(locator);
+    this.markAction('paste', 'Paste');
+    await showAction(this.page, this.pointer, 'Paste', await locator.boundingBox());
+    await this.page.keyboard.press('Control+A');
+    // Insert the complete clipboard-sized value in one real input event. Partial
+    // FASTA/profile records would briefly show validation errors while typing.
+    await this.page.keyboard.insertText(String(value));
+    await this.hold(0.6);
+    await hideAction(this.page);
   }
 
   async select(locator, value) {
+    await this.clearCaption();
     await this.move(await center(locator));
-    await locator.selectOption(value);
+    this.markAction('select', 'Choose option');
+    await this.pulse('Choose option', await locator.boundingBox());
+    const index = await locator.evaluate((element, value) =>
+      [...element.options].findIndex(option => option.value === value), value);
+    if (index < 0) throw new Error(`Missing select option: ${value}`);
+    await locator.focus();
+    await this.page.keyboard.press('Home');
+    for (let step = 0; step < index; step++) await this.page.keyboard.press('ArrowDown');
+    await this.page.keyboard.press('Enter');
+    // Chromium can open the native popup on Enter after closed-select arrow
+    // changes. Dismiss it so it cannot cover the next instruction card.
+    await this.page.keyboard.press('Escape');
     await this.hold(0.6);
+    await hideAction(this.page);
   }
 
   async wheel(locator, deltaY, modifier) {
+    await this.clearCaption();
     await this.move(await center(locator));
+    const label = modifier ? 'Ctrl / ⌘ + scroll' : 'Scroll';
+    this.markAction('scroll', label);
     if (modifier) await this.page.keyboard.down(modifier);
     try {
-      await this.page.mouse.wheel(0, deltaY);
-      await this.hold(0.7);
+      for (let step = 0; step < 6; step++) {
+        await showAction(this.page, this.pointer, label, null, step / 6);
+        await this.page.mouse.wheel(0, deltaY / 6);
+        await this.page.waitForTimeout(35);
+        await this.hold(0.13);
+      }
     } finally { if (modifier) await this.page.keyboard.up(modifier); }
+    await hideAction(this.page);
+    await this.hold(0.4);
   }
 
   async press(key, modifier) {
+    await this.clearCaption();
+    const label = modifier ? `${modifier} + ${key}` : key;
+    this.markAction('key', label);
+    await showAction(this.page, this.pointer, label);
     if (modifier) await this.page.keyboard.down(modifier);
     try { await this.page.keyboard.press(key); }
     finally { if (modifier) await this.page.keyboard.up(modifier); }
     await this.hold(0.5);
+    await hideAction(this.page);
   }
 
   async finish() {
+    await this.clearCaption();
+    await hideAction(this.page);
+    await this.hold(0.8);
     this.process.stdin.end();
     await this.finished;
     return this.frames / this.fps;

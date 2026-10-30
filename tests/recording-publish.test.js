@@ -98,6 +98,21 @@ test('caption markup is escaped while the transcript preserves its literal text'
   expect(() => verifyCaptions(captions, [text], 2)).not.toThrow();
 });
 
+test('publishes a longer reading-first clip only within its explicit duration budget', async () => {
+  const clip = generated.clips[0];
+  clip.duration = 30;
+  const captions = Buffer.from(serializeCaptions(clip.cues, clip.duration));
+  await fs.writeFile(path.join(directory, clip.captions), captions);
+  clip.captionsBytes = captions.length;
+  clip.captionsSha256 = sha256(captions);
+  await expect(buildPublishedCatalog(generated, directory, state, scenes)).rejects.toThrow('duration exceeds');
+  generated.durationBudgetSeconds = 45;
+  const catalog = await buildPublishedCatalog(generated, directory, state, scenes);
+  await expect(verifyPublishedCatalog(catalog, directory, scenes)).resolves.toBeUndefined();
+  generated.durationBudgetSeconds = 121;
+  await expect(buildPublishedCatalog(generated, directory, state, scenes)).rejects.toThrow('Invalid recorded duration');
+});
+
 test('source provenance fails closed on Git errors', () => {
   const failed = () => ({ status: 1, stdout: '' });
   expect(() => readSourceState(directory, failed)).toThrow('Cannot verify recording source');

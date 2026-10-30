@@ -2,7 +2,11 @@
 
 The demo pipeline drives the real vaRRI viewer with Playwright and sends rendered
 frames to FFmpeg. A scene describes a user task, shows a pointer and instructions,
-and checks the result. Rerun scenes after changing the interface to refresh the
+and checks the result. Instructions appear centered on a dark video-guide card,
+separate from the viewer. Each card is held for at least 2.4 seconds (longer for
+more text), then cleared before the pointer moves or the action starts. Amber
+rings, target outlines, and gesture labels identify clicks, drags, scrolling,
+keyboard actions, and edited fields. Rerun scenes after changing the interface to refresh the
 videos. No production JavaScript dependency or application build is added.
 
 Generation is ordinary JavaScript, Playwright, and FFmpeg: no AI model, account,
@@ -25,6 +29,7 @@ Agents extending the recorder should start with [AGENTS.md](AGENTS.md).
 | `lib/capture.js` | Viewer setup, actual gestures, screenshot timing, encoding |
 | `lib/runtime.js` | Repository location, encoder discovery, local HTTP server |
 | `lib/stage.css` | Canvas framing and pointer/caption styling |
+| `lib/presentation.js` | Centered instruction cards and recorded gesture effects |
 | `lib/gallery*` | Preview HTML, styling, and accessible playback behavior |
 | `lib/verify.js` | Browser playback and decoded-frame checks |
 
@@ -61,7 +66,7 @@ a custom Chromium executable. Binaries are never downloaded by the recorder.
 ```bash
 npm run demos -- --list
 npm run demos -- --only move-selection
-npm run demos -- --fps 20 --crf 32 --max-kib 350
+npm run demos -- --fps 20 --crf 32 --max-kib 350 --max-seconds 45
 npm run demos -- --out output/playwright/review-demos --headed
 npm run demos:preview -- output/playwright/review-demos
 ```
@@ -98,13 +103,17 @@ For each scene the output contains:
 
 `index.html`, `gallery.css`, and `gallery-player.js` provide the preview.
 `manifest.json` records duration, exact byte count, frame size, codec, quality,
-frame rate, captions, SHA-256, source revision, and whether the checkout was dirty.
+frame rate, captions, instruction/action timing, SHA-256, source revision, and
+whether the checkout was dirty.
 PNG review frames are QA artifacts; they do not need to be deployed.
 
 ## Quality and verification
 
-The default video budget is 512 KiB per clip and the duration limit is 20 seconds.
-Exceeding either fails the build. Defaults favor readable labels: VP9 uses CRF 32
+The default video budget is 4096 KiB per clip and the duration limit is 45 seconds, allowing
+reading pauses before each action. Use `--max-seconds` to set a stricter limit.
+Exceeding either fails the build. The larger size budget preserves UI text when long reading holds are encoded
+with the bundled VP8 encoder. Use `--max-kib` for a stricter delivery budget.
+Defaults favor readable labels: VP9 uses CRF 32
 and constant quality; the VP8 fallback uses CRF 10 with a 1 Mbit/s target.
 CRF scales differ between codecs. Higher CRF generally reduces file size at the
 expense of clarity. Prefer shorter scenes before substantially increasing CRF.
@@ -163,11 +172,17 @@ instructions in the relevant guide or help component, then republish the complet
 catalog after review. Registering a scene alone does not add a player to the UI.
 
 Use real mouse/keyboard events for demonstrated actions and assertions for their
-results. Do not assign node positions or fake selection classes.
+results. Use `paste()` for complete FASTA records or multiline profile data to
+avoid showing validation errors for partially typed records. Do not assign node positions or fake selection classes.
 `capture.click(locator, 'Control')`
 shows a modifier-click; omit the modifier for a regular click.
 `capture.move({x, y}, seconds)` moves the visible pointer and actual mouse together.
-`capture.caption(text)` updates the instruction and the transcript/VTT timeline.
+`capture.caption(text)` opens a centered instruction card and updates the
+transcript/VTT timeline. The next gesture automatically completes its reading
+pause, clears the card, and holds the unobscured viewer briefly before acting.
+`capture.clearCaption()` does this explicitly for a result-only card. Existing
+`hold()` time counts toward the reading pause; `finish()` clears any final card
+and holds the unobscured result. The poster is a title card, outside the timeline.
 Every scene must produce at least one nonempty, single-line caption. Separate
 caption changes with captured frames so their start times increase.
 
@@ -177,7 +192,7 @@ recording overlay are in `lib/capture.js`. Override the fixture for one scene wi
 expects an explicitly supplied sequence and counts its real nucleotides.
 
 The framing is isolated in `lib/stage.css`. The default `stage: 'canvas'` shows
-the actual canvas and manual position controls with an instruction band above.
+the actual canvas and manual position controls with centered instruction cards between action phases.
 Use `stage: 'full-ui'` for input panels, `'dialog'` for input/annotation dialogs,
 or `'export-dialog'` for PNG export. `zoom: false` disables the setup wheel zoom.
 `async prepare(page)` runs after common framing, readiness, and zoom but before
@@ -190,7 +205,9 @@ gestures belong in `run`, after setup finishes.
 
 | Capture helper | Effect |
 | --- | --- |
-| `caption(text)` | Set the visible instruction and begin a timed caption |
+| `caption(text)` | Show a centered card; enforce reading before the next action |
+| `clearCaption()` | Complete reading and reveal the viewer without an action |
+| `paste(locator, value)` | Insert a complete record in one input event with a Paste cue |
 | `hold(seconds)` | Repeat the current frame for a reading pause |
 | `move({ x, y }, seconds?)` | Move actual mouse and visible pointer together |
 | `click(locator, modifier?)` | Approach and click; optionally hold `Control`/`Meta` |

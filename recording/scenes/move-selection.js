@@ -10,8 +10,8 @@ export default {
     await selectPair(capture, page);
     const before = await Promise.all([center(node(page, 3)), center(node(page, 4))]);
     const unchanged = await center(node(page, 8));
-    await capture.caption('Release Ctrl / ⌘, then drag the selection');
-    await capture.hold(0.8);
+    await capture.caption('Release Ctrl / ⌘, then drag either selected node');
+    await capture.hold(2.4);
     await capture.drag(node(page, 3), -90, -70);
     const after = await Promise.all([center(node(page, 3)), center(node(page, 4))]);
     for (let index = 0; index < 2; index++) {
@@ -22,8 +22,17 @@ export default {
     near(other.x, unchanged.x);
     near(other.y, unchanged.y);
     assert.match(await page.locator('#selectMovedBtn').textContent(), /Moved: 2/);
-    await capture.caption('Both nodes stay at their new positions');
+    await capture.caption('Both nodes keep their new positions; other nodes stay put');
+    await capture.hold(2.6);
     await capture.move({ x: 80, y: 140 });
     await capture.hold(1.5);
+    const retained = await Promise.all([center(node(page, 3)), center(node(page, 4))]);
+    for (let index = 0; index < 2; index++) {
+      near(retained[index].x, after[index].x);
+      near(retained[index].y, after[index].y);
+    }
+    const stationary = await center(node(page, 8));
+    near(stationary.x, unchanged.x);
+    near(stationary.y, unchanged.y);
   },
 };

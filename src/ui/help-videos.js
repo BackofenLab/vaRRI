@@ -17,6 +17,30 @@ const assetUrl = asset => {
   return url.href;
 };
 
+function addVideoAssets(video, clip) {
+  const document = video.ownerDocument;
+  const source = document.createElement('source');
+  source.src = assetUrl(clip.assets.video);
+  source.type = clip.assets.video.mime;
+  const track = document.createElement('track');
+  track.kind = 'captions';
+  track.src = assetUrl(clip.assets.captions);
+  track.srclang = 'en';
+  track.label = 'English';
+  track.default = true;
+  const fallback = document.createElement('a');
+  fallback.href = source.src;
+  fallback.textContent = 'Download the WebM demonstration';
+  video.append(source, track, fallback);
+  return source;
+}
+
+function pauseOtherVideos(video) {
+  video.ownerDocument.querySelectorAll('.help-demo-player video, .help-action-preview video').forEach(other => {
+    if (other !== video) other.pause();
+  });
+}
+
 function createPlayer(target, clip) {
   const document = target.ownerDocument;
   const window = document.defaultView;
@@ -65,24 +89,8 @@ function createPlayer(target, clip) {
     video.poster = assetUrl(clip.assets.poster);
     video.setAttribute('aria-label', clip.title);
     video.setAttribute('aria-describedby', `${id}-description`);
-    const source = document.createElement('source');
-    source.src = assetUrl(clip.assets.video);
-    source.type = clip.assets.video.mime;
-    const track = document.createElement('track');
-    track.kind = 'captions';
-    track.src = assetUrl(clip.assets.captions);
-    track.srclang = 'en';
-    track.label = 'English';
-    track.default = true;
-    const fallback = document.createElement('a');
-    fallback.href = source.src;
-    fallback.textContent = 'Download the WebM demonstration';
-    video.append(source, track, fallback);
-    video.addEventListener('play', () => {
-      document.querySelectorAll('.help-demo-player video').forEach(other => {
-        if (other !== video) other.pause();
-      });
-    });
+    const source = addVideoAssets(video, clip);
+    video.addEventListener('play', () => pauseOtherVideos(video));
     const caption = document.createElement('figcaption');
     caption.id = `${id}-description`;
     caption.textContent = clip.description;
@@ -218,6 +226,135 @@ function createPlayer(target, clip) {
   };
 }
 
+function createActionPreview(target, clip) {
+  const document = target.ownerDocument;
+  const window = document.defaultView;
+  const id = `help-action-preview-${clip.id}-${++instance}`;
+  const previousDescription = target.getAttribute('aria-describedby');
+  target.classList.add('help-action-target');
+  target.dataset.helpPreviewReady = 'true';
+  target.setAttribute('aria-describedby', [previousDescription, id].filter(Boolean).join(' '));
+
+  const preview = document.createElement('div');
+  preview.id = id;
+  preview.className = 'help-action-preview';
+  preview.dataset.helpFor = clip.id;
+  preview.setAttribute('role', 'tooltip');
+  preview.hidden = true;
+  const copy = document.createElement('div');
+  copy.className = 'help-action-preview-copy';
+  const title = document.createElement('strong');
+  title.textContent = `${clip.title} · ${Math.ceil(clip.duration)} s`;
+  const description = document.createElement('span');
+  description.textContent = clip.description;
+  copy.append(title, description);
+  document.body.append(preview);
+
+  let video;
+  let timer;
+  let pointerInside = false;
+  let focused = false;
+  let dismissed = false;
+  const buildVideo = () => {
+    if (video) return video;
+    video = document.createElement('video');
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.width = clip.width;
+    video.height = clip.height;
+    video.poster = assetUrl(clip.assets.poster);
+    video.setAttribute('aria-label', clip.title);
+    video.setAttribute('aria-hidden', 'true');
+    addVideoAssets(video, clip);
+    video.addEventListener('play', () => pauseOtherVideos(video));
+    preview.prepend(video);
+    preview.append(copy);
+    return video;
+  };
+  const position = () => {
+    if (preview.hidden) return;
+    const margin = 8;
+    const gap = 8;
+    const anchor = target.getBoundingClientRect();
+    const panel = target.closest('.result-panel')?.getBoundingClientRect();
+    const leftBound = Math.max(margin, (panel?.left ?? 0) + margin);
+    const rightBound = Math.min(window.innerWidth - margin, (panel?.right ?? window.innerWidth) - margin);
+    preview.style.maxWidth = `${Math.max(0, rightBound - leftBound)}px`;
+    const box = preview.getBoundingClientRect();
+    if (anchor.bottom < 0 || anchor.top > window.innerHeight) { hide(); return; }
+    const below = window.innerHeight - anchor.bottom - gap;
+    const above = anchor.top - gap;
+    const useAbove = above >= box.height || above > below;
+    const top = useAbove ? anchor.top - box.height - gap : anchor.bottom + gap;
+    preview.style.top = `${Math.max(margin, Math.min(top, window.innerHeight - box.height - margin))}px`;
+    const centered = anchor.left + anchor.width / 2 - box.width / 2;
+    preview.style.left = `${Math.max(leftBound, Math.min(centered, rightBound - box.width))}px`;
+  };
+  const hide = () => {
+    clearTimeout(timer);
+    timer = undefined;
+    preview.hidden = true;
+    if (video) { video.pause(); video.currentTime = 0; }
+  };
+  const show = delay => {
+    if (dismissed) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = undefined;
+      const media = buildVideo();
+      preview.style.visibility = 'hidden';
+      preview.hidden = false;
+      position();
+      preview.style.visibility = '';
+      if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) media.play().catch(() => {});
+    }, delay);
+  };
+  const leave = () => {
+    if (!pointerInside && !focused) { dismissed = false; hide(); }
+  };
+  const pointerEnter = event => {
+    if (event.pointerType === 'touch' || !window.matchMedia?.('(hover: hover)').matches) return;
+    pointerInside = true;
+    dismissed = false;
+    show(250);
+  };
+  const pointerLeave = () => { pointerInside = false; leave(); };
+  const focusIn = () => { focused = true; dismissed = false; show(0); };
+  const focusOut = () => { focused = false; leave(); };
+  const dismiss = event => {
+    if (event.key !== 'Escape' || preview.hidden) return;
+    event.preventDefault();
+    event.stopPropagation();
+    dismissed = true;
+    hide();
+  };
+  target.addEventListener('pointerenter', pointerEnter);
+  target.addEventListener('pointerleave', pointerLeave);
+  target.addEventListener('focusin', focusIn);
+  target.addEventListener('focusout', focusOut);
+  document.addEventListener('keydown', dismiss);
+  window.addEventListener('resize', position);
+  window.addEventListener('scroll', position, true);
+  return () => {
+    clearTimeout(timer);
+    video?.pause();
+    target.removeEventListener('pointerenter', pointerEnter);
+    target.removeEventListener('pointerleave', pointerLeave);
+    target.removeEventListener('focusin', focusIn);
+    target.removeEventListener('focusout', focusOut);
+    document.removeEventListener('keydown', dismiss);
+    window.removeEventListener('resize', position);
+    window.removeEventListener('scroll', position, true);
+    target.classList.remove('help-action-target');
+    delete target.dataset.helpPreviewReady;
+    if (previousDescription) target.setAttribute('aria-describedby', previousDescription);
+    else target.removeAttribute('aria-describedby');
+    preview.remove();
+  };
+}
+
 export function enhanceHelpVideos(root = document) {
   let disposed = false;
   const cleanup = [];
@@ -229,11 +366,19 @@ export function enhanceHelpVideos(root = document) {
       if (clip) cleanup.push(createPlayer(target, clip));
       else target.textContent = `Demonstration unavailable: ${target.dataset.helpDemo}`;
     });
+    root.querySelectorAll('[data-help-preview]:not([data-help-preview-ready])').forEach(target => {
+      const clip = clips.get(target.dataset.helpPreview);
+      if (clip) cleanup.push(createActionPreview(target, clip));
+      else target.title = `${target.title || 'Action'}. Video help is unavailable.`;
+    });
   }).catch(error => {
     if (!disposed) root.querySelectorAll('[data-help-demo]').forEach(target => {
       target.classList.add('help-demo-unavailable');
       target.textContent = 'Video help is unavailable; the written instructions remain complete.';
       target.title = error.message;
+    });
+    if (!disposed) root.querySelectorAll('[data-help-preview]').forEach(target => {
+      target.title = `${target.title || 'Action'}. Video help is unavailable: ${error.message}`;
     });
   });
   return () => { disposed = true; cleanup.splice(0).forEach(dispose => dispose()); };

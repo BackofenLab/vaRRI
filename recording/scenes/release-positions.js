@@ -8,18 +8,19 @@ export default {
   description: 'Move a node, select it through Moved, and release its manual fixation while retaining its current position.',
   async run(capture, page) {
     const original = await center(node(page, 3));
-    await capture.caption('Drag a node to fix a new position');
-    await capture.hold(0.8);
+    await capture.caption('Drag a node to fix it in a new position');
+    await capture.hold(2);
     await capture.drag(node(page, 3), -90, -70);
     const moved = await center(node(page, 3));
     near(moved.x - original.x, -90);
+    near(moved.y - original.y, -70);
     assert.match(await page.locator('#selectMovedBtn').textContent(), /Moved: 1/);
-    await capture.caption('Moved selects fixed nodes');
-    await capture.hold(0.3);
+    await capture.caption('Click Moved to select the fixed node');
+    await capture.hold(1.8);
     await capture.click(page.locator('#selectMovedBtn'));
     assert.equal(await selected(page), 1);
-    await capture.caption('Release unfixes selected nodes');
-    await capture.hold(0.5);
+    await capture.caption('Click Release to remove its fixed position');
+    await capture.hold(2);
     await capture.click(page.locator('#releasePositionsBtn'));
     assert.match(await page.locator('#selectMovedBtn').textContent(), /Moved: 0/);
     assert.equal(await page.locator('#resetPositionsBtn').isDisabled(), true);
@@ -28,7 +29,8 @@ export default {
     const fixed = await node(page, 3).evaluate(element => ({ fixed: element.__data__.fixed,
       fx: element.__data__.fx, fy: element.__data__.fy }));
     assert.equal(Boolean(fixed.fixed || fixed.fx != null || fixed.fy != null), false);
-    await capture.caption('Force can move released nodes again');
+    await capture.caption('The node stays here; Moved returns to 0');
+    await capture.hold(2);
     await capture.move({ x: 80, y: 140 });
     await capture.hold(1.3);
   },

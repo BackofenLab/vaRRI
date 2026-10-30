@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import path from 'node:path';
 
 async function visibleTeaser(target) {
   const teaser = target.locator('.help-demo-teaser');
@@ -63,6 +64,8 @@ export async function exerciseDocsHelpVideos(page) {
     'Escape dismisses a preview without moving keyboard focus');
   await trigger.press('Enter');
   const moveVideo = move.locator('video');
+  assert.equal(await moveVideo.getAttribute('aria-hidden'), null,
+    'The full, controlled player remains available to assistive technology');
   await moveVideo.evaluate(video => video.play());
   await page.waitForFunction(video => video.currentTime > 0 && video.textTracks.length === 1 &&
     video.textTracks[0].cues?.length > 0 && video.textTracks[0].mode === 'showing',
@@ -76,6 +79,51 @@ export async function exerciseDocsHelpVideos(page) {
   await page.waitForFunction(video => video.paused && video.currentTime === 0,
     await reset.locator('video').elementHandle());
   await move.locator('button').click();
+}
+
+export async function exerciseActionVideoPreviews(page, output) {
+  const expected = {
+    selectMovedBtn: 'release-positions', releasePositionsBtn: 'release-positions',
+    resetPositionsBtn: 'reset-positions', undoCanvasBtn: 'reset-positions',
+    exportPngBtn: 'export-png', storeJsonBtn: 'store-load-session',
+  };
+  await page.waitForFunction(count => document.querySelectorAll('[data-help-preview-ready="true"]').length === count,
+    Object.keys(expected).length);
+  for (const [id, clip] of Object.entries(expected)) {
+    const button = page.locator('#' + id);
+    assert.equal(await button.getAttribute('data-help-preview'), clip, `${id} references its corresponding clip`);
+    assert.equal(await button.getAttribute('data-help-preview-ready'), 'true');
+    assert.ok((await button.getAttribute('aria-describedby'))?.startsWith('help-action-preview-'));
+    const icon = await button.evaluate(element => getComputedStyle(element, '::after').content);
+    assert.notEqual(icon, 'none', `${id} displays the video affordance`);
+  }
+
+  const png = page.locator('#exportPngBtn');
+  const pngPreview = page.locator('.help-action-preview[data-help-for="export-png"]');
+  assert.equal(await pngPreview.locator('video').count(), 0, 'The WebM player stays lazy before hover');
+  await png.hover();
+  await pngPreview.waitFor({ state: 'visible' });
+  const video = pngPreview.locator('video');
+  await page.waitForFunction(media => media.currentTime > 0 && !media.paused, await video.elementHandle());
+  assert.equal(await video.evaluate(media => media.muted && media.loop && media.playsInline), true,
+    'The hover preview plays silently inline');
+  assert.equal(await video.getAttribute('aria-hidden'), 'true',
+    'The decorative preview leaves its written description to assistive technology');
+  await assertPreviewFits(pngPreview);
+  if (output) await page.screenshot({ path: path.join(output, 'action-video-preview.png'), fullPage: true });
+  await page.mouse.move(0, 0);
+  await pngPreview.waitFor({ state: 'hidden' });
+  assert.equal(await video.evaluate(media => media.paused && media.currentTime === 0), true,
+    'Leaving the button stops and rewinds its preview');
+
+  const store = page.locator('#storeJsonBtn');
+  const storePreview = page.locator('.help-action-preview[data-help-for="store-load-session"]');
+  await store.focus();
+  await storePreview.waitFor({ state: 'visible' });
+  await page.keyboard.press('Escape');
+  await storePreview.waitFor({ state: 'hidden' });
+  assert.equal(await store.evaluate(element => element === document.activeElement), true,
+    'Escape dismisses keyboard video help without moving focus');
 }
 
 export async function exerciseCanvasHelpVideoTeaser(page) {

@@ -26,7 +26,7 @@ function validateClip(clip, scene) {
   if (clip.title !== scene.title || clip.description !== scene.description || clip.kind !== kind ||
     JSON.stringify(clip.placements) !== JSON.stringify(scene.placements) ||
     clip.width !== viewport.width || clip.height !== viewport.height ||
-    !Number.isFinite(clip.duration) || clip.duration <= 0 || clip.duration > 20 ||
+    !Number.isFinite(clip.duration) || clip.duration <= 0 || clip.duration > 120 ||
     !Number.isInteger(clip.fps) || clip.fps < 10 || clip.fps > 30 || !['vp8', 'vp9'].includes(clip.codec)) {
     throw new Error(`${clip.id}: invalid or stale demo metadata.`);
   }
@@ -77,6 +77,10 @@ export async function buildPublishedCatalog(generated, directory, state, scenes)
   }
   if (!Number.isInteger(generated.sizeBudgetBytes) || generated.sizeBudgetBytes <= 0 ||
     generated.sizeBudgetBytes > maxAssetBytes) throw new Error('Invalid recorded video size budget.');
+  const durationBudget = generated.durationBudgetSeconds ?? 20;
+  if (!Number.isInteger(durationBudget) || durationBudget < 1 || durationBudget > 120) {
+    throw new Error('Invalid recorded duration budget.');
+  }
   const clips = [];
   let aggregateBytes = 0;
   let aggregateWebmBytes = 0;
@@ -84,6 +88,7 @@ export async function buildPublishedCatalog(generated, directory, state, scenes)
     const scene = scenes.find(item => item.id === clip.id);
     validateClip(clip, scene);
     validateCues(clip.cues, clip.duration);
+    if (clip.duration > durationBudget) throw new Error(`${clip.id}: recorded duration exceeds its budget.`);
     const assets = {
       video: { file: clip.file, mime: 'video/webm', bytes: clip.bytes, sha256: clip.sha256 },
       poster: { file: clip.poster, mime: 'image/png', bytes: clip.posterBytes, sha256: clip.posterSha256 },

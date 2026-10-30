@@ -45,9 +45,24 @@ export async function serve(directory) {
       const target = await fs.realpath(path.resolve(base, '.' + pathname));
       if (!target.startsWith(base + path.sep)) { response.writeHead(403).end(); return; }
       const content = await fs.readFile(target);
-      response.writeHead(200, { 'Content-Type': mime[path.extname(target)] || 'application/octet-stream',
-        'Content-Length': content.length, 'Cache-Control': 'no-store' });
-      response.end(content);
+      const headers = { 'Content-Type': mime[path.extname(target)] || 'application/octet-stream',
+        'Accept-Ranges': 'bytes', 'Cache-Control': 'no-store' };
+      if (request.headers.range) {
+        const match = /^bytes=(\d*)-(\d*)$/.exec(request.headers.range);
+        const start = match?.[1] ? Number(match[1]) : Math.max(0, content.length - Number(match?.[2]));
+        const end = match?.[1] && match[2] ? Math.min(Number(match[2]), content.length - 1) : content.length - 1;
+        if (!match || (!match[1] && !match[2]) || !Number.isSafeInteger(start) ||
+          !Number.isSafeInteger(end) || start > end || start >= content.length) {
+          response.writeHead(416, { ...headers, 'Content-Range': `bytes */${content.length}` }).end();
+          return;
+        }
+        response.writeHead(206, { ...headers, 'Content-Length': end - start + 1,
+          'Content-Range': `bytes ${start}-${end}/${content.length}` });
+        response.end(content.subarray(start, end + 1));
+      } else {
+        response.writeHead(200, { ...headers, 'Content-Length': content.length });
+        response.end(content);
+      }
     } catch { response.writeHead(404).end('Not found'); }
   });
   await new Promise((resolve, reject) => {

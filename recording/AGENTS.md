@@ -43,7 +43,9 @@ Release held keys and mouse buttons. Wait for renders/dialogs after UI changes.
 
 Every scene should begin with an instruction, allow reading time, show one short
 task, assert its observable result, and hold the final state. Stay within the
-20-second and 512-KiB defaults unless the task explicitly needs different limits.
+45-second and 4096-KiB defaults unless the task explicitly needs different limits.
+The capture helpers enforce a reading pause and clear centered instruction cards
+before gestures. Do not bypass them with direct pointer actions in a scene.
 At least one nonempty, single-line caption is required. Capture frames between
 caption changes so their start times increase; the same cues form the transcript.
 `capture.hold()` repeats a still frame; it cannot demonstrate running physics.

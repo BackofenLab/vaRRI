@@ -35,7 +35,7 @@ export async function verifyVideos(browser, directory, clips) {
         const element = document.querySelector(`source[src="${id}.webm"]`).parentElement;
         if (element.error) throw new Error(element.error.message);
         return element.ended;
-      }, clip.id, { timeout: 15000 });
+      }, clip.id, { timeout: Math.max(15000, clip.duration * 1000 / 4 + 10000) });
       await video.evaluate((element, width) => {
         element.controls = false;
         element.style.width = `${width}px`;
