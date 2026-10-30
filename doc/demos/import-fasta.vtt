@@ -1,17 +1,17 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:01.067
-Open the FASTA input dialog
+00:00:00.000 --> 00:00:04.533
+Open FASTA Data to import RNA records
 
 2
-00:00:01.067 --> 00:00:02.200
-Paste FASTA records
+00:00:04.533 --> 00:00:09.933
+Paste two FASTA records with sequences and structures
 
 3
-00:00:02.200 --> 00:00:04.200
-Parsed names and structures are ready to use
+00:00:09.933 --> 00:00:15.600
+Check the parsed sequences, structures, and names
 
 4
-00:00:04.200 --> 00:00:05.867
-OK renders the imported RNA
+00:00:15.600 --> 00:00:24.000
+Click OK to render the imported RNA

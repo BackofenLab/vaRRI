@@ -1,17 +1,17 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:01.067
-Store saves session JSON
+00:00:00.000 --> 00:00:05.467
+Click Store to download this session as a JSON file
 
 2
-00:00:01.067 --> 00:00:02.133
-Clear empties inputs
+00:00:05.467 --> 00:00:12.133
+Click Clear to empty the inputs and remove the figure
 
 3
-00:00:02.133 --> 00:00:03.200
-Load the saved JSON
+00:00:12.133 --> 00:00:19.333
+Click Load, then choose vaRRI_session.json in the file picker
 
 4
-00:00:03.200 --> 00:00:04.933
-Inputs and figure are restored
+00:00:19.333 --> 00:00:24.867
+The saved inputs and RNA figure are restored

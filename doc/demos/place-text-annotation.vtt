@@ -1,17 +1,25 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:04.733
-Add a text annotation
+00:00:00.000 --> 00:00:04.267
+Open the text annotation dialog
 
 2
-00:00:04.733 --> 00:00:05.733
-? means unpositioned
+00:00:04.267 --> 00:00:09.267
+Enter Binding site as the annotation text
 
 3
-00:00:05.733 --> 00:00:08.333
-Drag the label from the list onto the drawing
+00:00:09.267 --> 00:00:13.800
+Turn on Bold to emphasize the label
 
 4
-00:00:08.333 --> 00:00:10.000
-Target icon confirms placement
+00:00:13.800 --> 00:00:18.933
+Click OK to add the label to the list
+
+5
+00:00:18.933 --> 00:00:25.733
+The ? means unpositioned. Drag the label onto the drawing
+
+6
+00:00:25.733 --> 00:00:31.800
+The target icon confirms the label is positioned

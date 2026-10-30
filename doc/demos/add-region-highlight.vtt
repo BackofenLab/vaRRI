@@ -1,13 +1,25 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:01.067
-Add a paired region highlight
+00:00:00.000 --> 00:00:04.267
+Click Add in Region Highlights
 
 2
-00:00:01.067 --> 00:00:04.200
-Enter a biological range for each RNA
+00:00:04.267 --> 00:00:09.267
+Enter 1-2 for the first RNA strand
 
 3
-00:00:04.200 --> 00:00:07.000
-OK adds the highlight to the list and drawing
+00:00:09.267 --> 00:00:14.867
+Enter 3-4 for its partner on the second RNA
+
+4
+00:00:14.867 --> 00:00:19.600
+Set opacity to 0.5 for a translucent highlight
+
+5
+00:00:19.600 --> 00:00:26.267
+Click OK to add the highlight to the drawing
+
+6
+00:00:26.267 --> 00:00:32.933
+The paired region is highlighted and listed on the left

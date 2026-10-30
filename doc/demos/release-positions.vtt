@@ -1,17 +1,17 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:03.400
-Drag a node to fix a new position
+00:00:00.000 --> 00:00:06.800
+Drag a node to fix it in a new position
 
 2
-00:00:03.400 --> 00:00:04.800
-Moved selects fixed nodes
+00:00:06.800 --> 00:00:11.333
+Click Moved to select the fixed node
 
 3
-00:00:04.800 --> 00:00:06.400
-Release unfixes selected nodes
+00:00:11.333 --> 00:00:15.867
+Click Release to remove its fixed position
 
 4
-00:00:06.400 --> 00:00:08.267
-Force can move released nodes again
+00:00:15.867 --> 00:00:21.733
+The node stays here; Moved returns to 0

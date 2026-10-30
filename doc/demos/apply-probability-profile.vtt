@@ -1,17 +1,21 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:01.133
-Enter indexed values
+00:00:00.000 --> 00:00:06.067
+Enter each nucleotide index and its probability for RNA 1.
 
 2
-00:00:01.133 --> 00:00:02.267
-Use start-based indices
+00:00:06.067 --> 00:00:11.733
+Choose Start 1: indices are -2, -1, 1, 2, skipping zero.
 
 3
-00:00:02.267 --> 00:00:03.333
-Full color means zero
+00:00:11.733 --> 00:00:17.467
+Uncheck =1 so purple represents zero; higher values fade the overlay.
 
 4
-00:00:03.333 --> 00:00:06.133
-Apply renders the profile as a color gradient
+00:00:17.467 --> 00:00:24.667
+Click Apply to color RNA 1 using the probability profile.
+
+5
+00:00:24.667 --> 00:00:30.600
+Lower probabilities have stronger purple shading on RNA 1.
