@@ -64,8 +64,6 @@ their attribution; the viewer does not load the Fornac runtime.
 To showcase the capabilities of vaRRI, we provide a collection of examples from the literature that have been reproduced using vaRRI.
 The examples can be loaded directly in the input website via the **Example** dropdown.
 
-https://github.com/user-attachments/assets/771ec6ad-0105-46f9-b967-dace43bf6666
-
 ---
 
 ## Project Structure
