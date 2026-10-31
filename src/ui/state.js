@@ -44,6 +44,7 @@ export function createViewerState(api, colors) {
 export function createStateActions({ state, defaults, api }) {
   return {
     toggleViewControls() { state.viewControlsOpen = !state.viewControlsOpen; },
+    closeViewControls() { state.viewControlsOpen = false; },
     setFieldError(id, message) { state.errors[id] = message; },
     clearFieldError(id) { delete state.errors[id]; },
     clearFieldErrors(ids) { ids.forEach(id => { delete state.errors[id]; }); },

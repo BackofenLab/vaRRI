@@ -76,7 +76,9 @@ export function createRenderActions({ api, state, actions, document }) {
     runVisualization, applyColors, syncGeneratedRegionHighlight, applySliderRotation, commitSliderRotation,
     selectMovedElements() { api.selectManuallyPositionedElements(); },
     resetSelectedPositions() { api.resetSelectedPositions(); },
-    releaseSelectedPositions() { api.releaseSelectedPositions(); },
+    releaseSelectedPositions() {
+      if (state.fields.forceLayout) api.releaseSelectedPositions();
+    },
     undoCanvasEdit() { api.undoCanvasEdit(); },
     cancelRendering() {
       latestRun++; api.cancelActiveRender();

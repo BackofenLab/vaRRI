@@ -37,7 +37,8 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
           <button id="selectMovedBtn" type="button" v-on:click="actions.selectMovedElements()"
             v-bind:disabled="!state.canvasInteraction.movedCount" title="Select all manually moved nucleotides and numbering labels. Text labels are not counted.">Moved: {{ state.canvasInteraction.movedCount }}</button>
           <button id="releasePositionsBtn" type="button" v-on:click="actions.releaseSelectedPositions()"
-            v-bind:disabled="!state.canvasInteraction.selectedNodeCount" title="Unfix selected nodes at their current positions. They resume moving if Force layout is enabled. Text labels are unaffected.">Release</button>
+            v-bind:disabled="!state.fields.forceLayout || !state.canvasInteraction.selectedNodeCount"
+            v-bind:title="state.fields.forceLayout ? 'Unfix selected nodes at their current positions. Text labels are unaffected.' : 'Release is available when Force layout is enabled.'">Release</button>
           <button id="resetPositionsBtn" type="button" v-on:click="actions.resetSelectedPositions()"
             v-bind:disabled="!state.canvasInteraction.selectedMovedCount" title="Restore selected nodes to their positions and fixation before manual editing.">Reset</button>
           <button id="undoCanvasBtn" type="button" v-on:click="actions.undoCanvasEdit()"
@@ -46,7 +47,7 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
             v-on:click="actions.openDialog('canvasHelpDialog', 'Canvas interactions')">Help</button>
         </div>
       </aside>
-      <div id="rendering-canvas" tabindex="0" @dragover="actions.overTextAnnotationCanvas($event)"
+      <div id="rendering-canvas" tabindex="0" @pointerdown.capture="actions.closeViewControls()" @dragover="actions.overTextAnnotationCanvas($event)"
         @dragleave="actions.leaveTextAnnotationCanvas($event)" @drop="actions.dropTextAnnotation($event)"></div>
     </div>
     <div id="rendering-caption" v-html="actions.exampleCaption()" v-show="state.selectedExample"></div>

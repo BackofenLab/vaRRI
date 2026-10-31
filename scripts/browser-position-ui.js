@@ -34,19 +34,24 @@ export async function exercisePositionControlsUI(page, origin, output) {
   await page.mouse.down();
   await page.mouse.move(box.x + box.width / 2 - 30, box.y + box.height / 2 + 20, { steps: 5 });
   await page.mouse.up();
+  assert.equal(await viewControls.getAttribute('aria-expanded'), 'false',
+    'Starting an interaction in the visualization closes View controls');
+  assert.equal(await page.locator('#viewControlsPanel').isVisible(), false);
   assert.equal(await page.locator('#rendering-canvas').evaluate(element => getComputedStyle(element).outlineStyle), 'none',
     'Pointer gestures do not add a frame around the canvas');
   await page.waitForFunction(() => document.getElementById('selectMovedBtn').textContent === 'Moved: 1');
-  assert.equal(await reset.isDisabled(), true, 'Reset needs a selected manually moved node');
-  assert.equal(await undo.isEnabled(), true);
   await page.keyboard.press('Tab');
   await page.keyboard.press('Shift+Tab');
   assert.equal(await page.locator('#rendering-canvas').evaluate(element => element === document.activeElement &&
     getComputedStyle(element).outlineStyle === 'solid'), true, 'Keyboard navigation retains a visible canvas focus indicator');
+  await viewControls.click();
+  assert.equal(await reset.isDisabled(), true, 'Reset needs a selected manually moved node');
+  assert.equal(await undo.isEnabled(), true);
   await moved.click();
   assert.equal(await page.locator('#rendering-canvas [data-varri-selected]').count(), 1);
   assert.equal(await reset.isEnabled(), true);
-  assert.equal(await release.isEnabled(), true);
+  assert.equal(await release.isDisabled(), true, 'Release stays disabled outside Force layout mode');
+  assert.ok((await release.getAttribute('title')).includes('Force layout'));
   const cropBox = await page.locator('#cropping').boundingBox();
   const movedBox = await moved.boundingBox();
   const panelBox = await page.locator('#viewControlsPanel').boundingBox();
@@ -58,21 +63,15 @@ export async function exercisePositionControlsUI(page, origin, output) {
   assert.ok(movedBox.y >= cropBox.y + cropBox.height, 'Manual controls follow Cropping in the side panel');
   await page.screenshot({ path: path.join(output, 'manual-position-controls.png'), fullPage: true });
   const edited = await node.evaluate(element => ({ x: element.__data__.x, y: element.__data__.y }));
-  await release.click();
-  assert.deepEqual(await node.evaluate(element => ({ x: element.__data__.x, y: element.__data__.y })), edited,
-    'Release retains the current position in a static layout');
-  assert.equal(await node.evaluate(element => element.__data__.fixed), 0);
-  assert.equal(await moved.textContent(), 'Moved: 0');
-  assert.equal(await reset.isDisabled(), true);
-  await undo.click();
-  assert.equal(await node.evaluate(element => element.__data__.fixed), 1);
-  assert.equal(await moved.textContent(), 'Moved: 1');
   await reset.click();
   assert.deepEqual(await node.evaluate(element => ({ x: element.__data__.x, y: element.__data__.y })), initial);
   assert.equal(await moved.textContent(), 'Moved: 0');
   assert.equal(await reset.isDisabled(), true);
   await undo.click();
-  assert.equal(await moved.textContent(), 'Moved: 1', 'Undo restores reset manual positions');
+  assert.equal(await node.evaluate(element => element.__data__.fixed), 1);
+  assert.equal(await moved.textContent(), 'Moved: 1');
+  assert.deepEqual(await node.evaluate(element => ({ x: element.__data__.x, y: element.__data__.y })), edited,
+    'Undo restores reset manual positions');
   await page.locator('#rendering-canvas').focus();
   await page.keyboard.press('Meta+z');
   assert.equal(await moved.textContent(), 'Moved: 0', 'Canvas shortcut undoes the original drag');
