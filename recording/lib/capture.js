@@ -75,6 +75,12 @@ export class Capture {
   }
 
   async frame(count = 1) {
+    // UI commits hide the drawing while rendering. Wait before taking a still
+    // so an effect hold cannot repeat that transient blank canvas.
+    await this.page.waitForFunction(() => {
+      const canvas = document.getElementById('rendering-canvas');
+      return canvas && canvas.style.visibility !== 'hidden';
+    });
     await raisePresentation(this.page);
     await this.write(await this.page.screenshot({ type: 'jpeg', quality: 95,
       clip: { x: 0, y: 0, ...viewport } }), count);

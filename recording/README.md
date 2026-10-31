@@ -137,6 +137,9 @@ before embedding, particularly after changes to layout, controls, or fonts.
 Recording uses a fixed viewport, seeded randomness, and static layout. It captures
 one frame for each pointer step and repeats frames for instructional pauses. This
 avoids loading screens and gives explicit output timing even on slower machines.
+Each frame waits until the viewer finishes any in-progress render, so action
+effects and holds show the completed drawing. An intentionally cleared canvas
+remains visible and is still recorded.
 It is designed for discrete interactions, not real-time force-layout animation.
 `capture.hold()` repeats a still frame; it does not record ongoing physics. Use a
 separate real-time recording approach if a future scene needs to show convergence.
