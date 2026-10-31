@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { exerciseCanvasHelpVideoTeaser } from './browser-help-videos.js';
 
 /** The panel must supply working help even when its host knows only ViewerPanel. */
 export async function exerciseStandaloneCanvasHelp(page, origin) {
@@ -27,6 +28,17 @@ export async function exerciseStandaloneCanvasHelp(page, origin) {
     assert.equal(await dialog.count(), 1, 'The help button supplies exactly one accessible dialog');
     assert.equal(await dialog.isVisible(), true, 'Keyboard activation opens visible help');
     assert.equal(await dialog.evaluate(element => element.matches(':modal')), true, 'Help enters the modal top layer');
+    await page.waitForFunction(() => document.querySelectorAll('#canvasHelpDialog [data-help-demo-ready]').length === 6);
+    await exerciseCanvasHelpVideoTeaser(page);
+    const demoTrigger = dialog.locator('[data-help-demo="move-selection"] .help-demo-trigger');
+    await demoTrigger.focus();
+    await dialog.locator('[data-help-demo="move-selection"] .help-demo-teaser').waitFor({ state: 'visible' });
+    await demoTrigger.press('Enter');
+    const video = dialog.locator('[data-help-demo="move-selection"] video');
+    assert.equal(await video.isVisible(), true, 'Enter expands the requested demonstration');
+    assert.equal(await video.getAttribute('autoplay'), null);
+    assert.equal(await video.getAttribute('loop'), null);
+    assert.equal(await video.locator('track[kind="captions"]').count(), 1);
     await checkCanvasHelpStyles(page);
     await page.keyboard.press('Escape');
     assert.equal(await help.evaluate(element => element === document.activeElement), true);
@@ -44,7 +56,7 @@ export async function checkCanvasHelpStyles(page) {
   const dialog = page.locator('#canvasHelpDialog');
   const box = await dialog.boundingBox();
   const viewport = page.viewportSize();
-  assert.ok(box.width <= 542 && box.width <= viewport.width - 30, 'Help has a bounded width');
+  assert.ok(box.width <= 722 && box.width <= viewport.width - 30, 'Help has a bounded width');
   assert.ok(Math.abs(box.x + box.width / 2 - viewport.width / 2) < 2, 'Help is horizontally centered');
   assert.ok(Math.abs(box.y + box.height / 2 - viewport.height / 2) < 2, 'Help is vertically centered');
   assert.equal(await dialog.locator('dt').first().evaluate(el => getComputedStyle(el).fontWeight), '700');

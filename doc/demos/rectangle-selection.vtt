@@ -1,0 +1,13 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.733
+Ctrl / ⌘ + click a node to start a selection
+
+2
+00:00:05.733 --> 00:00:13.333
+Ctrl / ⌘ + drag the background around two other nodes
+
+3
+00:00:13.333 --> 00:00:19.467
+The rectangle replaces the selection with these two nodes

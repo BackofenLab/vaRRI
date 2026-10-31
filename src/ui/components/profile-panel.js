@@ -1,4 +1,5 @@
 import { viewerComponent } from './context.js';
+import VideoHelp from './video-help.js';
 
 export default viewerComponent('profile-panel', `<aside class="panel control-panel" aria-label="Probability profiles">
       <details class="control-group" name="controls-accordion">
@@ -54,8 +55,9 @@ export default viewerComponent('profile-panel', `<aside class="panel control-pan
           </div>
           <div class="action-row">
             <button id="profileApplyBtn" class="btn btn-primary btn-sm" type="button" v-on:click="actions.runVisualization($event)">Apply</button>
+            <VideoHelp clip="apply-probability-profile" label="Apply a probability profile" />
             <button id="profileClearBtn" class="btn btn-secondary btn-sm" type="button" v-on:click="actions.resetProfileForm($event)">Clear</button>
           </div>
         </div>
       </details>
-    </aside>`);
+    </aside>`, { VideoHelp });

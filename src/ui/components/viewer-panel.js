@@ -34,16 +34,16 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
         </div>
         <div class="manual-position-controls" role="group" aria-label="Manual positions">
           <h3>Manual positions</h3>
-          <button id="selectMovedBtn" type="button" v-on:click="actions.selectMovedElements()"
+          <button id="selectMovedBtn" type="button" data-help-preview="release-positions" v-bind:aria-label="'Moved: ' + state.canvasInteraction.movedCount" v-on:click="actions.selectMovedElements()"
             v-bind:disabled="!state.canvasInteraction.movedCount" title="Select all manually moved nucleotides and numbering labels. Text labels are not counted.">Moved: {{ state.canvasInteraction.movedCount }}</button>
-          <button id="releasePositionsBtn" type="button" v-on:click="actions.releaseSelectedPositions()"
+          <button id="releasePositionsBtn" type="button" data-help-preview="release-positions" aria-label="Release" v-on:click="actions.releaseSelectedPositions()"
             v-bind:disabled="!state.fields.forceLayout || !state.canvasInteraction.selectedNodeCount"
             v-bind:title="state.fields.forceLayout ? 'Unfix selected nodes at their current positions. Text labels are unaffected.' : 'Release is available when Force layout is enabled.'">Release</button>
-          <button id="resetPositionsBtn" type="button" v-on:click="actions.resetSelectedPositions()"
+          <button id="resetPositionsBtn" type="button" data-help-preview="reset-positions" aria-label="Reset" v-on:click="actions.resetSelectedPositions()"
             v-bind:disabled="!state.canvasInteraction.selectedMovedCount" title="Restore selected nodes to their positions and fixation before manual editing.">Reset</button>
-          <button id="undoCanvasBtn" type="button" v-on:click="actions.undoCanvasEdit()"
+          <button id="undoCanvasBtn" type="button" data-help-preview="reset-positions" aria-label="Undo" v-on:click="actions.undoCanvasEdit()"
             v-bind:disabled="!state.canvasInteraction.canUndo" title="Undo the last drag, selection rotation, release, or reset. Ctrl+Z / Command+Z while the canvas is focused.">Undo</button>
-          <button id="canvasHelpBtn" type="button" aria-label="Canvas interaction help" title="Open canvas interaction help"
+          <button id="canvasHelpBtn" type="button" aria-label="Canvas interaction help" title="Open canvas interaction help" aria-haspopup="dialog" aria-controls="canvasHelpDialog"
             v-on:click="actions.openDialog('canvasHelpDialog', 'Canvas interactions')">Help</button>
         </div>
       </aside>
@@ -53,8 +53,8 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
     <div id="rendering-caption" v-html="actions.exampleCaption()" v-show="state.selectedExample"></div>
     <div class="export-bar">
       <button id="exportSvgBtn" class="btn btn-success btn-sm" type="button" title="Download rendering in SVG format." v-on:click="actions.exportSVG($event)">⬇ SVG</button>
-      <button id="exportPngBtn" class="btn btn-info btn-sm" type="button" title="Download rendering in PNG format." v-on:click="actions.exportPNG($event)">⬇ PNG</button>
-      <button id="storeJsonBtn" class="btn btn-secondary btn-sm" type="button" title="Store settings and annotations in a JSON file" @click="actions.storeJSON()">⬇ Store</button>
+      <button id="exportPngBtn" class="btn btn-info btn-sm" type="button" data-help-preview="export-png" aria-label="Export PNG" title="Download rendering in PNG format." v-on:click="actions.exportPNG($event)">⬇ PNG</button>
+      <button id="storeJsonBtn" class="btn btn-secondary btn-sm" type="button" data-help-preview="store-load-session" aria-label="Store" title="Store settings and annotations in a JSON file" @click="actions.storeJSON()">⬇ Store</button>
       <button id="shareLinkBtn" class="btn btn-shareLink btn-sm" type="button" title="Copy shareable link to clipboard" v-on:click="actions.shareLink($event)">{{ state.shareCopied ? '✓ Copied!' : '🔗 Share' }}</button>
       <button id="openVarriBtn" class="btn btn-openVarri btn-sm" type="button" title="Show this in a new vaRRI browser window" v-on:click="actions.openFullPage($event)" v-show="state.showFullPage">Full Page</button>
       <span class="cite-note">Please

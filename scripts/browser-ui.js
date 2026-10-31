@@ -9,10 +9,12 @@ import { checkPNGDialog, checkPNGResize } from './browser-png-export.js';
 import { exercisePositionControlsUI } from './browser-position-ui.js';
 import { exerciseTextAnnotationUI } from './browser-text-ui.js';
 import { exerciseSequenceNames } from './browser-sequence-names.js';
+import { exerciseLeftVideoGuides } from './browser-left-video-guides.js';
 import { checkInputHighlights } from './browser-input-highlights.js';
 import { checkCrossingRriExample } from './browser-crossing-rri.js';
 import { checkJSONFiles } from './browser-json-files.js';
 import { checkExampleDropdownOverlay } from './browser-example-dropdown.js';
+import { exerciseActionVideoPreviews } from './browser-help-videos.js';
 const root = path.resolve(import.meta.dirname, '..');
 const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
@@ -20,7 +22,8 @@ const browserType = process.argv.includes('--firefox') ? firefox : chromium;
 const outputName = browserType === firefox ? 'ui-firefox' : 'ui';
 const output = path.join(root, 'output/playwright', outputName + (process.env.VARRI_BROWSER_CHANNEL ? '-channel' : ''));
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
-  '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json' };
+  '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json',
+  '.webm': 'video/webm', '.vtt': 'text/vtt' };
 
 async function serve() {
   const server = http.createServer((request, response) => {
@@ -80,7 +83,13 @@ async function main() {
     page.on('response', response => {
       if (response.url().startsWith(origin) && response.status() >= 400) errors.push(response.url());
     });
-    page.on('requestfailed', request => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
+    page.on('requestfailed', request => {
+      const failure = request.failure()?.errorText;
+      // Browsers cancel media range reads on seek or navigation. Playback and
+      // caption loading are asserted separately; HTTP/decode failures still fail.
+      if (request.resourceType() === 'media' && /^(?:NS_BINDING_ABORTED|net::ERR_ABORTED)$/.test(failure)) return;
+      errors.push(`${request.url()}: ${failure}`);
+    });
     // Prove the source viewer does not rely on a previous build or npm install.
     await page.route('**/*', route => {
       const url = new URL(route.request().url());
@@ -94,6 +103,15 @@ async function main() {
     phase = 'initial viewer load';
     await page.goto(origin + '/index.html', { waitUntil: 'networkidle' });
     await ready(page);
+    phase = 'left-panel video guides';
+    await exerciseLeftVideoGuides(page, output);
+    phase = 'right-panel video help previews';
+    await exerciseActionVideoPreviews(page, output);
+    if (process.argv.includes('--videos-only')) {
+      assert.deepEqual(errors, [], 'Browser errors during action video previews');
+      console.log(`Video helpers passed (${browserType.name()} ${browser.version()}): action previews and left-panel guides.`);
+      return;
+    }
     phase = 'example dropdown overlay';
     await checkExampleDropdownOverlay(page);
     if (process.argv.includes('--positions-only')) {

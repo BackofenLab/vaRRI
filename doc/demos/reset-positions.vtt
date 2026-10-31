@@ -1,0 +1,21 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.867
+Drag a node to a new position
+
+2
+00:00:05.867 --> 00:00:11.000
+Open View controls to find Moved, Reset, and Undo
+
+3
+00:00:11.000 --> 00:00:15.800
+Click Moved to select the node you dragged
+
+4
+00:00:15.800 --> 00:00:21.133
+Click Reset to restore its original position
+
+5
+00:00:21.133 --> 00:00:28.467
+Click Undo to return to the dragged position

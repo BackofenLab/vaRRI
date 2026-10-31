@@ -13,18 +13,24 @@ export default viewerComponent('canvas-help-dialog', `<link rel="stylesheet" hre
       <dl>
         <dt>Select</dt><dd>Ctrl/Command-click a nucleotide, numbering label, or text label to toggle selection.
           Ctrl/Command-drag the background to select all elements fully inside the rectangle.
-          A plain click on an element, Ctrl/Command-click on the background, or an empty selection rectangle clears selection.</dd>
+          A plain click on an element, Ctrl/Command-click on the background, or an empty selection rectangle clears selection.
+          <div data-help-demo="select-nodes"></div><div data-help-demo="rectangle-selection"></div></dd>
         <dt>Move</dt><dd>Drag an element to move it. Drag a selected element to move the whole selection.
-          Dragging an unselected element clears the selection. Moved nucleotides and numbering labels stay fixed, even with Force layout enabled.</dd>
+          Dragging an unselected element clears the selection. Moved nucleotides and numbering labels stay fixed, even with Force layout enabled.
+          <div data-help-demo="move-selection"></div></dd>
         <dt>Rotate</dt><dd>Select at least two elements, then Ctrl/Command-scroll to rotate them around the mouse pointer.
-          Text stays upright. Ordinary scrolling zooms, and dragging the background pans.</dd>
+          Text stays upright. Ordinary scrolling zooms, and dragging the background pans.
+          <div data-help-demo="rotate-selection"></div></dd>
         <dt><span class="canvas-position-key">Moved: X</span></dt><dd>The count 'X' includes manually positioned nucleotides and numbering labels. Click it to select them all.</dd>
-        <dt><span class="canvas-position-key">Release</span></dt><dd>Unfix selected nodes at their current positions. They resume moving when Force layout is enabled.
-          Released nodes leave the Moved count. Text labels are unaffected.</dd>
+        <dt><span class="canvas-position-key">Release</span></dt><dd>With Force layout enabled, unfix selected nodes at their current positions so they can move again. Release is disabled in static layouts.
+          Released nodes leave the Moved count. Text labels are unaffected.
+          <div data-help-demo="release-positions"></div></dd>
         <dt><span class="canvas-position-key">Reset</span></dt><dd>Restore selected manually positioned nodes to their positions and fixation before their first edit.
-          Text labels are unaffected. To reset a released node, undo its release first.</dd>
+          Text labels are unaffected. To reset a released node, undo its release first.
+          <div data-help-demo="reset-positions"></div></dd>
         <dt><span class="canvas-position-key">Undo</span></dt><dd>Reverse the last drag, rotation, release, or reset, including text movements.
-          Ctrl/Command+Z also works while the canvas is focused. Up to 100 edits are kept for the current rendering.</dd>
+          Ctrl/Command+Z also works while the canvas is focused. Up to 100 edits are kept for the current rendering.
+          The Reset demo above also shows Undo reversing the reset.</dd>
       </dl>
       <p>Rerendering clears temporary node positions and undo history. SVG and PNG exports preserve the layout without selection outlines.
         Share links preserve text-label positions only.</p>

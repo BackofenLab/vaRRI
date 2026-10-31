@@ -1,0 +1,25 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.467
+Click Add in Point Mutations to annotate the supplied structure
+
+2
+00:00:05.467 --> 00:00:10.200
+Choose Seq. 2 for the second RNA strand
+
+3
+00:00:10.200 --> 00:00:14.933
+Enter biological position 102
+
+4
+00:00:14.933 --> 00:00:20.200
+Enter A in To for the replacement annotation
+
+5
+00:00:20.200 --> 00:00:26.267
+Click OK to add the G102A annotation
+
+6
+00:00:26.267 --> 00:00:35.800
+G102A adds a green outline and A label; inputs stay unchanged and no fold is predicted

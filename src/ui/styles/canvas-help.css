@@ -1,7 +1,7 @@
 dialog.canvas-help-dialog {
   inset: 0;
   margin: auto;
-  width: 540px;
+  width: 720px;
   height: fit-content;
   min-width: 0;
   max-width: calc(100vw - 32px);
@@ -13,6 +13,8 @@ dialog.canvas-help-dialog {
 .canvas-help-dialog .dialog-header { cursor: default; }
 .canvas-help-dialog dl { margin: 12px 0; }
 .canvas-help-dialog dt { font-weight: 700; margin-top: 8px; }
+.canvas-help-dialog dd { margin-left: 0; }
+.canvas-help-dialog .dialog-actions { position: sticky; bottom: 0; }
 
 .manual-position-controls button,
 .canvas-position-key {
@@ -22,3 +24,9 @@ dialog.canvas-help-dialog {
   border: 1px solid #cbd7e2; border-radius: 4px;
 }
 .canvas-position-key { display: inline-block; font-weight: 700; }
+#canvasHelpBtn { min-width: 24px; }
+#canvasHelpBtn:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: 2px; }
+
+@media (max-width: 520px) {
+  dialog.canvas-help-dialog { width: calc(100vw - 16px); max-width: none; max-height: calc(100dvh - 16px); }
+}
