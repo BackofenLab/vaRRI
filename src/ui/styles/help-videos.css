@@ -63,13 +63,13 @@
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   padding: 3px;
   border: 1px solid transparent;
   border-radius: 4px;
   background: transparent;
-  color: #386b94;
+  color: #54738c;
   vertical-align: middle;
   cursor: pointer;
 }
