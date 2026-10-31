@@ -83,8 +83,8 @@ output. Successful runs remove their temporary files.
 | --- | --- |
 | `select-nodes` | Add and remove nodes with Ctrl/Command-click |
 | `move-selection` | Select two nodes, drag them together, keep their new positions |
-| `release-positions` | Release a moved node while retaining its current position |
-| `reset-positions` | Move a node, select Moved, Reset, then Undo |
+| `release-positions` | With Force layout enabled, open View controls and release a moved node |
+| `reset-positions` | Move a node, reopen View controls, select Moved, Reset, then Undo |
 | `rectangle-selection` | Drag a selection rectangle around several nodes |
 | `rotate-selection` | Ctrl/Command-scroll to rotate selected nodes around the pointer |
 | `place-text-annotation` | Add and position a text annotation |
@@ -264,7 +264,7 @@ review frames. `demos:check-published` verifies the catalog schema and asset has
 and rejects missing, modified, duplicate, or orphaned assets. Neither check replaces
 visual review of the instructions and demonstrated behavior.
 
-The viewer guide and canvas question-mark dialog contain `data-help-demo` anchors.
+The viewer guide and canvas interaction help contain `data-help-demo` anchors.
 `src/ui/help-videos.js` matches those anchors to the catalog. Hovering or focusing a
 documentation control reveals its poster teaser; clicking or pressing Enter expands
 the native player and attaches the WebM and captions lazily. The reader starts playback.

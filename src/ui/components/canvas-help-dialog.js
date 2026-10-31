@@ -22,7 +22,7 @@ export default viewerComponent('canvas-help-dialog', `<link rel="stylesheet" hre
           Text stays upright. Ordinary scrolling zooms, and dragging the background pans.
           <div data-help-demo="rotate-selection"></div></dd>
         <dt><span class="canvas-position-key">Moved: X</span></dt><dd>The count 'X' includes manually positioned nucleotides and numbering labels. Click it to select them all.</dd>
-        <dt><span class="canvas-position-key">Release</span></dt><dd>Unfix selected nodes at their current positions. They resume moving when Force layout is enabled.
+        <dt><span class="canvas-position-key">Release</span></dt><dd>With Force layout enabled, unfix selected nodes at their current positions so they can move again. Release is disabled in static layouts.
           Released nodes leave the Moved count. Text labels are unaffected.
           <div data-help-demo="release-positions"></div></dd>
         <dt><span class="canvas-position-key">Reset</span></dt><dd>Restore selected manually positioned nodes to their positions and fixation before their first edit.

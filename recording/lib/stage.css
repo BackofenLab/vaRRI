@@ -13,7 +13,7 @@ body[data-demo-stage="canvas"] .result-panel {
   resize: none !important;
   overflow: hidden !important;
 }
-body[data-demo-stage="canvas"] #rendering-canvas { margin-top: 70px; }
+body[data-demo-stage="canvas"] .canvas-workspace { margin-top: 70px; }
 body[data-demo-stage="canvas"] .result-panel > .export-bar,
 body[data-demo-stage="canvas"] #rendering-caption { display: none !important; }
 

@@ -5,7 +5,7 @@ import { node, selected, near } from './helpers.js';
 export default {
   id: 'reset-positions', title: 'Reset moved nodes',
   placements: ['canvas-help:reset', 'canvas-help:undo', 'docs:additional-features'],
-  description: 'Drag a node, click Moved to select manually positioned nodes, then click Reset to restore their original positions. Undo can reverse the reset.',
+  description: 'Drag a node, open View controls, and click Moved to select manually positioned nodes. Reset restores their original positions; Undo reverses the reset.',
   async run(capture, page) {
     const original = await center(node(page, 3));
     const untouched = await center(node(page, 9));
@@ -16,6 +16,11 @@ export default {
     near(moved.x - original.x, -90);
     near(moved.y - original.y, -70);
     assert.match(await page.locator('#selectMovedBtn').textContent(), /Moved: 1/);
+    assert.equal(await page.locator('#viewControlsToggle').getAttribute('aria-expanded'), 'false');
+    await capture.caption('Open View controls to find Moved, Reset, and Undo');
+    await capture.click(page.locator('#viewControlsToggle'));
+    assert.equal(await page.locator('#viewControlsToggle').getAttribute('aria-expanded'), 'true');
+    assert.equal(await page.locator('#viewControlsPanel').isVisible(), true);
     await capture.caption('Click Moved to select the node you dragged');
     await capture.click(page.locator('#selectMovedBtn'));
     assert.equal(await selected(page), 1);

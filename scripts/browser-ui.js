@@ -83,7 +83,13 @@ async function main() {
     page.on('response', response => {
       if (response.url().startsWith(origin) && response.status() >= 400) errors.push(response.url());
     });
-    page.on('requestfailed', request => errors.push(`${request.url()}: ${request.failure()?.errorText}`));
+    page.on('requestfailed', request => {
+      const failure = request.failure()?.errorText;
+      // Browsers cancel media range reads on seek or navigation. Playback and
+      // caption loading are asserted separately; HTTP/decode failures still fail.
+      if (request.resourceType() === 'media' && /^(?:NS_BINDING_ABORTED|net::ERR_ABORTED)$/.test(failure)) return;
+      errors.push(`${request.url()}: ${failure}`);
+    });
     // Prove the source viewer does not rely on a previous build or npm install.
     await page.route('**/*', route => {
       const url = new URL(route.request().url());

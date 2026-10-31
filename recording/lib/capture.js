@@ -23,6 +23,11 @@ export async function prepareStage(page, origin, scene) {
       canvas?.querySelectorAll('circle[node_type="nucleotide"]').length === count;
   }, parameters.get('sequence').replaceAll('&', '').length);
   await page.evaluate(() => document.fonts.ready);
+  // Keep the diagram unobscured during setup. Scenes that demonstrate drawer
+  // actions reopen it with recorded pointer gestures after their instruction.
+  if (await page.locator('#viewControlsPanel').isVisible()) {
+    await page.locator('#viewControlsToggle').click();
+  }
   // Allow the real viewer's ResizeObserver to refit after framing, before capture.
   await page.waitForTimeout(350);
   if (scene.zoom !== false) {
