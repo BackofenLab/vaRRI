@@ -1,0 +1,17 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:06.867
+Choose region for RRI nucleotide highlighting
+
+2
+00:00:06.867 --> 00:00:13.733
+Region outlines all 10 nucleotides, including both unpaired A bases
+
+3
+00:00:13.733 --> 00:00:21.400
+Choose basepairs to outline only paired nucleotides
+
+4
+00:00:21.400 --> 00:00:30.667
+Basepairs outlines 8 nucleotides; both unpaired A bases lose the red outline
