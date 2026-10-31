@@ -48,10 +48,14 @@ export async function exercisePositionVideos(page, output) {
     assert.equal(await popup.isVisible(), true, 'Moving into the player keeps it open');
     await fits(popup);
     const small = await video.boundingBox();
-    await video.click({ position: { x: small.width / 2, y: small.height / 2 } });
+    await popup.locator('.help-video-enlarge').click();
     assert.ok((await video.boundingBox()).width > small.width, 'Clicking the video enlarges it');
     await fits(popup);
     await popup.getByRole('button', { name: 'Shrink video', exact: true }).click();
+    const compact = await video.boundingBox();
+    await video.click({ position: { x: compact.width / 2, y: compact.height - 16 } });
+    assert.ok(Math.abs((await video.boundingBox()).width - small.width) < 1,
+      'Using the native playback control strip does not enlarge the video');
     assert.equal(await popup.locator('details').evaluate(el => el.open), false,
       'The enlargement hint does not toggle the transcript');
     await popup.locator('summary').click({ position: { x: 30, y: 8 } });

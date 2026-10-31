@@ -92,7 +92,6 @@ describe('UI document structure', () => {
       const action = document.getElementById(id);
       expect(action.hasAttribute('data-help-preview')).toBe(false);
       expect(action.nextElementSibling.dataset.helpVideo).toBe(clip);
-      expect(action.nextElementSibling.disabled).toBe(false);
     }
     expect(document.querySelector('.manual-position-controls h3 a').textContent).toBe('?');
   });

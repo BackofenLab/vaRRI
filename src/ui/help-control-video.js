@@ -56,7 +56,8 @@ export function createControlVideo(target, clip) {
     transcript.className = 'help-demo-transcript';
     const summary = document.createElement('summary');
     summary.textContent = 'Details and transcript';
-    resetSize = addVideoSizeControl(popup, video, summary, position);
+    const sizeControl = addVideoSizeControl(popup, video, summary, position);
+    resetSize = sizeControl.reset;
     const list = document.createElement('ol');
     for (const step of clip.transcript) {
       const item = document.createElement('li');
@@ -70,7 +71,7 @@ export function createControlVideo(target, clip) {
     download.href = source.src;
     download.download = clip.assets.video.file;
     download.textContent = 'Download WebM';
-    popup.append(header, video, transcript, download);
+    popup.append(header, sizeControl.surface, transcript, download);
   };
 
   function hide() {

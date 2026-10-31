@@ -96,9 +96,20 @@
 .help-control-preview-close { flex: none; width: 28px; height: 28px; border: 0; border-radius: 4px; font-size: 22px; background: #edf3f9; color: #194b73; cursor: pointer; }
 .help-control-preview-close:focus-visible { outline: 2px solid #145a96; outline-offset: 2px; }
 .help-control-preview video { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; background: #edf2f9; }
-.help-control-preview video { cursor: zoom-in; }
+.help-video-surface { position: relative; }
+.help-video-enlarge {
+  position: absolute;
+  inset: 0 0 48px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+.help-video-enlarge:hover { background: transparent; }
 .help-control-preview-large { width: min(960px, calc(100vw - 16px)); }
-.help-control-preview-large video { cursor: zoom-out; }
+.help-control-preview-large .help-video-enlarge { cursor: zoom-out; }
 .help-video-size {
   border: 0;
   background: transparent;
