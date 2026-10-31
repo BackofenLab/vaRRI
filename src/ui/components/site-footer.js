@@ -9,7 +9,9 @@ export default viewerComponent('site-footer', `<footer class="site-footer" aria-
     </p>
     <p>
       The source code for this service is freely available on
-      <a href="https://github.com/BackofenLab/vaRRI" target="_blank" rel="noopener noreferrer">GitHub</a>.
+      <a href="https://github.com/BackofenLab/vaRRI" target="_blank" rel="noopener noreferrer">GitHub</a>
+      under an 
+      <a href="https://github.com/BackofenLab/vaRRI/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT license</a>.
     </p>
   </div>
 </footer>`);
