@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 
 const mappings = {
-  selectMovedBtn: 'release-positions', releasePositionsBtn: 'release-positions',
-  resetPositionsBtn: 'reset-positions', undoCanvasBtn: 'reset-positions',
+  selectMovedBtn: ['release-positions', 'Select moved nodes'],
+  releasePositionsBtn: ['release-positions', 'Release moved nodes'],
+  resetPositionsBtn: ['reset-positions', 'Reset moved nodes'],
+  undoCanvasBtn: ['reset-positions', 'Undo manual positioning'],
 };
 const state = page => page.evaluate(async () => {
   const { default: viewer } = await import('/index.js');
@@ -24,10 +26,12 @@ export async function exercisePositionVideos(page, output) {
   assert.equal(await panel.getByRole('link', { name: 'Canvas interaction help' }).textContent(), '?');
   const initial = await state(page);
   let previous;
-  for (const [id, clip] of Object.entries(mappings)) {
+  for (const [id, [clip, label]] of Object.entries(mappings)) {
     const action = page.locator('#' + id);
     const icon = action.locator('..').locator('.video-help-icon');
     assert.equal(await icon.getAttribute('data-help-video'), clip);
+    assert.equal(await icon.getAttribute('aria-label'), `Video guide: ${label}`,
+      'Shared clips retain the contextual accessible name of each adjacent action');
     assert.equal(await action.getAttribute('data-help-preview'), null);
     assert.equal(await icon.isEnabled(), true, 'Guides remain available for disabled actions');
     const box = await action.boundingBox(), symbol = await icon.boundingBox();
@@ -54,6 +58,9 @@ export async function exercisePositionVideos(page, output) {
     await popup.getByRole('button', { name: 'Shrink video', exact: true }).click();
     const compact = await video.boundingBox();
     await video.click({ position: { x: compact.width / 2, y: compact.height - 16 } });
+    await page.mouse.move(compact.x + compact.width - 30, compact.y + 80);
+    assert.equal(await video.evaluate(el => el.matches(':hover')), true,
+      'Native menus remain reachable over the picture after entering the controls');
     assert.ok(Math.abs((await video.boundingBox()).width - small.width) < 1,
       'Using the native playback control strip does not enlarge the video');
     assert.equal(await popup.locator('details').evaluate(el => el.open), false,

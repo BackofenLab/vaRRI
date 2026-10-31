@@ -18,7 +18,7 @@ export function createControlVideo(target, clip) {
   document.body.append(popup);
   target.dataset.helpVideoReady = 'true';
   target.setAttribute('aria-controls', popup.id);
-  target.setAttribute('aria-label', `Video guide: ${clip.title}`);
+  if (!target.hasAttribute('aria-label')) target.setAttribute('aria-label', `Video guide: ${clip.title}`);
 
   let video, closeButton, showTimer, hideTimer, resetSize;
   let pinned = false;

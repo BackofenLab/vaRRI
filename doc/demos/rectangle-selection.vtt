@@ -5,9 +5,9 @@ WEBVTT
 Ctrl / ⌘ + click a node to start a selection
 
 2
-00:00:05.733 --> 00:00:13.333
+00:00:05.733 --> 00:00:13.867
 Ctrl / ⌘ + drag the background around two other nodes
 
 3
-00:00:13.333 --> 00:00:19.467
+00:00:13.867 --> 00:00:20.000
 The rectangle replaces the selection with these two nodes
