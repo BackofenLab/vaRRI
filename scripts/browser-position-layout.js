@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { checkCanvasHelpStyles } from './browser-canvas-help.js';
 
-/** Controls must be visible and hit-testable without Playwright scrolling them into view. */
+/** Controls must be visible or reachable in the drawer and remain hit-testable. */
 export async function exercisePositionLayout(page, origin, output) {
   const original = page.viewportSize();
   try {
@@ -19,7 +19,63 @@ export async function exercisePositionLayout(page, origin, output) {
         await page.waitForFunction(() => document.querySelector('#rendering-caption').textContent.trim() &&
           document.getElementById('rendering-canvas').style.visibility !== 'hidden');
       }
-      const controls = await page.locator('.manual-position-controls button, .export-bar button').evaluateAll(elements => {
+      const toggle = page.locator('#viewControlsToggle');
+      const panel = page.locator('#viewControlsPanel');
+      const readGeometry = () => page.locator('.canvas-workspace').evaluate(element => {
+        const rect = selector => {
+          const { left, top, right, bottom, width: rectWidth, height: rectHeight } =
+            element.querySelector(selector).getBoundingClientRect();
+          return { left, top, right, bottom, width: rectWidth, height: rectHeight };
+        };
+        const { left, top, right, bottom, width: rectWidth, height: rectHeight } =
+          element.getBoundingClientRect();
+        return { workspace: { left, top, right, bottom, width: rectWidth, height: rectHeight },
+          button: rect('#viewControlsToggle'), panel: rect('#viewControlsPanel'),
+          canvas: rect('#rendering-canvas') };
+      });
+      const assertCanvasUnmoved = (actual, expected, state) => {
+        for (const property of ['left', 'top', 'right', 'bottom', 'width', 'height']) {
+          assert.ok(Math.abs(actual.canvas[property] - expected.canvas[property]) < 1,
+            `Folding ${state} must not change the canvas ${property}`);
+        }
+      };
+      assert.equal(await toggle.getAttribute('aria-expanded'), 'true', 'View controls start open');
+      assert.equal(await panel.isVisible(), true, 'The open panel is visible by default');
+      const openGeometry = await readGeometry();
+      assert.ok(Math.abs(openGeometry.button.right - openGeometry.canvas.right) < 1,
+        'The View controls button sits on the canvas right edge');
+      assert.ok(Math.abs(openGeometry.panel.right - openGeometry.button.left) < 1 &&
+        openGeometry.panel.left >= openGeometry.canvas.left - 1,
+      'View controls expand leftward over the right side of the canvas');
+      assert.ok(Math.abs(openGeometry.canvas.left - openGeometry.workspace.left) < 1 &&
+        Math.abs(openGeometry.canvas.right - openGeometry.workspace.right) < 1,
+      'The overlaid controls leave the canvas at full workspace width');
+      await toggle.click();
+      assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
+      assert.equal(await panel.isVisible(), false);
+      const foldedGeometry = await readGeometry();
+      assertCanvasUnmoved(foldedGeometry, openGeometry, 'closed');
+      assert.ok(Math.abs(foldedGeometry.button.right - foldedGeometry.canvas.right) < 1,
+        'The folded View controls button remains on the canvas right edge');
+      await toggle.click();
+      assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
+      assert.equal(await panel.isVisible(), true);
+      assertCanvasUnmoved(await readGeometry(), openGeometry, 'open');
+      const panelControls = page.locator('.view-controls-panel button, .view-controls-panel input');
+      for (let index = 0; index < await panelControls.count(); index += 1) {
+        const control = panelControls.nth(index);
+        await control.scrollIntoViewIfNeeded();
+        const geometry = await control.evaluate(element => {
+          const drawer = document.getElementById('viewControlsPanel').getBoundingClientRect();
+          const r = element.getBoundingClientRect();
+          return { id: element.id, inside: r.left >= drawer.left && r.right <= drawer.right &&
+            r.top >= drawer.top && r.bottom <= drawer.bottom,
+          reachable: element.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)) };
+        });
+        assert.ok(geometry.inside && geometry.reachable,
+          `${geometry.id} must remain reachable in View controls at ${width}×${height}`);
+      }
+      const controls = await page.locator('.export-bar button').evaluateAll(elements => {
         const panel = document.querySelector('.result-panel').getBoundingClientRect();
         return elements.filter(element => getComputedStyle(element).display !== 'none').map(element => {
           const r = element.getBoundingClientRect();

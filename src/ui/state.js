@@ -31,7 +31,7 @@ export function createViewerState(api, colors) {
     fields: { ...defaults }, errors: {}, message: { text: '', type: '' },
     annotations: { subsequences: [], regions: [], mutations: [], texts: [] },
     selectedExample: null, exampleOpen: false, rotation: 0, rotationPreview: 0,
-    renderingOnly: false, showFullPage: false, shareCopied: false,
+    renderingOnly: false, showFullPage: false, shareCopied: false, viewControlsOpen: true,
     jsonLoading: false,
     pngExport: { width: '', height: '', dpi: '96', error: '', busy: false },
     inputCaret: { field: '', index: -1 },
@@ -43,6 +43,8 @@ export function createViewerState(api, colors) {
 
 export function createStateActions({ state, defaults, api }) {
   return {
+    toggleViewControls() { state.viewControlsOpen = !state.viewControlsOpen; },
+    closeViewControls() { state.viewControlsOpen = false; },
     setFieldError(id, message) { state.errors[id] = message; },
     clearFieldError(id) { delete state.errors[id]; },
     clearFieldErrors(ids) { ids.forEach(id => { delete state.errors[id]; }); },

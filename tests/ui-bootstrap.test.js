@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 import { mountViewer } from './helpers/vue-viewer.js';
 
 test('boots through bound UI actions without inline handlers', async () => {
-  const { dom, api: vaRRI, renderSpy, examples: catalog, flush, close } = await mountViewer();
+  const { dom, api: vaRRI, renderSpy, view, examples: catalog, flush, close } = await mountViewer();
 
   expect(renderSpy).toHaveBeenCalled();
   expect(document.getElementById('msg').textContent).toBe('');
@@ -15,6 +15,48 @@ test('boots through bound UI actions without inline handlers', async () => {
   expect(inputPanel.open).toBe(true);
   const profilePanel = document.getElementById('profileData1').closest('details');
   expect(profilePanel.open).toBe(false);
+
+  const viewControlsToggle = document.getElementById('viewControlsToggle');
+  const viewControlsPanel = document.getElementById('viewControlsPanel');
+  const canvasWorkspace = document.querySelector('.canvas-workspace');
+  expect(viewControlsToggle.textContent).toContain('View controls');
+  expect(viewControlsToggle.getAttribute('aria-expanded')).toBe('true');
+  expect(viewControlsPanel.style.display).not.toBe('none');
+  expect([...canvasWorkspace.children]).toEqual([
+    viewControlsToggle, viewControlsPanel, document.getElementById('rendering-canvas'),
+  ]);
+  expect(viewControlsPanel.contains(document.getElementById('rotationSlider'))).toBe(true);
+  expect(viewControlsPanel.contains(document.getElementById('cropping'))).toBe(true);
+  viewControlsToggle.click();
+  await flush();
+  expect(viewControlsToggle.getAttribute('aria-expanded')).toBe('false');
+  expect(viewControlsPanel.style.display).toBe('none');
+  viewControlsToggle.click();
+  await flush();
+  expect(viewControlsToggle.getAttribute('aria-expanded')).toBe('true');
+  document.getElementById('rendering-canvas')
+    .dispatchEvent(new window.MouseEvent('pointerdown', { bubbles: true }));
+  await flush();
+  expect(viewControlsToggle.getAttribute('aria-expanded')).toBe('false');
+  expect(viewControlsPanel.style.display).toBe('none');
+  viewControlsToggle.click();
+  await flush();
+
+  const releasePositions = document.getElementById('releasePositionsBtn');
+  view.state.canvasInteraction.selectedNodeCount = 1;
+  await flush();
+  expect(releasePositions.disabled).toBe(true);
+  expect(releasePositions.title).toContain('Force layout');
+  const releaseSpy = jest.spyOn(vaRRI, 'releaseSelectedPositions');
+  view.actions.releaseSelectedPositions();
+  expect(releaseSpy).not.toHaveBeenCalled();
+  view.state.fields.forceLayout = true;
+  await flush();
+  expect(releasePositions.disabled).toBe(false);
+  view.actions.releaseSelectedPositions();
+  expect(releaseSpy).toHaveBeenCalledTimes(1);
+  view.state.fields.forceLayout = false;
+  await flush();
 
   const dropdown = document.getElementById('exampleDropdown');
   const trigger = document.getElementById('exampleDropdownTrigger');
