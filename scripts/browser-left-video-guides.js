@@ -55,7 +55,10 @@ async function touchVideo(page, output) {
     await fits(popup);
     assert.equal(await video.getAttribute('controls'), '');
     assert.equal(await touch.locator('#mutationDialog').isVisible(), false, 'Tapping help does not add a mutation');
-    if (output) await touch.screenshot({ path: path.join(output, 'left-video-guides-mobile.png'), fullPage: true });
+    // A fixed popup belongs to the visible viewport. Full-page capture can
+    // change mobile scroll/viewport geometry and dismiss its anchored preview.
+    if (output) await touch.screenshot({ path: path.join(output, 'left-video-guides-mobile.png') });
+    assert.equal(await popup.isVisible(), true, 'The mobile preview remains open after its viewport capture');
     await popup.getByRole('button', { name: 'Close video guide' }).tap();
     await stopped(video);
     assert.deepEqual(await fieldValues(touch), initial);
