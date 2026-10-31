@@ -109,6 +109,7 @@
 }
 .help-video-enlarge:hover { background: transparent; }
 .help-control-preview-large { width: min(960px, calc(100vw - 16px)); }
+.help-control-preview-large video { max-height: max(120px, calc(100dvh - 155px)); object-fit: contain; }
 .help-control-preview-large .help-video-enlarge { cursor: zoom-out; }
 .help-video-size {
   border: 0;

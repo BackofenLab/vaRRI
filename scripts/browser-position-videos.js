@@ -108,6 +108,7 @@ async function responsiveGuides(page, output) {
       const hint = popup.getByRole('button', { name: 'Enlarge video', exact: true });
       if (touch) await hint.tap(); else await hint.click();
       await fits(popup);
+      await fits(popup.locator('video'));
       if (output) await narrow.screenshot({ path: path.join(output, `position-video-${width}x${height}.png`) });
       assert.equal(await popup.isVisible(), true);
       const close = popup.getByRole('button', { name: 'Close video guide' });
