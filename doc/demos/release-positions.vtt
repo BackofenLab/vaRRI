@@ -1,17 +1,21 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:06.800
-Drag a node to fix it in a new position
+00:00:00.000 --> 00:00:07.067
+With Force layout enabled, drag a node to fix its position
 
 2
-00:00:06.800 --> 00:00:11.333
-Click Moved to select the fixed node
+00:00:07.067 --> 00:00:11.333
+Open View controls on the right
 
 3
 00:00:11.333 --> 00:00:15.867
-Click Release to remove its fixed position
+Click Moved to select the fixed node
 
 4
-00:00:15.867 --> 00:00:21.733
-The node stays here; Moved returns to 0
+00:00:15.867 --> 00:00:20.667
+Click Release to remove the node’s manual fixation
+
+5
+00:00:20.667 --> 00:00:26.533
+Manual fixation is removed; Moved returns to 0

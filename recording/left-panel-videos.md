@@ -18,11 +18,11 @@ The sequence panel also reuses FASTA import and saved-session videos. The text,
 region, and probability panels reuse text placement, manual paired regions, and
 probability profiles. This avoids duplicate explanations of existing workflows.
 
-Each panel has a compact **Video guides** disclosure containing task-labelled
-players. These controls sit inside panel bodies, away from editable fields and
-accordion summaries. Opening a player does not start playback; native controls,
-captions, transcripts and downloads remain available. Closing a panel stops and
-rewinds its videos.
+Each relevant control has a small, muted video icon. Hovering or focusing it opens
+the matching player; click or tap keeps it open. Desktop buttons are transparent
+24-pixel targets with 16-by-12-pixel symbols, and touch targets are larger. Players
+provide native controls, optional captions, transcripts and downloads. Reduced
+motion disables hover autoplay, and closing a panel stops and rewinds its videos.
 
 ## Recording and review
 
