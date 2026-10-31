@@ -51,7 +51,7 @@
 .help-demo-compact .help-demo-trigger { scroll-margin-block: 8px 56px; }
 .help-demo-compact .help-demo-player { max-width: 620px; }
 .help-demo-unavailable { color: #6b7280; font-style: italic; }
-.video-help-label { display: flex; align-items: center; gap: .3rem; margin-bottom: .25rem; }
+.video-help-label { display: flex; align-items: center; gap: .1rem; margin-bottom: .25rem; }
 .video-help-label > label, .video-help-label > .example-label { margin: 0; }
 .label-dropdown-col-row > .video-help-label { margin: 0; }
 .sequence-input-heading { display: flex; align-items: center; justify-content: space-between; gap: .3rem; margin-bottom: .25rem; }
@@ -65,15 +65,15 @@
   flex: none;
   width: 24px;
   height: 24px;
-  padding: 3px;
-  border: 1px solid transparent;
+  padding: 0;
+  border: 0;
   border-radius: 4px;
   background: transparent;
-  color: #54738c;
+  color: #687784;
   vertical-align: middle;
   cursor: pointer;
 }
-.video-help-icon:hover, .video-help-icon[aria-expanded="true"] { background: #e7f0f8; border-color: #b6cde0; color: #124d7c; }
+.video-help-icon:hover, .video-help-icon[aria-expanded="true"] { color: #145a96; }
 .video-help-icon:focus-visible { outline: 2px solid #145a96; outline-offset: 2px; }
 .video-help-icon:disabled { opacity: .45; cursor: default; }
 .help-control-preview {
@@ -96,7 +96,7 @@
 .help-control-preview-close { flex: none; width: 28px; height: 28px; border: 0; border-radius: 4px; font-size: 22px; background: #edf3f9; color: #194b73; cursor: pointer; }
 .help-control-preview-close:focus-visible { outline: 2px solid #145a96; outline-offset: 2px; }
 .help-control-preview video { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; background: #edf2f9; }
-.help-control-preview > p { margin: .6rem 0; color: #4f6478; }
+.help-control-preview .help-demo-transcript > p { margin: .6rem 0; color: #4f6478; }
 .help-control-preview .help-demo-transcript ol { padding-left: .2rem; }
 @media (pointer: coarse) {
   .video-help-icon { width: 32px; height: 32px; }
@@ -107,17 +107,15 @@
   gap: .32rem;
 }
 .help-action-target::after {
-  content: "\25B6";
+  content: "\25B7";
   display: inline-grid;
   box-sizing: border-box;
   flex: none;
   place-items: center;
-  width: 1.3em;
-  height: 1em;
-  padding-left: .08em;
-  border: 1px solid currentColor;
-  border-radius: 2px;
-  font-size: .58em;
+  width: 12px;
+  height: 12px;
+  font-size: 12px;
+  font-weight: 400;
   line-height: 1;
   opacity: .72;
 }

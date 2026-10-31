@@ -54,21 +54,21 @@ export function createControlVideo(target, clip) {
     const transcript = document.createElement('details');
     transcript.className = 'help-demo-transcript';
     const summary = document.createElement('summary');
-    summary.textContent = 'Step-by-step transcript';
+    summary.textContent = 'Details and transcript';
     const list = document.createElement('ol');
     for (const step of clip.transcript) {
       const item = document.createElement('li');
       item.textContent = step;
       list.append(item);
     }
-    transcript.append(summary, list);
+    transcript.append(summary, description, list);
     transcript.addEventListener('toggle', position);
     const download = document.createElement('a');
     download.className = 'help-demo-download';
     download.href = source.src;
     download.download = clip.assets.video.file;
     download.textContent = 'Download WebM';
-    popup.append(header, video, description, transcript, download);
+    popup.append(header, video, transcript, download);
   };
 
   function hide() {
