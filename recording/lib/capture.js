@@ -100,6 +100,12 @@ export class Capture {
 
   async caption(text) {
     if (this.pendingCaption) await this.clearCaption();
+    // Count encoded frames, not wall time: screenshots and render waits do not
+    // guarantee viewers see the completed gesture before the next card.
+    if (this.lastActionFrame !== undefined) {
+      const remaining = Math.ceil(this.fps * 0.5) - (this.frames - this.lastActionFrame);
+      if (remaining > 0) await this.frame(remaining);
+    }
     const cue = { start: this.frames / this.fps, text };
     this.cues.push(cue);
     this.pendingCaption = cue;
@@ -131,6 +137,11 @@ export class Capture {
       x: this.pointer.x, y: this.pointer.y });
   }
 
+  endAction(action) {
+    this.lastActionFrame = this.frames;
+    this.timeline.push({ type: 'action-end', action, start: this.frames / this.fps });
+  }
+
   async move(destination, seconds = 0.55) {
     await this.clearCaption();
     const from = this.pointer;
@@ -151,6 +162,7 @@ export class Capture {
       await this.frame();
     }
     this.pointer = destination;
+    this.endAction('move');
   }
 
   async pressed(value) {
@@ -173,6 +185,7 @@ export class Capture {
       await this.pressed(false);
     } finally { if (modifier) await this.page.keyboard.up(modifier); }
     if (afterAction) await afterAction();
+    this.endAction('click');
     await this.pulse(label, box, 0.27);
     await hideAction(this.page);
     await this.hold(0.4);
@@ -191,6 +204,7 @@ export class Capture {
       await this.move(destination, seconds);
       await this.page.mouse.up();
       await this.pressed(false);
+      this.endAction('drag');
       await this.pulse('Release', null, 0.27);
     } finally {
       this.dragLabel = null;
@@ -220,6 +234,7 @@ export class Capture {
       await this.page.keyboard.insertText(chunk);
       await this.frame(Math.max(1, Math.round(this.fps * 0.12)));
     }
+    this.endAction('type');
     await this.hold(0.35);
     await hideAction(this.page);
   }
@@ -232,6 +247,7 @@ export class Capture {
     // Insert the complete clipboard-sized value in one real input event. Partial
     // FASTA/profile records would briefly show validation errors while typing.
     await this.page.keyboard.insertText(String(value));
+    this.endAction('paste');
     await this.hold(0.6);
     await hideAction(this.page);
   }
@@ -251,6 +267,7 @@ export class Capture {
     // Chromium can open the native popup on Enter after closed-select arrow
     // changes. Dismiss it so it cannot cover the next instruction card.
     await this.page.keyboard.press('Escape');
+    this.endAction('select');
     await this.hold(0.6);
     await hideAction(this.page);
   }
@@ -270,6 +287,7 @@ export class Capture {
       }
     } finally { if (modifier) await this.page.keyboard.up(modifier); }
     await hideAction(this.page);
+    this.endAction('scroll');
     await this.hold(0.4);
   }
 
@@ -282,6 +300,7 @@ export class Capture {
     try { await this.page.keyboard.press(key); }
     finally { if (modifier) await this.page.keyboard.up(modifier); }
     if (afterAction) await afterAction();
+    this.endAction('key');
     await this.hold(0.5);
     await hideAction(this.page);
   }

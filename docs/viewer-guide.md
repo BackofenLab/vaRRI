@@ -36,7 +36,7 @@
 Small, unboxed play icons beside the left-hand controls open the corresponding guide.
 Hover or focus an icon to preview its video; click or tap to keep it open with
 playback controls, captions, a transcript, and a download. Descriptions stay inside
-the player's collapsed **Details and transcript** section. Escape, the close
+the player's collapsed **Details and transcript** section. Click the video or its gray enlargement hint to enlarge it. Escape, the close
 button, or closing the panel stops the video. Instructions are included in the
 video; optional captions can be enabled through its controls. Reduced-motion
 users press Play or activate the icon to start playback.
@@ -270,7 +270,7 @@ both positioned and unpositioned labels, including their formatting.
   <div data-help-demo="rectangle-selection"></div>
 - **Moving elements**: Drag any nucleotide, numbering label, or text label in either layout mode. Drag a selected element to move the whole selection; dragging an unselected element clears the selection and moves that element alone. After a drag, moved nucleotides and numbering labels stay fixed until the next render, including in force mode.
   <div data-help-demo="move-selection"></div>
-- **Manual positions**: The **Moved** button in *View controls* counts manually positioned nucleotides and numbering labels; click it to select them all. **Release** is enabled only in Force layout mode; it unfixes selected nodes at their current positions, allows them to move again, and removes them from the Moved count. **Reset** restores selected manual nodes to their positions and fixation before the first edit. Text labels are not counted, released, or reset. **Undo** (or Ctrl+Z / Command+Z while the canvas is focused) reverses the last drag, selection rotation, release, or reset. Undo a release before resetting that node to its original position. History is kept for the current rendering. The **Help** button opens the full interaction guide.
+- **Manual positioning**: The **Moved** button in *View controls* counts manually positioned nucleotides and numbering labels; click it to select them all. **Release** is enabled only in Force layout mode; it unfixes selected nodes at their current positions, allows them to move again, and removes them from the Moved count. **Reset** restores selected manual nodes to their positions and fixation before the first edit. Text labels are not counted, released, or reset. **Undo** (or Ctrl+Z / Command+Z while the canvas is focused) reverses the last drag, selection rotation, release, or reset. Undo a release before resetting that node to its original position. History is kept for the current rendering. The **?** link beside *Manual positioning* opens the full interaction guide. Each action has a separate circled play icon that opens an interactive video guide.
   <div data-help-demo="release-positions"></div>
   <div data-help-demo="reset-positions"></div>
 - **Selection rotation**: With at least two elements selected, hold Ctrl (or Command) and use the mouse wheel to rotate them around the pointer. The ordinary wheel still zooms.

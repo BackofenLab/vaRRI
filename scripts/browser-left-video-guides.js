@@ -72,7 +72,7 @@ export async function exerciseLeftVideoGuides(page, output) {
   page.on('request', record);
   let first = true;
   try {
-    await page.waitForFunction(() => document.querySelectorAll('[data-help-video-ready]').length === 12);
+    await page.waitForFunction(() => document.querySelectorAll('.controls-column [data-help-video-ready]').length === 12);
     assert.equal(await page.locator('.panel-video-guides').count(), 0, 'Icons replace the separate guide lists');
     for (const [name, clips] of Object.entries(guides)) {
       const panel = page.getByRole('complementary', { name, exact: true });

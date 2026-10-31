@@ -61,7 +61,7 @@ export async function exercisePositionLayout(page, origin, output) {
       assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
       assert.equal(await panel.isVisible(), true);
       assertCanvasUnmoved(await readGeometry(), openGeometry, 'open');
-      const panelControls = page.locator('.view-controls-panel button, .view-controls-panel input');
+      const panelControls = page.locator('.view-controls-panel button, .view-controls-panel input, .view-controls-panel a');
       for (let index = 0; index < await panelControls.count(); index += 1) {
         const control = panelControls.nth(index);
         await control.scrollIntoViewIfNeeded();

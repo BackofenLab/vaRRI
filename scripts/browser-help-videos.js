@@ -83,8 +83,6 @@ export async function exerciseDocsHelpVideos(page) {
 
 export async function exerciseActionVideoPreviews(page, output) {
   const expected = {
-    selectMovedBtn: 'release-positions', releasePositionsBtn: 'release-positions',
-    resetPositionsBtn: 'reset-positions', undoCanvasBtn: 'reset-positions',
     exportPngBtn: 'export-png', storeJsonBtn: 'store-load-session',
   };
   await page.waitForFunction(count => document.querySelectorAll('[data-help-preview-ready="true"]').length === count,
@@ -125,25 +123,7 @@ export async function exerciseActionVideoPreviews(page, output) {
   assert.equal(await store.evaluate(element => element === document.activeElement), true,
     'Escape dismisses keyboard video help without moving focus');
 
-  const drawer = page.locator('#viewControlsPanel');
-  const toggle = page.locator('#viewControlsToggle');
-  if (!await drawer.isVisible()) await toggle.click();
-  for (const id of ['selectMovedBtn', 'releasePositionsBtn', 'resetPositionsBtn', 'undoCanvasBtn']) {
-    const target = page.locator('#' + id);
-    const previewId = (await target.getAttribute('aria-describedby')).split(' ')
-      .find(value => value.startsWith('help-action-preview-'));
-    const preview = page.locator('#' + previewId);
-    await target.hover();
-    await preview.waitFor({ state: 'visible' });
-    const media = preview.locator('video');
-    await page.waitForFunction(video => !video.paused && video.currentTime > 0, await media.elementHandle());
-    await assertPreviewFits(preview);
-    await toggle.click();
-    await preview.waitFor({ state: 'hidden' });
-    assert.equal(await media.evaluate(video => video.paused && video.currentTime === 0), true,
-      'Folding the right drawer stops and resets its video preview');
-    await toggle.click();
-  }
+
 }
 
 export async function exerciseCanvasHelpVideoTeaser(page) {

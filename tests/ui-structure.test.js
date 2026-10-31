@@ -82,12 +82,19 @@ describe('UI document structure', () => {
     const previews = Object.fromEntries([...viewer.dom.window.document.querySelectorAll('[data-help-preview]')]
       .map(button => [button.id, button.dataset.helpPreview]));
     expect(previews).toEqual({
-      selectMovedBtn: 'release-positions', releasePositionsBtn: 'release-positions',
-      resetPositionsBtn: 'reset-positions', undoCanvasBtn: 'reset-positions',
       exportPngBtn: 'export-png', storeJsonBtn: 'store-load-session',
     });
     expect(css).toContain('.help-action-target::after');
     expect(css).toContain('.help-action-preview video');
+    const document = viewer.dom.window.document;
+    for (const [id, clip] of Object.entries({ selectMovedBtn: 'release-positions',
+      releasePositionsBtn: 'release-positions', resetPositionsBtn: 'reset-positions', undoCanvasBtn: 'reset-positions' })) {
+      const action = document.getElementById(id);
+      expect(action.hasAttribute('data-help-preview')).toBe(false);
+      expect(action.nextElementSibling.dataset.helpVideo).toBe(clip);
+      expect(action.nextElementSibling.disabled).toBe(false);
+    }
+    expect(document.querySelector('.manual-position-controls h3 a').textContent).toBe('?');
   });
 
   test('exposes the linear layout controls in their requested order', () => {

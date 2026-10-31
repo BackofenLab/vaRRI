@@ -21,7 +21,7 @@ export async function exerciseStandaloneCanvasHelp(page, origin) {
       { waitUntil: 'networkidle' });
     await page.waitForFunction(() => document.querySelector('#rendering-canvas circle') &&
       document.getElementById('rendering-canvas').style.visibility !== 'hidden');
-    const help = page.getByRole('button', { name: 'Canvas interaction help', exact: true });
+    const help = page.getByRole('link', { name: 'Canvas interaction help', exact: true });
     await help.focus();
     await page.keyboard.press('Enter');
     const dialog = page.getByRole('dialog', { name: 'Canvas interactions', exact: true });

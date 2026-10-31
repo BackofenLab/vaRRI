@@ -15,6 +15,7 @@ import { checkCrossingRriExample } from './browser-crossing-rri.js';
 import { checkJSONFiles } from './browser-json-files.js';
 import { checkExampleDropdownOverlay } from './browser-example-dropdown.js';
 import { exerciseActionVideoPreviews } from './browser-help-videos.js';
+import { exercisePositionVideos } from './browser-position-videos.js';
 const root = path.resolve(import.meta.dirname, '..');
 const catalog = await import(pathToFileURL(path.join(root, 'example-data.js')).href);
 const examples = catalog.default || catalog;
@@ -107,6 +108,7 @@ async function main() {
     await exerciseLeftVideoGuides(page, output);
     phase = 'right-panel video help previews';
     await exerciseActionVideoPreviews(page, output);
+    await exercisePositionVideos(page, output);
     if (process.argv.includes('--videos-only')) {
       assert.deepEqual(errors, [], 'Browser errors during action video previews');
       console.log(`Video helpers passed (${browserType.name()} ${browser.version()}): action previews and left-panel guides.`);
