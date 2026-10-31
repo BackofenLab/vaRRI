@@ -1,22 +1,22 @@
 import { computed, inject } from 'vue';
 import { VIEWER_CONTEXT } from './context.js';
-import VideoGuides from './video-guides.js';
+import VideoHelp from './video-help.js';
 
 const CONFIG = {
   subsequences: { title: 'Subsequence Highlights', aria: 'Subsequence highlights', list: 'highlight-list',
     counter: 'subseqCounterUI', edit: 'subseqEditId', button: 'highlightSubmitBtn',
-    itemClass: '', empty: 'No highlights defined.', itemName: 'highlight', videos: ['add-subsequence-highlight'] },
+    itemClass: '', empty: 'No highlights defined.', itemName: 'highlight', video: 'add-subsequence-highlight' },
   regions: { title: 'Region Highlights', aria: 'Region highlights', list: 'region-list',
     counter: 'regionCounterUI', edit: 'regionEditId', button: 'regionSubmitBtn',
     itemClass: 'region-item', empty: 'No region highlights defined.', itemName: 'region highlight',
-    videos: ['highlight-rri-background', 'add-region-highlight'] },
+    video: 'add-region-highlight' },
   mutations: { title: 'Point Mutations', aria: 'Point mutations', list: 'mutation-list',
     counter: 'mutationCounterUI', edit: 'mutationEditId', button: 'mutationSubmitBtn',
-    itemClass: 'mutation-item', empty: 'No mutations defined.', itemName: 'mutation', videos: ['add-point-mutation'] },
+    itemClass: 'mutation-item', empty: 'No mutations defined.', itemName: 'mutation', video: 'add-point-mutation' },
 };
 
 export default {
-  components: { VideoGuides },
+  components: { VideoHelp },
   name: 'AnnotationPanel', props: { kind: { type: String, required: true } },
   setup(props) {
     const context = inject(VIEWER_CONTEXT);
@@ -28,7 +28,8 @@ export default {
       <summary>{{ config.title }} <span :id="config.counter" class="list-counter">{{ items.length ? '(' + items.length + ')' : '' }}</span></summary>
       <div class="control-group-body">
         <div v-if="kind === 'regions'" class="label-dropdown-col-row">
-          <label for="backgroundhighlighting">&thinsp;Highlight of RRI region:</label>
+          <div class="video-help-label"><label for="backgroundhighlighting">Highlight of RRI region:</label>
+            <VideoHelp clip="highlight-rri-background" label="Highlight the RRI background" /></div>
           <select id="backgroundhighlighting" :value="state.fields.backgroundhighlighting" @change="actions.commitField('backgroundhighlighting', $event)">
             <option value="basepairs">basepairs</option><option value="region">region</option><option value="nothing">nothing</option>
           </select>
@@ -48,8 +49,8 @@ export default {
           </li>
         </ul>
         <input type="hidden" :id="config.edit" :value="state.fields[config.edit]">
-        <div class="action-row"><button :id="config.button" class="btn btn-primary btn-sm" type="button" @click="actions.addAnnotation(kind,$event)">Add</button></div>
-        <VideoGuides :clips="config.videos" />
+        <div class="action-row"><button :id="config.button" class="btn btn-primary btn-sm" type="button" @click="actions.addAnnotation(kind,$event)">Add</button>
+          <VideoHelp :clip="config.video" :label="'Add ' + config.itemName" /></div>
       </div>
     </details>
   </aside>`,

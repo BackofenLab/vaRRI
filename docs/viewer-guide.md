@@ -33,9 +33,11 @@
 | **Color Choice** | Use the color pickers to customize the colors for each sequence. |
 | **Structure** | Dot-bracket structure string. Separate two molecules with `&`. |
 
-The **Video guides** section inside each left-hand panel opens short, captioned
-walkthroughs with playback controls and a transcript. Playback starts when you
-press Play, and stops when you close the panel or its video guides.
+Small video icons beside the left-hand controls open the corresponding guide.
+Hover or focus an icon to preview its video; click or tap to keep it open with
+playback controls, captions, a transcript, and a download. Escape, the close
+button, or closing the panel stops the video. Reduced-motion users press Play
+or activate the icon to start playback.
 
 <div data-help-demo="name-and-number-strand"></div>
 

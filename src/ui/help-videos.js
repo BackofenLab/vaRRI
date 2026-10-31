@@ -1,5 +1,7 @@
+import { assetUrl, addVideoAssets, pauseOtherVideos } from './help-video-assets.js';
+import { createControlVideo } from './help-control-video.js';
+
 const manifestUrl = new URL('../../doc/demos/manifest.json', import.meta.url);
-const assetRoot = new URL('../../doc/demos/', import.meta.url);
 let manifestPromise;
 let instance = 0;
 
@@ -9,36 +11,6 @@ function loadManifest() {
     return response.json();
   });
   return manifestPromise;
-}
-
-const assetUrl = asset => {
-  const url = new URL(asset.file, assetRoot);
-  url.searchParams.set('v', asset.sha256.slice(0, 10));
-  return url.href;
-};
-
-function addVideoAssets(video, clip) {
-  const document = video.ownerDocument;
-  const source = document.createElement('source');
-  source.src = assetUrl(clip.assets.video);
-  source.type = clip.assets.video.mime;
-  const track = document.createElement('track');
-  track.kind = 'captions';
-  track.src = assetUrl(clip.assets.captions);
-  track.srclang = 'en';
-  track.label = 'English';
-  track.default = true;
-  const fallback = document.createElement('a');
-  fallback.href = source.src;
-  fallback.textContent = 'Download the WebM demonstration';
-  video.append(source, track, fallback);
-  return source;
-}
-
-function pauseOtherVideos(video) {
-  video.ownerDocument.querySelectorAll('.help-demo-player video, .help-action-preview video').forEach(other => {
-    if (other !== video) other.pause();
-  });
 }
 
 function createPlayer(target, clip) {
@@ -368,6 +340,11 @@ export function enhanceHelpVideos(root = document) {
   loadManifest().then(manifest => {
     if (disposed) return;
     const clips = new Map(manifest.clips.map(clip => [clip.id, clip]));
+    root.querySelectorAll('[data-help-video]:not([data-help-video-ready])').forEach(target => {
+      const clip = clips.get(target.dataset.helpVideo);
+      if (clip) cleanup.push(createControlVideo(target, clip));
+      else { target.disabled = true; target.title = 'Video guide unavailable'; }
+    });
     root.querySelectorAll('[data-help-demo]:not([data-help-demo-ready])').forEach(target => {
       const clip = clips.get(target.dataset.helpDemo);
       if (clip) cleanup.push(createPlayer(target, clip));
@@ -379,6 +356,10 @@ export function enhanceHelpVideos(root = document) {
       else target.title = `${target.title || 'Action'}. Video help is unavailable.`;
     });
   }).catch(error => {
+    if (!disposed) root.querySelectorAll('[data-help-video]').forEach(target => {
+      target.disabled = true;
+      target.title = 'Video guide unavailable';
+    });
     if (!disposed) root.querySelectorAll('[data-help-demo]').forEach(target => {
       target.classList.add('help-demo-unavailable');
       target.textContent = 'Video help is unavailable; the written instructions remain complete.';

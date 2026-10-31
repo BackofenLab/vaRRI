@@ -1,5 +1,5 @@
 import { viewerComponent } from './context.js';
-import VideoGuides from './video-guides.js';
+import VideoHelp from './video-help.js';
 
 export default viewerComponent('visualization-settings', `<aside class="panel control-panel" aria-label="Visualization settings">
       <details class="control-group" name="controls-accordion">
@@ -23,7 +23,8 @@ export default viewerComponent('visualization-settings', `<aside class="panel co
           </div>
           <label for="highlighting">Highlighting</label>
           <div class="label-dropdown-col-row">
-            <label for="highlighting">of RRI nucleotides</label>
+            <div class="video-help-label"><label for="highlighting">of RRI nucleotides</label>
+              <VideoHelp clip="highlight-rri-nucleotides" label="Highlight RRI nucleotides" /></div>
             <select id="highlighting" v-bind:value="state.fields.highlighting" v-on:input="actions.inputField('highlighting', $event)" v-on:change="actions.commitField('highlighting', $event)">
               <option value="region">region</option>
               <option value="basepairs">basepairs</option>
@@ -38,6 +39,7 @@ export default viewerComponent('visualization-settings', `<aside class="panel co
           <div class="checkbox-row">
             <input type="checkbox" id="forceLayoutLinearRRI" v-bind:checked="state.fields.forceLayoutLinearRRI" v-on:input="actions.inputField('forceLayoutLinearRRI', $event)" v-on:change="actions.commitField('forceLayoutLinearRRI', $event)">
             <label for="forceLayoutLinearRRI">Linear horizontal RRI layout</label>
+            <VideoHelp clip="linearize-rri-layout" label="Make the RRI horizontal" />
           </div>
           <div class="checkbox-row">
             <input type="checkbox" id="forceLayoutLinearStructure" v-bind:checked="state.fields.forceLayoutLinearStructure" v-on:input="actions.inputField('forceLayoutLinearStructure', $event)" v-on:change="actions.commitField('forceLayoutLinearStructure', $event)">
@@ -55,7 +57,6 @@ export default viewerComponent('visualization-settings', `<aside class="panel co
             <input type="checkbox" id="forceLayoutPullCrossing" v-bind:checked="state.fields.forceLayoutPullCrossing" v-on:input="actions.inputField('forceLayoutPullCrossing', $event)" v-on:change="actions.commitField('forceLayoutPullCrossing', $event)" v-bind:disabled="!state.fields.forceLayout">
             <label for="forceLayoutPullCrossing">Pull pseudoknot basepairs</label>
           </div>
-          <VideoGuides :clips="['highlight-rri-nucleotides', 'linearize-rri-layout']" />
         </div>
       </details>
-    </aside>`, { VideoGuides });
+    </aside>`, { VideoHelp });

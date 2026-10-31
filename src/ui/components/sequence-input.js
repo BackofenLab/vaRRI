@@ -1,20 +1,24 @@
 import { viewerComponent } from './context.js';
-import VideoGuides from './video-guides.js';
+import VideoHelp from './video-help.js';
 
 export default viewerComponent('sequence-input', `<aside class="panel control-panel" aria-label="Sequence and structure input">
       <details class="control-group" name="controls-accordion" open="">
         <summary class="section-header"><span>Sequence &amp; Structure Input</span>
-          <button id="loadJsonBtn" class="btn btn-secondary btn-sm section-header-action" type="button"
+          <span class="section-header-action">
+          <VideoHelp clip="store-load-session" label="Store and load a session" />
+          <button id="loadJsonBtn" class="btn btn-secondary btn-sm" type="button"
             title="Load a vaRRI JSON session. Drop a JSON file here or click to select one."
             :aria-busy="state.jsonLoading" @click.stop.prevent="actions.openJSONFile()"
             @keydown.stop @dragover.prevent.stop="actions.dragOver($event)"
             @dragleave="actions.dragLeave($event)" @drop.prevent.stop="actions.dropJSONFile($event)">
             ⬆ Load
           </button>
+          </span>
         </summary>
         <input id="loadJsonInput" type="file" accept=".json,application/json" hidden @change="actions.selectJSONFile($event)">
         <div class="control-group-body">
-        <span id="exampleDropdownLabel" class="example-label">Example</span>
+        <div class="video-help-label"><span id="exampleDropdownLabel" class="example-label">Example</span>
+          <VideoHelp clip="choose-example" label="Choose an example" /></div>
         <div class="examples">
           <details id="exampleDropdown" class="example-dropdown" v-bind:open="state.exampleOpen" v-on:toggle="state.exampleOpen = $event.target.open" v-on:keydown.esc.prevent="actions.closeExamples()">
             <summary id="exampleDropdownTrigger" aria-labelledby="exampleDropdownLabel selectedExampleName">
@@ -24,11 +28,11 @@ export default viewerComponent('sequence-input', `<aside class="panel control-pa
           </details>
           <button id="clearAllBtn" class="btn btn-secondary btn-sm" type="button" v-on:click="actions.clearAll($event)">✕ Clear</button>
         </div>
-        <label for="sequence">
+        <div class="sequence-input-heading"><label for="sequence">
           Sequences <small>(IUPAC; separate molecules with &amp;)</small>
-          &nbsp;
+        </label><span class="video-help-label">
           <button id="fastaInputBtn" class="btn btn-secondary btn-sm" type="button" title="Provide sequences in FASTA format" v-on:click="actions.openFastaDialog($event)">FASTA</button>
-        </label>
+          <VideoHelp clip="import-fasta" label="Import FASTA input" /></span></div>
         <div class="input-wrap" v-bind:class="{'has-error': state.errors.sequence}">
           <div id="backdrop-sequence" class="backdropable"><div class="highlights" id="highlights-sequence"><span v-for="(part, index) in actions.highlightSegments('sequence')" v-bind:key="index" v-bind:class="part.className" v-bind:style="part.style">{{ part.text }}</span></div></div>
           <textarea id="sequence" class="backdropable" rows="3" placeholder="ACGAUCAGAGAUUAGAGCAUACGACAGCAG&amp;ACGAAAAGAGCAUACGACAGUAG" v-bind:value="state.fields.sequence" v-on:input="actions.inputField('sequence', $event)" v-on:change="actions.commitField('sequence', $event)" v-on:scroll="actions.syncScroll('sequence')"
@@ -40,8 +44,8 @@ export default viewerComponent('sequence-input', `<aside class="panel control-pa
             v-on:blur="actions.clearInputCaret()" v-on:dragover.prevent="actions.dragOver($event)" v-on:dragleave="actions.dragLeave($event)" v-on:drop.prevent="actions.dropFile('sequence', $event)"></textarea>
           <span class="field-tooltip">{{ state.errors.sequence || '' }}</span>
         </div>
-        <fieldset class="sequence-names">
-          <legend>Sequence Names</legend>
+        <fieldset class="sequence-names" aria-labelledby="sequenceNamesLabel">
+          <legend><span id="sequenceNamesLabel">Sequence Names</span> <VideoHelp clip="name-and-number-strand" label="Name and number a strand" /></legend>
           <div class="sequence-name-grid">
           <div>
             <div class="input-wrap" :class="{'has-error':state.errors.seqName1}">
@@ -95,8 +99,7 @@ export default viewerComponent('sequence-input', `<aside class="panel control-pa
             v-on:blur="actions.clearInputCaret()"></textarea>
           <span class="field-tooltip">{{ state.errors.structure || '' }}</span>
         </div>
-        <VideoGuides :clips="['choose-example', 'name-and-number-strand', 'import-fasta', 'store-load-session']" />
         </div>
       </details>
       <div id="msg" v-bind:class="state.message.text ? state.message.type : ''" v-show="state.message.text">{{ state.message.text }}</div>
-    </aside>`, { VideoGuides });
+    </aside>`, { VideoHelp });

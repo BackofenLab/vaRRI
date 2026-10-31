@@ -1,5 +1,5 @@
 import { viewerComponent } from './context.js';
-import VideoGuides from './video-guides.js';
+import VideoHelp from './video-help.js';
 
 export default viewerComponent('text-annotation-panel', `<aside class="panel control-panel" aria-label="Text annotations">
   <details class="control-group" name="controls-accordion">
@@ -29,8 +29,8 @@ export default viewerComponent('text-annotation-panel', `<aside class="panel con
           :disabled="!state.annotations.texts.length" title="Remove user labels and unposition sequence names"
           @click="actions.clearTextAnnotationList()">Clear annotations</button>
         <button id="textAnnotationSubmitBtn" class="btn btn-primary btn-sm" type="button" @click="actions.addTextAnnotation($event)">Add</button>
+        <VideoHelp clip="place-text-annotation" label="Place a text annotation" />
       </div>
-      <VideoGuides :clips="['place-text-annotation']" />
     </div>
   </details>
-</aside>`, { VideoGuides });
+</aside>`, { VideoHelp });
