@@ -6,7 +6,7 @@ export const assetUrl = asset => {
   return url.href;
 };
 
-export function addVideoAssets(video, clip) {
+export function addVideoAssets(video, clip, { showCaptions = true } = {}) {
   const document = video.ownerDocument;
   const source = document.createElement('source');
   source.src = assetUrl(clip.assets.video);
@@ -16,11 +16,19 @@ export function addVideoAssets(video, clip) {
   track.src = assetUrl(clip.assets.captions);
   track.srclang = 'en';
   track.label = 'English';
-  track.default = true;
+  track.default = showCaptions;
   const fallback = document.createElement('a');
   fallback.href = source.src;
   fallback.textContent = 'Download the WebM demonstration';
   video.append(source, track, fallback);
+  if (!showCaptions) {
+    // Compact players already contain centered instruction cards. Keep optional
+    // captions ready, and place them above the card if the viewer enables them.
+    track.track.mode = 'hidden';
+    track.addEventListener('load', () => {
+      for (const cue of track.track.cues || []) cue.line = 0;
+    });
+  }
   return source;
 }
 

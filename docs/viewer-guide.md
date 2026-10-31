@@ -36,8 +36,9 @@
 Small video icons beside the left-hand controls open the corresponding guide.
 Hover or focus an icon to preview its video; click or tap to keep it open with
 playback controls, captions, a transcript, and a download. Escape, the close
-button, or closing the panel stops the video. Reduced-motion users press Play
-or activate the icon to start playback.
+button, or closing the panel stops the video. Instructions are included in the
+video; optional captions can be enabled through its controls. Reduced-motion
+users press Play or activate the icon to start playback.
 
 <div data-help-demo="name-and-number-strand"></div>
 

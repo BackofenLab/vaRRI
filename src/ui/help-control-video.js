@@ -47,7 +47,7 @@ export function createControlVideo(target, clip) {
     video.height = clip.height;
     video.poster = assetUrl(clip.assets.poster);
     video.setAttribute('aria-label', clip.title);
-    const source = addVideoAssets(video, clip);
+    const source = addVideoAssets(video, clip, { showCaptions: false });
     video.addEventListener('play', () => pauseOtherVideos(video));
     const description = document.createElement('p');
     description.textContent = clip.description;

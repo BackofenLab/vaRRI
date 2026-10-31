@@ -266,11 +266,17 @@ visual review of the instructions and demonstrated behavior.
 
 The viewer guide and canvas question-mark dialog contain `data-help-demo` anchors.
 `src/ui/help-videos.js` matches those anchors to the catalog. Hovering or focusing a
-help control reveals only its poster teaser; clicking or pressing Enter explicitly
-expands the player and attaches the WebM and captions lazily. Playback never starts
-or loops automatically, only one clip plays at a time, and the transcript remains
-available beside the native controls. This keeps the ordinary interface compact
-while preserving keyboard and touch access.
+documentation control reveals its poster teaser; clicking or pressing Enter expands
+the native player and attaches the WebM and captions lazily. The reader starts playback.
+
+Small video icons beside left-panel controls use `data-help-video` to open a muted
+preview on hover or keyboard focus. Click or tap keeps it open with native controls,
+optional captions, a transcript, and a download. The compact player uses the
+recorded instruction cards by default; enabled captions appear above the cards.
+Canvas action buttons use `data-help-preview` for repeating muted hover previews.
+Reduced motion suppresses automatic playback, and starting a clip pauses other
+videos. Escape dismisses previews; closing the containing panel stops playback.
+Sources load only when their guide is used.
 
 For another integration, retain useful explanatory text beside each video:
 

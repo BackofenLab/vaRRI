@@ -96,6 +96,15 @@ export async function exerciseLeftVideoGuides(page, output) {
           `${id}: the icon plays its corresponding video`);
         assert.equal(await video.evaluate(element => element.muted && element.playsInline), true);
         assert.equal(await video.getAttribute('controls'), '');
+        assert.equal(await video.evaluate(element => element.textTracks[0].mode), 'hidden',
+          'Compact previews do not duplicate the centered instruction card');
+        assert.equal(await video.evaluate(element => element.textTracks[0].cues[0].line), 0,
+          'Optional captions stay above the centered instruction card');
+        if (first) {
+          await video.evaluate(element => { element.textTracks[0].mode = 'showing'; });
+          assert.equal(await video.evaluate(element => element.textTracks[0].mode), 'showing');
+          await video.evaluate(element => { element.textTracks[0].mode = 'hidden'; });
+        }
         await fits(popup);
         await popup.hover();
         assert.equal(await popup.isVisible(), true, 'The pointer can enter the preview and use its controls');
