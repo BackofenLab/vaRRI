@@ -33,6 +33,12 @@
 | **Color Choice** | Use the color pickers to customize the colors for each sequence. |
 | **Structure** | Dot-bracket structure string. Separate two molecules with `&`. |
 
+The **Video guides** section inside each left-hand panel opens short, captioned
+walkthroughs with playback controls and a transcript. Playback starts when you
+press Play, and stops when you close the panel or its video guides.
+
+<div data-help-demo="name-and-number-strand"></div>
+
 ### FASTA Sequence (and Structure) Input
 
 The **Sequence** field content can be automatically generated from **FASTA input**.
@@ -78,6 +84,8 @@ Open the **Example** dropdown to choose another RNA-RNA interaction. Each open m
 | **Example dropdown** | Loads the feature overview or an existing literature example demonstrating SHAPE profiles, cropping and highlights, or mutations and sequence context. |
 | **✕ Clear** | Clears all input fields, resets the visualisation, and clears the example selection. |
 
+<div data-help-demo="choose-example"></div>
+
 
 ### Visualisation Settings
 
@@ -95,6 +103,9 @@ Open the **Example** dropdown to choose another RNA-RNA interaction. Each open m
 | **Force layout** | When checked, the rendered structure is shown in an interactive force-directed layout. When unchecked, the structure is drawn in a fixed layout. |
 | - **Free trailing ends** | When checked, the trailing ends of the sequences are not fixed in the force-directed layout and can move freely. |
 | - **Pull Pseudoknot Basepairs** | When checked, pulls pseudoknot basepairs together and stabilizes stacked pairs in the force-directed layout. |
+
+<div data-help-demo="highlight-rri-nucleotides"></div>
+<div data-help-demo="linearize-rri-layout"></div>
 
 ### Region Highlights
 
@@ -121,6 +132,7 @@ Behaviour of generated list entries:
 - Generated entries are refreshed automatically from the current structure and settings; they are not exported as user-defined region highlights in share links.
 
 <div data-help-demo="add-region-highlight"></div>
+<div data-help-demo="highlight-rri-background"></div>
 
 
 
@@ -135,6 +147,8 @@ Selecting a listed highlighting will populate the input fields with its values f
 | **Sequence** | The sequence (1 or 2) within which the subsequence is located. |
 | **Range** | The start and end indices of the subsequence to highlight in the form `start-end`. |
 | **Color** | The color to use for highlighting the subsequence. |
+
+<div data-help-demo="add-subsequence-highlight"></div>
 
 ### Probability Profiles
 
@@ -208,6 +222,11 @@ This information is provided in the following fields, and the "Add" button regis
 All registered mutations are shown in a list above the input fields, and can be removed by clicking the "🗑️" icon.
 The list shows the mutations in the standard mutation notation, e.g. `A23G` for a mutation from A to G at position 23, extracting the original nucleotide from the input sequence to avoid mistakes.
 Selecting a listed mutation will populate the input fields with its values for editing.
+
+A point mutation is an annotation on the supplied structure. It does not change
+the input sequence or predict a new folded structure.
+
+<div data-help-demo="add-point-mutation"></div>
 
 ### Text Annotations
 

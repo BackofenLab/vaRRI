@@ -1,4 +1,5 @@
 import { viewerComponent } from './context.js';
+import VideoGuides from './video-guides.js';
 
 export default viewerComponent('visualization-settings', `<aside class="panel control-panel" aria-label="Visualization settings">
       <details class="control-group" name="controls-accordion">
@@ -54,6 +55,7 @@ export default viewerComponent('visualization-settings', `<aside class="panel co
             <input type="checkbox" id="forceLayoutPullCrossing" v-bind:checked="state.fields.forceLayoutPullCrossing" v-on:input="actions.inputField('forceLayoutPullCrossing', $event)" v-on:change="actions.commitField('forceLayoutPullCrossing', $event)" v-bind:disabled="!state.fields.forceLayout">
             <label for="forceLayoutPullCrossing">Pull pseudoknot basepairs</label>
           </div>
+          <VideoGuides :clips="['highlight-rri-nucleotides', 'linearize-rri-layout']" />
         </div>
       </details>
-    </aside>`);
+    </aside>`, { VideoGuides });

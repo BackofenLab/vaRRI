@@ -9,6 +9,7 @@ import { checkPNGDialog, checkPNGResize } from './browser-png-export.js';
 import { exercisePositionControlsUI } from './browser-position-ui.js';
 import { exerciseTextAnnotationUI } from './browser-text-ui.js';
 import { exerciseSequenceNames } from './browser-sequence-names.js';
+import { exerciseLeftVideoGuides } from './browser-left-video-guides.js';
 import { checkInputHighlights } from './browser-input-highlights.js';
 import { checkCrossingRriExample } from './browser-crossing-rri.js';
 import { checkJSONFiles } from './browser-json-files.js';
@@ -96,11 +97,13 @@ async function main() {
     phase = 'initial viewer load';
     await page.goto(origin + '/index.html', { waitUntil: 'networkidle' });
     await ready(page);
+    phase = 'left-panel video guides';
+    await exerciseLeftVideoGuides(page, output);
     phase = 'right-panel video help previews';
     await exerciseActionVideoPreviews(page, output);
     if (process.argv.includes('--videos-only')) {
       assert.deepEqual(errors, [], 'Browser errors during action video previews');
-      console.log(`Action video previews passed (${browserType.name()} ${browser.version()}).`);
+      console.log(`Video helpers passed (${browserType.name()} ${browser.version()}): action previews and left-panel guides.`);
       return;
     }
     phase = 'example dropdown overlay';

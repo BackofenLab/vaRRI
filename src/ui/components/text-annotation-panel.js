@@ -1,4 +1,5 @@
 import { viewerComponent } from './context.js';
+import VideoGuides from './video-guides.js';
 
 export default viewerComponent('text-annotation-panel', `<aside class="panel control-panel" aria-label="Text annotations">
   <details class="control-group" name="controls-accordion">
@@ -29,6 +30,7 @@ export default viewerComponent('text-annotation-panel', `<aside class="panel con
           @click="actions.clearTextAnnotationList()">Clear annotations</button>
         <button id="textAnnotationSubmitBtn" class="btn btn-primary btn-sm" type="button" @click="actions.addTextAnnotation($event)">Add</button>
       </div>
+      <VideoGuides :clips="['place-text-annotation']" />
     </div>
   </details>
-</aside>`);
+</aside>`, { VideoGuides });

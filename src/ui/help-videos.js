@@ -54,7 +54,9 @@ function createPlayer(target, clip) {
   trigger.className = 'help-demo-trigger';
   trigger.setAttribute('aria-expanded', 'false');
   trigger.setAttribute('aria-controls', id);
-  trigger.textContent = `▶ Watch ${Math.ceil(clip.duration)} s demo`;
+  const buttonText = target.closest('.controls-column')
+    ? `▶ ${clip.title} · ${Math.ceil(clip.duration)} s` : `▶ Watch ${Math.ceil(clip.duration)} s demo`;
+  trigger.textContent = buttonText;
   const watchLabel = `Watch ${Math.ceil(clip.duration)} s demo: ${clip.title}`;
   trigger.setAttribute('aria-label', watchLabel);
 
@@ -150,7 +152,7 @@ function createPlayer(target, clip) {
     teaser.style.top = `${showAbove ? -size.height : anchor.height}px`;
   };
   const showTeaser = delay => {
-    if (expanded || previewDismissed) return;
+    if (expanded || previewDismissed || target.closest('.controls-column')) return;
     clearTimeout(teaserTimer);
     teaserTimer = setTimeout(() => {
       teaserTimer = undefined;
@@ -163,7 +165,7 @@ function createPlayer(target, clip) {
     hideTeaser();
     expanded = false;
     trigger.setAttribute('aria-expanded', 'false');
-    trigger.textContent = `▶ Watch ${Math.ceil(clip.duration)} s demo`;
+    trigger.textContent = buttonText;
     trigger.setAttribute('aria-label', watchLabel);
     figure.hidden = true;
     if (video) { video.pause(); video.currentTime = 0; }
@@ -176,6 +178,7 @@ function createPlayer(target, clip) {
     trigger.textContent = 'Hide demo';
     trigger.setAttribute('aria-label', `Hide demo: ${clip.title}`);
     figure.hidden = false;
+    if (target.closest('.controls-column')) video.scrollIntoView({ block: 'nearest' });
   };
   const toggle = () => expanded ? collapse() : expand();
   const pointerEnter = event => {
@@ -210,6 +213,9 @@ function createPlayer(target, clip) {
   teaserImage.addEventListener('load', positionTeaser);
   target.append(trigger, teaser, figure);
   dialog?.addEventListener('close', collapse);
+  const sections = [target.closest('.panel-video-guides'), target.closest('.control-group')].filter(Boolean);
+  const closeSection = event => { if (!event.currentTarget.open) collapse(); };
+  sections.forEach(section => section.addEventListener('toggle', closeSection));
   return () => {
     clearTimeout(teaserTimer);
     video?.pause();
@@ -223,6 +229,7 @@ function createPlayer(target, clip) {
     window.removeEventListener('scroll', positionTeaser, true);
     teaserImage.removeEventListener('load', positionTeaser);
     dialog?.removeEventListener('close', collapse);
+    sections.forEach(section => section.removeEventListener('toggle', closeSection));
   };
 }
 

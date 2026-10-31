@@ -1,4 +1,5 @@
 import { viewerComponent } from './context.js';
+import VideoGuides from './video-guides.js';
 
 export default viewerComponent('sequence-input', `<aside class="panel control-panel" aria-label="Sequence and structure input">
       <details class="control-group" name="controls-accordion" open="">
@@ -94,7 +95,8 @@ export default viewerComponent('sequence-input', `<aside class="panel control-pa
             v-on:blur="actions.clearInputCaret()"></textarea>
           <span class="field-tooltip">{{ state.errors.structure || '' }}</span>
         </div>
+        <VideoGuides :clips="['choose-example', 'name-and-number-strand', 'import-fasta', 'store-load-session']" />
         </div>
       </details>
       <div id="msg" v-bind:class="state.message.text ? state.message.type : ''" v-show="state.message.text">{{ state.message.text }}</div>
-    </aside>`);
+    </aside>`, { VideoGuides });

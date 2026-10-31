@@ -51,6 +51,10 @@
 .help-demo-compact .help-demo-trigger { scroll-margin-block: 8px 56px; }
 .help-demo-compact .help-demo-player { max-width: 620px; }
 .help-demo-unavailable { color: #6b7280; font-style: italic; }
+.panel-video-guides { margin-top: .7rem; border-top: 1px solid #d9e3ed; padding-top: .55rem; }
+.panel-video-guides > summary { cursor: pointer; color: #0f4676; font-size: 13px; font-weight: 700; }
+.panel-video-guides .help-demo-trigger { text-align: left; width: 100%; }
+.panel-video-guides .help-demo-player { margin-inline: 0; }
 .help-action-target {
   display: inline-flex;
   align-items: center;

@@ -16,7 +16,7 @@ export async function selectPair(capture, page) {
 export async function openPanel(page, selector) {
   const details = page.locator(selector).locator('xpath=ancestor::details[1]');
   if (await details.count() && !(await details.evaluate(element => element.open))) {
-    await details.locator('summary').click();
+    await details.locator(':scope > summary').click();
   }
   await details.evaluate(element => element.scrollIntoView({ block: 'nearest' }));
 }

@@ -147,7 +147,7 @@ export class Capture {
       element.toggleAttribute('data-pressed', pressed), value);
   }
 
-  async click(locator, modifier) {
+  async click(locator, modifier, afterAction) {
     await this.clearCaption();
     const box = await locator.boundingBox();
     await this.move(await center(locator));
@@ -161,6 +161,7 @@ export class Capture {
       await this.page.mouse.up();
       await this.pressed(false);
     } finally { if (modifier) await this.page.keyboard.up(modifier); }
+    if (afterAction) await afterAction();
     await this.pulse(label, box, 0.27);
     await hideAction(this.page);
     await this.hold(0.4);
@@ -261,7 +262,7 @@ export class Capture {
     await this.hold(0.4);
   }
 
-  async press(key, modifier) {
+  async press(key, modifier, afterAction) {
     await this.clearCaption();
     const label = modifier ? `${modifier} + ${key}` : key;
     this.markAction('key', label);
@@ -269,6 +270,7 @@ export class Capture {
     if (modifier) await this.page.keyboard.down(modifier);
     try { await this.page.keyboard.press(key); }
     finally { if (modifier) await this.page.keyboard.up(modifier); }
+    if (afterAction) await afterAction();
     await this.hold(0.5);
     await hideAction(this.page);
   }

@@ -1,19 +1,22 @@
 import { computed, inject } from 'vue';
 import { VIEWER_CONTEXT } from './context.js';
+import VideoGuides from './video-guides.js';
 
 const CONFIG = {
   subsequences: { title: 'Subsequence Highlights', aria: 'Subsequence highlights', list: 'highlight-list',
     counter: 'subseqCounterUI', edit: 'subseqEditId', button: 'highlightSubmitBtn',
-    itemClass: '', empty: 'No highlights defined.', itemName: 'highlight' },
+    itemClass: '', empty: 'No highlights defined.', itemName: 'highlight', videos: ['add-subsequence-highlight'] },
   regions: { title: 'Region Highlights', aria: 'Region highlights', list: 'region-list',
     counter: 'regionCounterUI', edit: 'regionEditId', button: 'regionSubmitBtn',
-    itemClass: 'region-item', empty: 'No region highlights defined.', itemName: 'region highlight' },
+    itemClass: 'region-item', empty: 'No region highlights defined.', itemName: 'region highlight',
+    videos: ['highlight-rri-background', 'add-region-highlight'] },
   mutations: { title: 'Point Mutations', aria: 'Point mutations', list: 'mutation-list',
     counter: 'mutationCounterUI', edit: 'mutationEditId', button: 'mutationSubmitBtn',
-    itemClass: 'mutation-item', empty: 'No mutations defined.', itemName: 'mutation' },
+    itemClass: 'mutation-item', empty: 'No mutations defined.', itemName: 'mutation', videos: ['add-point-mutation'] },
 };
 
 export default {
+  components: { VideoGuides },
   name: 'AnnotationPanel', props: { kind: { type: String, required: true } },
   setup(props) {
     const context = inject(VIEWER_CONTEXT);
@@ -46,6 +49,7 @@ export default {
         </ul>
         <input type="hidden" :id="config.edit" :value="state.fields[config.edit]">
         <div class="action-row"><button :id="config.button" class="btn btn-primary btn-sm" type="button" @click="actions.addAnnotation(kind,$event)">Add</button></div>
+        <VideoGuides :clips="config.videos" />
       </div>
     </details>
   </aside>`,

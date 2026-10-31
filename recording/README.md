@@ -93,6 +93,16 @@ output. Successful runs remove their temporary files.
 | `store-load-session` | Store the current viewer state and load it again |
 | `export-png` | Export the annotated canvas as a PNG image |
 | `add-region-highlight` | Add a region highlight from the annotation panel |
+| `choose-example` | Load a complete example from the left-panel menu |
+| `name-and-number-strand` | Name a strand and set biological numbering across skipped zero |
+| `add-subsequence-highlight` | Highlight a strand range using its biological indices |
+| `add-point-mutation` | Annotate a point mutation on the supplied structure |
+| `highlight-rri-nucleotides` | Compare interaction-region and paired-nucleotide outlines |
+| `highlight-rri-background` | Control generated region and paired-stack backgrounds |
+| `linearize-rri-layout` | Create a stable horizontal interaction with Force layout off |
+
+The [left-panel council decision](left-panel-videos.md) explains the scope,
+placement, fixtures, and sequential review requirements for the new walkthroughs.
 
 For each scene the output contains:
 
@@ -210,18 +220,21 @@ gestures belong in `run`, after setup finishes.
 | `paste(locator, value)` | Insert a complete record in one input event with a Paste cue |
 | `hold(seconds)` | Repeat the current frame for a reading pause |
 | `move({ x, y }, seconds?)` | Move actual mouse and visible pointer together |
-| `click(locator, modifier?)` | Approach and click; optionally hold `Control`/`Meta` |
+| `click(locator, modifier?, afterAction?)` | Approach and click; optionally hold `Control`/`Meta` and await the resulting render |
 | `drag(locator, dx, dy, modifier?)` | Approach, press, drag by screen pixels, release |
 | `dragBetween(start, destination, modifier?, seconds?)` | Drag between two screen points |
 | `dragTo(locator, destination, modifier?)` | Drag an element to a screen point |
 | `fill(locator, value)` | Focus a field and replace its text with keyboard input |
 | `select(locator, value)` | Move to a select and set its value with input/change events |
 | `wheel(locator, deltaY, modifier?)` | Move to an element and scroll, optionally holding a modifier |
-| `press(key, modifier?)` | Send a keyboard action, optionally holding a modifier |
+| `press(key, modifier?, afterAction?)` | Send a keyboard action, then optionally await its render before the effect hold |
 
 For a new gesture, keep pointer feedback and frame capture together in a new
 `Capture` method; a bare `page.click()` in a scene would omit its visible movement.
 Waits for a render finish are separate from `hold()` and do not add video time.
+For an Enter commit or checkbox click that rerenders the drawing, pass a changed-result readiness
+callback as `press()`'s or `click()`'s third argument so the effect hold shows the completed
+render instead of freezing an intermediate blank canvas.
 
 ## Review and publish into help
 

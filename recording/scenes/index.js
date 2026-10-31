@@ -10,11 +10,20 @@ import applyProbabilityProfile from './apply-probability-profile.js';
 import storeLoadSession from './store-load-session.js';
 import exportPng from './export-png.js';
 import addRegionHighlight from './add-region-highlight.js';
+import chooseExample from './choose-example.js';
+import nameAndNumberStrand from './name-and-number-strand.js';
+import addSubsequenceHighlight from './add-subsequence-highlight.js';
+import addPointMutation from './add-point-mutation.js';
+import highlightRriNucleotides from './highlight-rri-nucleotides.js';
+import highlightRriBackground from './highlight-rri-background.js';
+import linearizeRriLayout from './linearize-rri-layout.js';
 
 // Add a scene module here to include it in --list and the default recording run.
 export const scenes = [selectNodes, moveSelection, releasePositions, resetPositions,
   rectangleSelection, rotateSelection, placeTextAnnotation, importFasta,
-  applyProbabilityProfile, storeLoadSession, exportPng, addRegionHighlight];
+  applyProbabilityProfile, storeLoadSession, exportPng, addRegionHighlight, chooseExample,
+  nameAndNumberStrand, addSubsequenceHighlight, addPointMutation, highlightRriNucleotides,
+  highlightRriBackground, linearizeRriLayout];
 
 const ids = new Set();
 for (const scene of scenes) {
