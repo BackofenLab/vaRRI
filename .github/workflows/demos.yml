@@ -1,0 +1,30 @@
+name: Generate interaction demos
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Install VP9 encoder
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Record and verify demos
+        run: npm run demos
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: varri-interaction-demos
+          path: output/playwright/
+          retention-days: 14

@@ -10,7 +10,7 @@ export async function exerciseTextAnnotationUI(page, origin, output) {
     document.getElementById('rendering-canvas').style.visibility !== 'hidden');
   const open = async () => {
     const panel = page.locator('#textAnnotationSubmitBtn').locator('xpath=ancestor::details[1]');
-    if (!await panel.evaluate(element => element.open)) await panel.locator('summary').click();
+    if (!await panel.evaluate(element => element.open)) await panel.locator(':scope > summary').click();
   };
   await page.goto(`${origin}/index.html?${params}`, { waitUntil: 'networkidle' });
   await ready();

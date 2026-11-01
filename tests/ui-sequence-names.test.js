@@ -21,7 +21,7 @@ test('sequence name fields and named annotation dialogs synchronize without rere
   const viewer = await mountSequenceNameViewer();
   try {
     const names = document.querySelector('fieldset.sequence-names');
-    expect(names.querySelector('legend').textContent).toBe('Sequence Names');
+    expect(names.querySelector('legend').textContent.trim()).toBe('Sequence Names');
     expect(names.querySelectorAll('label')).toHaveLength(0);
     expect(document.getElementById('seqName1').getAttribute('aria-label')).toBe('Sequence 1 name');
     expect(document.getElementById('seqName2').getAttribute('aria-label')).toBe('Sequence 2 name');

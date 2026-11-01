@@ -12,5 +12,8 @@ the independent Fornac constraint comparison. Force-loop sizes are separately
 checked by `tests/force-geometry.test.js`.
 
 `npm run test:visual` compares the native viewer to these active fixtures.
+The runner fixes the rendering snapshot at the reviewed 866×626 dimensions and
+hides viewer chrome during capture, so UI layout changes do not rewrite RNA
+geometry fixtures. Viewer controls have separate Chromium and Firefox coverage.
 Recording requires an explicit `--update --revision FULL_SOURCE_COMMIT_SHA`
 after geometry review; do not regenerate them to mask a test failure.

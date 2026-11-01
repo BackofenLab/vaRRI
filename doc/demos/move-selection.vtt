@@ -1,0 +1,13 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:06.400
+Ctrl / ⌘ + click to select nodes
+
+2
+00:00:06.400 --> 00:00:12.867
+Release Ctrl / ⌘, then drag either selected node
+
+3
+00:00:12.867 --> 00:00:19.600
+Both nodes keep their new positions; other nodes stay put

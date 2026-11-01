@@ -7,8 +7,11 @@ export async function checkExampleDropdownOverlay(page) {
   const sequence = page.locator('#sequence');
   const before = await sequence.boundingBox();
 
+  // The native open property changes before its queued toggle event updates Vue.
+  const opened = dropdown.evaluate(element => new Promise(resolve =>
+    element.addEventListener('toggle', () => resolve(element.open), { once: true })));
   await trigger.click();
-  await page.waitForFunction(() => document.getElementById('exampleDropdown')?.open);
+  assert.equal(await opened, true, 'The open toggle has reached the application');
 
   const after = await sequence.boundingBox();
   const optionBounds = await options.boundingBox();

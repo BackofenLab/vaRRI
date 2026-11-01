@@ -82,6 +82,10 @@
   },
   "scripts": {
     "build": "node scripts/build-core.js",
+    "demos": "node recording/record.js",
+    "demos:preview": "node recording/preview.js",
+    "demos:publish": "node recording/publish.js",
+    "demos:check-published": "node recording/publish.js --check",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "test:architecture": "node scripts/check-architecture.js",

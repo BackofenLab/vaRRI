@@ -1,0 +1,25 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:07.667
+Choose region: this dropdown controls automatic RRI backgrounds
+
+2
+00:00:07.667 --> 00:00:11.867
+Region adds one generated highlight: 1-5&amp;1-5
+
+3
+00:00:11.867 --> 00:00:19.000
+Choose basepairs to separate the two paired stacks
+
+4
+00:00:19.000 --> 00:00:24.067
+Two generated highlights leave the unpaired A bases clear
+
+5
+00:00:24.067 --> 00:00:32.000
+Choose nothing to remove the automatic highlights
+
+6
+00:00:32.000 --> 00:00:39.467
+The generated entries and backgrounds are gone; the input is unchanged

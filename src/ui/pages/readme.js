@@ -1,4 +1,5 @@
 import { Marked, Renderer } from '../vendor/marked.js';
+import { enhanceHelpVideos } from '../help-videos.js';
 
 const root = new URL('../../../', import.meta.url);
 const guides = ['docs/viewer-guide.md', 'docs/sharing-and-input.md'];
@@ -68,6 +69,7 @@ async function showReadme() {
       }
     }
     content.replaceChildren(fragment);
+    enhanceHelpVideos(content);
     scrollToSection();
     window.addEventListener('hashchange', scrollToSection);
   } catch (error) {

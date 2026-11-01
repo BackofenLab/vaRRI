@@ -22,7 +22,7 @@ export async function exerciseSequenceNames(page, origin, output) {
   await page.goto(`${origin}/index.html?${params}`, { waitUntil: 'networkidle' });
   await ready();
   assert.deepEqual(await canvas.locator('[data-varri-text] text').allTextContents(), ['RNA α', 'Target β']);
-  const panels = await page.locator('.controls-column details > summary').allTextContents();
+  const panels = await page.locator('.controls-column details.control-group > summary').allTextContents();
   const settingsIndex = panels.findIndex(text => text.includes('Visualization Settings'));
   assert.ok(settingsIndex >= 0);
   assert.ok(panels[settingsIndex + 1].includes('Text Annotations'), 'Text annotations immediately follow settings');
