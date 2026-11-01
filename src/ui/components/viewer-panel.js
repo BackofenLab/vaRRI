@@ -1,5 +1,6 @@
 import { viewerComponent } from './context.js';
 import CanvasHelpDialog from './canvas-help-dialog.js';
+import VideoHelp from './video-help.js';
 
 export default viewerComponent('viewer-panel', `<section class="result-panel">
     <div class="canvas-workspace" v-bind:class="{'view-controls-open': state.viewControlsOpen}">
@@ -32,19 +33,31 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
             <span class="field-tooltip">{{ state.errors.cropping || '' }}</span>
           </div>
         </div>
-        <div class="manual-position-controls" role="group" aria-label="Manual positions">
-          <h3>Manual positions</h3>
-          <button id="selectMovedBtn" type="button" data-help-preview="release-positions" v-bind:aria-label="'Moved: ' + state.canvasInteraction.movedCount" v-on:click="actions.selectMovedElements()"
+        <div class="manual-position-controls" role="group" aria-label="Manual positioning">
+          <h3>Manual positioning <a id="canvasHelpBtn" href="#canvasHelpDialog" aria-label="Canvas interaction help"
+            title="Open canvas interaction help" aria-haspopup="dialog" aria-controls="canvasHelpDialog"
+            @click.prevent="actions.openDialog('canvasHelpDialog', 'Canvas interactions')">?</a></h3>
+          <div class="manual-position-action">
+          <button id="selectMovedBtn" type="button" v-bind:aria-label="'Moved: ' + state.canvasInteraction.movedCount" v-on:click="actions.selectMovedElements()"
             v-bind:disabled="!state.canvasInteraction.movedCount" title="Select all manually moved nucleotides and numbering labels. Text labels are not counted.">Moved: {{ state.canvasInteraction.movedCount }}</button>
-          <button id="releasePositionsBtn" type="button" data-help-preview="release-positions" aria-label="Release" v-on:click="actions.releaseSelectedPositions()"
+          <VideoHelp clip="release-positions" label="Select moved nodes" />
+          </div>
+          <div class="manual-position-action">
+          <button id="releasePositionsBtn" type="button" aria-label="Release" v-on:click="actions.releaseSelectedPositions()"
             v-bind:disabled="!state.fields.forceLayout || !state.canvasInteraction.selectedNodeCount"
             v-bind:title="state.fields.forceLayout ? 'Unfix selected nodes at their current positions. Text labels are unaffected.' : 'Release is available when Force layout is enabled.'">Release</button>
-          <button id="resetPositionsBtn" type="button" data-help-preview="reset-positions" aria-label="Reset" v-on:click="actions.resetSelectedPositions()"
+          <VideoHelp clip="release-positions" label="Release moved nodes" />
+          </div>
+          <div class="manual-position-action">
+          <button id="resetPositionsBtn" type="button" aria-label="Reset" v-on:click="actions.resetSelectedPositions()"
             v-bind:disabled="!state.canvasInteraction.selectedMovedCount" title="Restore selected nodes to their positions and fixation before manual editing.">Reset</button>
-          <button id="undoCanvasBtn" type="button" data-help-preview="reset-positions" aria-label="Undo" v-on:click="actions.undoCanvasEdit()"
+          <VideoHelp clip="reset-positions" label="Reset moved nodes" />
+          </div>
+          <div class="manual-position-action">
+          <button id="undoCanvasBtn" type="button" aria-label="Undo" v-on:click="actions.undoCanvasEdit()"
             v-bind:disabled="!state.canvasInteraction.canUndo" title="Undo the last drag, selection rotation, release, or reset. Ctrl+Z / Command+Z while the canvas is focused.">Undo</button>
-          <button id="canvasHelpBtn" type="button" aria-label="Canvas interaction help" title="Open canvas interaction help" aria-haspopup="dialog" aria-controls="canvasHelpDialog"
-            v-on:click="actions.openDialog('canvasHelpDialog', 'Canvas interactions')">Help</button>
+          <VideoHelp clip="reset-positions" label="Undo manual positioning" />
+          </div>
         </div>
       </aside>
       <div id="rendering-canvas" tabindex="0" @pointerdown.capture="actions.closeViewControls()" @dragover="actions.overTextAnnotationCanvas($event)"
@@ -61,4 +74,4 @@ export default viewerComponent('viewer-panel', `<section class="result-panel">
       <a href="citation.html" class="btn btn-cite btn-sm">🤍 Cite vaRRI</a></span>
     </div>
     <CanvasHelpDialog />
-  </section>`, { CanvasHelpDialog });
+  </section>`, { CanvasHelpDialog, VideoHelp });

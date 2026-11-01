@@ -16,7 +16,7 @@ dialog.canvas-help-dialog {
 .canvas-help-dialog dd { margin-left: 0; }
 .canvas-help-dialog .dialog-actions { position: sticky; bottom: 0; }
 
-.manual-position-controls button,
+.manual-position-action > button:not(.video-help-icon),
 .canvas-position-key {
   font: inherit; font-size: .75rem; line-height: 18px; height: 20px;
   padding: 0 .4rem; white-space: nowrap;
@@ -24,7 +24,7 @@ dialog.canvas-help-dialog {
   border: 1px solid #cbd7e2; border-radius: 4px;
 }
 .canvas-position-key { display: inline-block; font-weight: 700; }
-#canvasHelpBtn { min-width: 24px; }
+#canvasHelpBtn { margin-left: .25rem; color: var(--brand-blue-dark); text-decoration: underline; }
 #canvasHelpBtn:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: 2px; }
 
 @media (max-width: 520px) {

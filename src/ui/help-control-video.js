@@ -1,4 +1,5 @@
 import { assetUrl, addVideoAssets, pauseOtherVideos } from './help-video-assets.js';
+import { addVideoSizeControl } from './help-video-size.js';
 
 let instance = 0;
 const openPreviews = new Set();
@@ -17,9 +18,9 @@ export function createControlVideo(target, clip) {
   document.body.append(popup);
   target.dataset.helpVideoReady = 'true';
   target.setAttribute('aria-controls', popup.id);
-  target.setAttribute('aria-label', `Video guide: ${clip.title}`);
+  if (!target.hasAttribute('aria-label')) target.setAttribute('aria-label', `Video guide: ${clip.title}`);
 
-  let video, closeButton, showTimer, hideTimer;
+  let video, closeButton, showTimer, hideTimer, resetSize;
   let pinned = false;
   let dismissed = false;
   let overTarget = false;
@@ -55,6 +56,8 @@ export function createControlVideo(target, clip) {
     transcript.className = 'help-demo-transcript';
     const summary = document.createElement('summary');
     summary.textContent = 'Details and transcript';
+    const sizeControl = addVideoSizeControl(popup, video, summary, position);
+    resetSize = sizeControl.reset;
     const list = document.createElement('ol');
     for (const step of clip.transcript) {
       const item = document.createElement('li');
@@ -68,13 +71,14 @@ export function createControlVideo(target, clip) {
     download.href = source.src;
     download.download = clip.assets.video.file;
     download.textContent = 'Download WebM';
-    popup.append(header, video, transcript, download);
+    popup.append(header, sizeControl.surface, transcript, download);
   };
 
   function hide() {
     clearTimeout(showTimer);
     clearTimeout(hideTimer);
     popup.hidden = true;
+    resetSize?.();
     pinned = false;
     overPopup = false;
     target.setAttribute('aria-expanded', 'false');
@@ -86,7 +90,7 @@ export function createControlVideo(target, clip) {
     if (popup.hidden) return;
     const margin = 8, gap = 8;
     const anchor = target.getBoundingClientRect();
-    const column = target.closest('.controls-column')?.getBoundingClientRect();
+    const column = target.closest('.controls-column, .view-controls-panel')?.getBoundingClientRect();
     if (!target.getClientRects().length || anchor.bottom <= Math.max(margin, column?.top ?? 0) ||
         anchor.top >= Math.min(window.innerHeight - margin, column?.bottom ?? window.innerHeight)) {
       hide();
@@ -173,6 +177,11 @@ export function createControlVideo(target, clip) {
   const outside = event => { if (!target.contains(event.target) && !popup.contains(event.target)) hide(); };
   const sectionToggle = () => { if (!section.open) hide(); };
   const visibility = () => { if (document.hidden) hide(); };
+  const drawer = target.closest('.view-controls-panel');
+  const drawerObserver = drawer && new window.MutationObserver(() => {
+    if (drawer.getAttribute('aria-hidden') === 'true') hide();
+  });
+  drawerObserver?.observe(drawer, { attributes: true, attributeFilter: ['aria-hidden'] });
   target.addEventListener('pointerenter', enterTarget);
   target.addEventListener('pointerleave', leaveTarget);
   target.addEventListener('focusin', focus);
@@ -191,6 +200,7 @@ export function createControlVideo(target, clip) {
   section?.addEventListener('toggle', sectionToggle);
   return () => {
     hide();
+    drawerObserver?.disconnect();
     target.removeEventListener('pointerenter', enterTarget);
     target.removeEventListener('pointerleave', leaveTarget);
     target.removeEventListener('focusin', focus);

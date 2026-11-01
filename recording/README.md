@@ -4,7 +4,10 @@ The demo pipeline drives the real vaRRI viewer with Playwright and sends rendere
 frames to FFmpeg. A scene describes a user task, shows a pointer and instructions,
 and checks the result. Instructions appear centered on a dark video-guide card,
 separate from the viewer. Each card is held for at least 2.4 seconds (longer for
-more text), then cleared before the pointer moves or the action starts. Amber
+more text), then cleared before the pointer moves or the action starts. Each
+completed action remains visible for at least half a second before the next
+instruction card, measured in encoded frames. Existing holds count toward this
+pause; instruction reading times are unchanged. Amber
 rings, target outlines, and gesture labels identify clicks, drags, scrolling,
 keyboard actions, and edited fields. Rerun scenes after changing the interface to refresh the
 videos. No production JavaScript dependency or application build is added.

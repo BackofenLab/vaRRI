@@ -9,6 +9,7 @@ import { scenes } from './scenes/index.js';
 import { writeGallery } from './lib/gallery.js';
 import { verifyVideos } from './lib/verify.js';
 import { readSourceState, recordingSourceState } from './lib/source-state.js';
+import { verifyActionPauses } from './lib/timing.js';
 
 const sha256 = content => createHash('sha256').update(content).digest('hex');
 
@@ -93,6 +94,7 @@ async function main() {
         capture.cues = [];
         await scene.run(capture, page);
         const duration = await capture.finish();
+        verifyActionPauses(capture.timeline);
         if (errors.length) throw new Error(`Browser errors: ${errors.join('; ')}`);
         const content = await fs.readFile(file);
         if (content.length > options.maxBytes) {

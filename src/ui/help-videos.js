@@ -27,7 +27,7 @@ function createPlayer(target, clip) {
   trigger.setAttribute('aria-expanded', 'false');
   trigger.setAttribute('aria-controls', id);
   const buttonText = target.closest('.controls-column')
-    ? `▶ ${clip.title} · ${Math.ceil(clip.duration)} s` : `▶ Watch ${Math.ceil(clip.duration)} s demo`;
+    ? `${clip.title} · ${Math.ceil(clip.duration)} s` : `Watch ${Math.ceil(clip.duration)} s demo`;
   trigger.textContent = buttonText;
   const watchLabel = `Watch ${Math.ceil(clip.duration)} s demo: ${clip.title}`;
   trigger.setAttribute('aria-label', watchLabel);
