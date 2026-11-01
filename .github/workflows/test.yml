@@ -30,6 +30,7 @@ jobs:
         run: |
           npm run test:architecture
           npm run test:ci
+          npm run demos:check-published
 
       - name: Verify installed package contents
         run: npm run test:package
@@ -44,6 +45,9 @@ jobs:
           npm run test:ui:firefox
           npm run test:pages
           npm run test:visual
+
+      - name: Record and verify interaction demos
+        run: npm run demos
 
       - name: Upload browser diagnostics
         if: failure()

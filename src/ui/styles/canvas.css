@@ -206,7 +206,7 @@
   position: absolute;
   right: 2.45rem;
   top: 0;
-  width: min(205px, calc(100% - 2.45rem));
+  width: min(180px, calc(100% - 2.45rem));
   z-index: 6;
 }
 
@@ -315,11 +315,17 @@
   border-top: 1px solid #d5e1ec;
   display: grid;
   gap: .35rem;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   margin-top: 1rem;
   padding-top: .85rem;
 }
 .manual-position-controls h3 { grid-column: 1 / -1; margin-bottom: .1rem; }
-.manual-position-controls button { cursor: pointer; }
-.manual-position-controls button:hover:enabled { background: #e8f0f8; }
-.manual-position-controls button:disabled { color: #8b929a; background: #f3f4f5; cursor: default; }
+.manual-position-action { display: flex; align-items: center; gap: .25rem; }
+.manual-position-action > button:not(.video-help-icon) {
+  cursor: pointer;
+  flex: 0 0 67%;
+  min-width: 0;
+  text-align: center;
+}
+.manual-position-action > button:not(.video-help-icon):hover:enabled { background: #e8f0f8; }
+.manual-position-action > button:disabled { color: #8b929a; background: #f3f4f5; cursor: default; }

@@ -17,6 +17,7 @@ import { createJSONFileActions } from './json-file-actions.js';
 import { createDialogActions } from './dialog-actions.js';
 import { createFieldActions } from './field-actions.js';
 import { createInputHighlights } from './input-highlights.js';
+import { enhanceHelpVideos } from './help-videos.js';
 
 /** Mount a complete viewer. Only field/annotation DTOs enter Vue's store. */
 export function createViewerApp(options = {}) {
@@ -37,6 +38,8 @@ export function createViewerApp(options = {}) {
   const app = createApp(App);
   app.provide(VIEWER_CONTEXT, { state, actions, examples, colors });
   app.mount(root);
+  const recordingDemo = new URLSearchParams(document.defaultView.location.search).has('demoRecording');
+  const disposeHelpVideos = recordingDemo ? () => {} : enhanceHelpVideos(root);
   actions.observeBackdrops();
   const outsideClick = event => {
     if (state.exampleOpen && !document.getElementById('exampleDropdown')?.contains(event.target)) state.exampleOpen = false;
@@ -62,6 +65,7 @@ export function createViewerApp(options = {}) {
       actions.disposeJSONFiles();
       actions.cancelPNGExport(); actions.cancelRendering(); actions.disposeBackdrops(); actions.disposeDialogs(); actions.disposeNavigation();
       actions.disposeTextAnnotations();
+      disposeHelpVideos();
       document.removeEventListener('click', outsideClick);
       app.unmount();
     },

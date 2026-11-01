@@ -78,6 +78,24 @@ describe('UI document structure', () => {
     });
   });
 
+  test('connects right-panel actions to contextual video help', () => {
+    const previews = Object.fromEntries([...viewer.dom.window.document.querySelectorAll('[data-help-preview]')]
+      .map(button => [button.id, button.dataset.helpPreview]));
+    expect(previews).toEqual({
+      exportPngBtn: 'export-png', storeJsonBtn: 'store-load-session',
+    });
+    expect(css).toContain('.help-action-target::after');
+    expect(css).toContain('.help-action-preview video');
+    const document = viewer.dom.window.document;
+    for (const [id, clip] of Object.entries({ selectMovedBtn: 'release-positions',
+      releasePositionsBtn: 'release-positions', resetPositionsBtn: 'reset-positions', undoCanvasBtn: 'reset-positions' })) {
+      const action = document.getElementById(id);
+      expect(action.hasAttribute('data-help-preview')).toBe(false);
+      expect(action.nextElementSibling.dataset.helpVideo).toBe(clip);
+    }
+    expect(document.querySelector('.manual-position-controls h3 a').textContent).toBe('?');
+  });
+
   test('exposes the linear layout controls in their requested order', () => {
     expect(mountedHtml).toMatch(
       /id="forceLayoutLinearStructure"[\s\S]*?<label for="forceLayoutLinearStructure">Linear intramolecular stem layout<\/label>/
