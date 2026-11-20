@@ -33,6 +33,9 @@ try {
     const specifier = key === '.' ? manifest.name : manifest.name + key.slice(1);
     assert.ok(fs.statSync(installedRequire.resolve(specifier)).isFile(), specifier);
   }
+  assert.equal(fs.existsSync(path.join(installed, 'fornac')), false, 'Legacy runtime directory excluded');
+  assert.deepEqual(fs.readFileSync(installedRequire.resolve('varri-js/structure.css')),
+    fs.readFileSync(path.join(installed, 'dist/fornac.css')), 'Source and standalone graph styles match');
   const exportTargets = value => typeof value === 'string' ? [value]
     : Object.values(value).flatMap(exportTargets);
   for (const target of exportTargets(manifest.exports)) {
@@ -42,24 +45,6 @@ try {
   const packagedAPI = installedRequire('varri-js');
   const sessionJSON = packagedAPI.encodeJsonState({ fields: { sequence: 'ACGU', structure: '(..)' } });
   assert.equal(packagedAPI.decodeJsonState(sessionJSON).fields.sequence, 'ACGU');
-  // Legacy D3 remains a classic/UMD asset even though authored package files are ESM.
-  const legacyDom = new JSDOM('<!doctype html><html><body></body></html>');
-  const previousGlobals = new Map(['document', 'window', 'd3'].map(name =>
-    [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
-  try {
-    globalThis.document = legacyDom.window.document;
-    globalThis.window = legacyDom.window;
-    const legacyD3 = installedRequire('varri-js/fornac/d3.js');
-    assert.equal(legacyD3.version, '3.4.13');
-    assert.equal(legacyD3.scale.linear().domain([0, 10]).range([0, 100])(5), 50);
-    assert.equal(globalThis.d3, legacyD3, 'Legacy D3 still publishes its browser global.');
-  } finally {
-    legacyDom.window.close();
-    for (const [name, descriptor] of previousGlobals) {
-      if (descriptor) Object.defineProperty(globalThis, name, descriptor);
-      else delete globalThis[name];
-    }
-  }
   execFileSync(process.execPath, ['--input-type=module', '-e',
     "import v, { createVaRRI } from 'varri-js'; if (typeof v.render !== 'function' || typeof createVaRRI !== 'function') throw Error('ESM API missing'); const a = createVaRRI(); const b = createVaRRI(); a.setColors({ sequence1: 'red' }); if (b.getColors().sequence1 === 'red') throw Error('Instances share colors')"], { cwd: consumer });
 
@@ -85,10 +70,10 @@ try {
     dom.window.close();
   }
   const helpDocuments = ['README.md', 'docs/viewer-guide.md', 'docs/sharing-and-input.md'];
-  for (const name of [...helpDocuments, 'CITATION.bib', 'CITATION.cff', 'src/README.md']) {
+  for (const name of [...helpDocuments, 'Changelog.md', 'CITATION.bib', 'CITATION.cff', 'src/README.md']) {
     assert.ok(fs.statSync(path.join(installed, name)).size > 0, `${name} must be packaged`);
   }
-  for (const name of ['README.md', 'fornac.css', 'fornac.css.map',
+  for (const name of ['README.md', 'fornac.css',
     'licenses/vaRRI-MIT.txt', 'licenses/D3-ISC.txt',
     'licenses/Fornac-Apache-2.0.txt', 'licenses/Fornac-NOTICE.md']) {
     assert.ok(fs.statSync(path.join(installed, 'dist', name)).size > 0, `Missing embedding asset: ${name}`);
@@ -118,7 +103,7 @@ try {
       }
     }
   }
-  console.log('Installed package: viewer assets, documentation, citation data, CommonJS, ESM and legacy D3 passed.');
+  console.log('Installed package: viewer assets, documentation, citation data, CommonJS and ESM passed.');
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
 }

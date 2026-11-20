@@ -34,6 +34,6 @@ node scripts/visual-baseline.js --update --root /tmp/varri-original --revision F
 ```
 
 Do not update these fixtures merely to silence a regression. Record why any
-deliberate visual change is acceptable in `MIGRATION_PROTOCOL.md`, and review
+deliberate visual change is acceptable in the pull request, and review
 the before and after screenshots. PNG/JSON files here are generated fixtures;
 the source file size policy applies to the runner and this documentation.

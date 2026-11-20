@@ -14,7 +14,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const output = path.join(root, 'output/playwright/core-contract');
 const mime = { '.js': 'text/javascript', '.css': 'text/css', '.map': 'application/json' };
 const html = mode => `<!doctype html><meta charset="utf-8">
-<link rel="stylesheet" href="${mode === 'native' ? '/fornac/fornac.css' : '/dist/fornac.css'}">
+<link rel="stylesheet" href="${mode === 'native' ? '/src/core/canvas/graph/structure.css' : '/dist/fornac.css'}">
 <style>.canvas { width: 640px; height: 480px; } svg { width:100%; height:100%; }</style>
 <div id="first" class="canvas"></div><div id="second" class="canvas"></div>
 ${mode === 'native' ? '<script type="module">import api from "/src/core/index.js"; window.testApi = api;</script>'

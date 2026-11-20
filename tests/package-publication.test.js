@@ -19,7 +19,7 @@ describe('npm package publication', () => {
         expect(packageJson.exports['.']).toMatchObject({
             import: './src/vaRRI.js', require: './dist/varri.cjs',
         });
-        expect(packageJson.exports['./fornac/fornac.css']).toBe('./fornac/fornac.css');
+        expect(packageJson.exports['./structure.css']).toBe('./src/core/canvas/graph/structure.css');
         expect(packageJson.publishConfig.access).toBe('public');
     });
 

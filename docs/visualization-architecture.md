@@ -65,9 +65,8 @@ links use the same component tree and state.
 ## Source, distribution, and verification
 
 Owned source modules have one coherent responsibility and at most 400 lines.
-Vendor runtime assets retain their original license and provenance. The separate
-[phase-5 upgrade](d3-upgrade.md) pins D3 7.9.0 after the architectural extraction
-and Fornac constraint corrections.
+Vendor runtime assets retain their original license and provenance. The canvas
+uses the [pinned D3 7.9.0 runtime](../src/core/vendor/README.md).
 
 `npm run build` is for distribution and embedding. GitHub Pages serves the same
 native modules used in development. Jest runs native ESM with VM modules and no
