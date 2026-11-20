@@ -223,6 +223,7 @@ async function main() {
       element.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
+    await page.getByLabel('Show help video on hover').uncheck();
     phase = 'share link roundtrip';
     await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', {
       configurable: true, value: { writeText: async url => { window.sharedTestUrl = url; } },
@@ -235,6 +236,7 @@ async function main() {
     assert.equal(params.get('forceLayoutLinearRRI'), '1');
     assert.equal(params.get('forceLayout'), '0');
     assert.equal(params.get('rotation'), '35');
+    assert.equal(params.get('showHelpVideoOnHover'), '0');
     for (const key of ['subseqHighlights', 'regionHighlights', 'mutations']) assert.ok(params.get(key), key + ' must be shared');
     assert.match(params.get('subseqHighlights'), /^1:1-1,3-4:[0-9a-f]{6}:0\.3$/i);
     await page.goto(origin + '/index.html?' + params, { waitUntil: 'networkidle' });
@@ -248,6 +250,33 @@ async function main() {
     assert.equal(await page.locator('#rotationSlider').inputValue(), '0');
     assert.ok((await page.locator('#rotation').textContent()).includes('35'));
     assert.equal(await page.locator('#rendering-canvas svg').getAttribute('data-varri-rotation'), '35');
+
+    phase = 'click-only help from a shared link';
+    await openPanel(page, '#showHelpVideoOnHover');
+    const preference = page.getByLabel('Show help video on hover');
+    assert.equal(await preference.isChecked(), false);
+    const icon = page.locator('[data-help-video="linearize-rri-layout"][data-help-video-ready]');
+    const popup = page.locator('#' + await icon.getAttribute('aria-controls'));
+    await icon.hover();
+    await icon.focus();
+    await page.waitForTimeout(350);
+    assert.equal(await popup.isVisible(), false);
+    assert.equal(await popup.locator('video').count(), 0, 'Disabled previews leave media unloaded');
+    await icon.press('Enter');
+    await popup.waitFor({ state: 'visible' });
+    await page.keyboard.press('Escape');
+    await popup.waitFor({ state: 'hidden' });
+    await icon.click();
+    await popup.waitFor({ state: 'visible' });
+    await popup.getByRole('button', { name: 'Close video guide' }).click();
+    await page.locator('#exportPngBtn').hover();
+    await page.waitForTimeout(350);
+    assert.equal(await page.locator('.help-action-preview:visible').count(), 0);
+    await preference.check();
+    await icon.hover();
+    await popup.waitFor({ state: 'visible' });
+    await page.mouse.move(0, 0);
+    await popup.waitFor({ state: 'hidden' });
 
     for (const fixture of annotations) {
       phase = fixture.dialog + ' deletion';

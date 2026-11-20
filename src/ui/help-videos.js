@@ -13,7 +13,7 @@ function loadManifest() {
   return manifestPromise;
 }
 
-function createPlayer(target, clip) {
+function createPlayer(target, clip, allowPreview) {
   const document = target.ownerDocument;
   const window = document.defaultView;
   const id = `help-demo-${clip.id}-${++instance}`;
@@ -128,6 +128,7 @@ function createPlayer(target, clip) {
     clearTimeout(teaserTimer);
     teaserTimer = setTimeout(() => {
       teaserTimer = undefined;
+      if (!allowPreview()) return;
       if (!teaserImage.src) teaserImage.src = assetUrl(clip.assets.poster);
       teaser.hidden = false;
       positionTeaser();
@@ -205,7 +206,7 @@ function createPlayer(target, clip) {
   };
 }
 
-function createActionPreview(target, clip) {
+function createActionPreview(target, clip, allowPreview) {
   const document = target.ownerDocument;
   const window = document.defaultView;
   const id = `help-action-preview-${clip.id}-${++instance}`;
@@ -282,6 +283,7 @@ function createActionPreview(target, clip) {
     clearTimeout(timer);
     timer = setTimeout(() => {
       timer = undefined;
+      if (!allowPreview()) return;
       const media = buildVideo();
       preview.style.visibility = 'hidden';
       preview.hidden = false;
@@ -334,7 +336,7 @@ function createActionPreview(target, clip) {
   };
 }
 
-export function enhanceHelpVideos(root = document) {
+export function enhanceHelpVideos(root = document, allowPreview = () => true) {
   let disposed = false;
   const cleanup = [];
   loadManifest().then(manifest => {
@@ -342,17 +344,17 @@ export function enhanceHelpVideos(root = document) {
     const clips = new Map(manifest.clips.map(clip => [clip.id, clip]));
     root.querySelectorAll('[data-help-video]:not([data-help-video-ready])').forEach(target => {
       const clip = clips.get(target.dataset.helpVideo);
-      if (clip) cleanup.push(createControlVideo(target, clip));
+      if (clip) cleanup.push(createControlVideo(target, clip, allowPreview));
       else { target.disabled = true; target.title = 'Video guide unavailable'; }
     });
     root.querySelectorAll('[data-help-demo]:not([data-help-demo-ready])').forEach(target => {
       const clip = clips.get(target.dataset.helpDemo);
-      if (clip) cleanup.push(createPlayer(target, clip));
+      if (clip) cleanup.push(createPlayer(target, clip, allowPreview));
       else target.textContent = `Demonstration unavailable: ${target.dataset.helpDemo}`;
     });
     root.querySelectorAll('[data-help-preview]:not([data-help-preview-ready])').forEach(target => {
       const clip = clips.get(target.dataset.helpPreview);
-      if (clip) cleanup.push(createActionPreview(target, clip));
+      if (clip) cleanup.push(createActionPreview(target, clip, allowPreview));
       else target.title = `${target.title || 'Action'}. Video help is unavailable.`;
     });
   }).catch(error => {

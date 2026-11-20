@@ -1,0 +1,50 @@
+/* Adapted from Fornac v1.0.1, © 2014 Peter Kerpedjiev, Apache-2.0.
+   See LICENSE.txt and NOTICE.md. */
+circle.fornac-node {
+  stroke: #ccc;
+  stroke-width: 0.8;
+  opacity: 1;
+  fill: white;
+}
+
+path.fornac-directionArrow {
+  fill: #777;
+  stroke: none;
+  stroke-width: 0.8px;
+}
+
+circle.fornac-node[node_type="label"] {
+  stroke: transparent;
+  stroke-width: 0;
+  fill: white;
+  display: inline;
+}
+
+text.fornac-nodeLabel {
+  font-weight: bold;
+  font-family: Tahoma, Geneva, sans-serif;
+  font-size: 0.4em;
+  color: rgb(100, 100, 100);
+  text-anchor: middle;
+  alignment-baseline: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+line.fornac-link {
+  stroke: #999;
+  stroke-opacity: 0.8;
+  stroke-width: 2;
+}
+
+line.fornac-link[link_type="pseudoknot"],
+line.fornac-link[link_type="basepair"] {
+  stroke: red;
+}
+
+line.fornac-link[link_type="intermolecule"] {
+  stroke: blue;
+}

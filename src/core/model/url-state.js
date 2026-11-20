@@ -3,7 +3,7 @@ import { decodeUrlAnnotations, encodeUrlAnnotations, parseUrlColor } from './url
 export const URL_CHECKBOX_FIELDS = Object.freeze([
   'distinctBpTypes', 'profileColorRepresentsOne1', 'profileColorRepresentsOne2',
   'forceLayout', 'forceLayoutFreeTails', 'forceLayoutPullCrossing',
-  'forceLayoutLinearStructure', 'forceLayoutLinearRRI', 'hideFooterAndHeader',
+  'forceLayoutLinearStructure', 'forceLayoutLinearRRI', 'hideFooterAndHeader', 'showHelpVideoOnHover',
 ]);
 
 export const URL_UI_ONLY_FIELDS = Object.freeze([

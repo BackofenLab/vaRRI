@@ -2,92 +2,6 @@
 // The readable D3 adapter is authored code and deliberately absent here.
 export const VENDOR_ASSETS = [
   {
-    "path": "fornac/d3.js",
-    "sha256": "f717263df71b14fb151931ad0a9695738fb98124a76bb723e1b9cfb9152b7a3e",
-    "licenses": [
-      {
-        "path": "fornac/d3.LICENSE.txt",
-        "sha256": "10054db83ace18e5a455749d0d247857ec50508cecda79a5abe66fe4778d7721"
-      }
-    ],
-    "provenance": {
-      "path": "fornac/README.md",
-      "sha256": "71cb844685a0679651fbabac2c1b19a1f6ac4aec8062406d04b021bfbdc9e469"
-    }
-  },
-  {
-    "path": "fornac/fornac.js",
-    "sha256": "96fe41cb6e3c0f568f169762272490bc97f7e06cbf241e73a3455dc1742595a3",
-    "licenses": [
-      {
-        "path": "fornac/fornac.LICENSE.txt",
-        "sha256": "dc3f94be805e504677d5f326a95ee6769d26367c2e0e0607835ba869ca99ae10"
-      },
-      {
-        "path": "fornac/fornac.js.LICENSE.txt",
-        "sha256": "dc3f94be805e504677d5f326a95ee6769d26367c2e0e0607835ba869ca99ae10"
-      }
-    ],
-    "provenance": {
-      "path": "fornac/README.md",
-      "sha256": "71cb844685a0679651fbabac2c1b19a1f6ac4aec8062406d04b021bfbdc9e469"
-    }
-  },
-  {
-    "path": "fornac/fornac.js.map",
-    "sha256": "9fb398a720d9fa4ac7894c03fd3b88a47a49da44e83a972cfe350d51136f68a3",
-    "licenses": [
-      {
-        "path": "fornac/fornac.LICENSE.txt",
-        "sha256": "dc3f94be805e504677d5f326a95ee6769d26367c2e0e0607835ba869ca99ae10"
-      },
-      {
-        "path": "fornac/fornac.js.LICENSE.txt",
-        "sha256": "dc3f94be805e504677d5f326a95ee6769d26367c2e0e0607835ba869ca99ae10"
-      }
-    ],
-    "provenance": {
-      "path": "fornac/README.md",
-      "sha256": "71cb844685a0679651fbabac2c1b19a1f6ac4aec8062406d04b021bfbdc9e469"
-    }
-  },
-  {
-    "path": "fornac/fornac.css",
-    "sha256": "8ef8add9eb4bad1db81809994c65ccfc670c3fa060333a1c0ee72152e5bfef97",
-    "licenses": [
-      {
-        "path": "fornac/fornac.LICENSE.txt",
-        "sha256": "dc3f94be805e504677d5f326a95ee6769d26367c2e0e0607835ba869ca99ae10"
-      },
-      {
-        "path": "fornac/fornac.js.LICENSE.txt",
-        "sha256": "dc3f94be805e504677d5f326a95ee6769d26367c2e0e0607835ba869ca99ae10"
-      }
-    ],
-    "provenance": {
-      "path": "fornac/README.md",
-      "sha256": "71cb844685a0679651fbabac2c1b19a1f6ac4aec8062406d04b021bfbdc9e469"
-    }
-  },
-  {
-    "path": "fornac/fornac.css.map",
-    "sha256": "5541c15454cf0b17fc90f0169605644ec34d88f5a1d3ebdcc336c9ff771bce69",
-    "licenses": [
-      {
-        "path": "fornac/fornac.LICENSE.txt",
-        "sha256": "dc3f94be805e504677d5f326a95ee6769d26367c2e0e0607835ba869ca99ae10"
-      },
-      {
-        "path": "fornac/fornac.js.LICENSE.txt",
-        "sha256": "dc3f94be805e504677d5f326a95ee6769d26367c2e0e0607835ba869ca99ae10"
-      }
-    ],
-    "provenance": {
-      "path": "fornac/README.md",
-      "sha256": "71cb844685a0679651fbabac2c1b19a1f6ac4aec8062406d04b021bfbdc9e469"
-    }
-  },
-  {
     "path": "src/core/vendor/d3-runtime.js",
     "sha256": "3e945a11550de56561d1f2a7e5303d09800e38425d1b482f02f1358e820dc69e",
     "licenses": [
@@ -98,7 +12,7 @@ export const VENDOR_ASSETS = [
     ],
     "provenance": {
       "path": "src/core/vendor/README.md",
-      "sha256": "8bff9acee16cf81c97d13c56e2b3944ef65cec03704f2c2cfd3776fb0f2caaaa"
+      "sha256": "d635f0ec540c00ef9fb32c0cf0e5fb5001d95f8fb6f9b723e4dda4007cffe0ed"
     }
   },
   {

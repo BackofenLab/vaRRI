@@ -83,8 +83,7 @@ vaRRI/
 ├── scripts/                # Distribution and verification tools
 ├── index.html              # Source viewer and native import map
 ├── style.css               # Viewer styles
-├── fornac/                 # Compatible CSS and retained upstream source/license
-└── MIGRATION_PROTOCOL.md   # Phase gates, decisions, and verification evidence
+└── Changelog.md            # Development history and release summaries
 ```
 
 ---
@@ -115,7 +114,7 @@ python3 -m http.server 8080
 To use the native library in another served page:
 
 ```html
-<link rel="stylesheet" href="fornac/fornac.css">
+<link rel="stylesheet" href="src/core/canvas/graph/structure.css">
 <div id="rna"></div>
 <script type="module">
   import { createVaRRI } from './src/core/index.js';
@@ -161,7 +160,7 @@ directory using their own static-file server, retaining the relative directory l
 The viewer includes example inputs, SVG/PNG export controls, help, citation data and local logos.
 Use HTTP rather than `file://` for native module loading and packaged help/citation data.
 
-The architecture migration is tracked in [MIGRATION_PROTOCOL.md](MIGRATION_PROTOCOL.md).
+See the [changelog](Changelog.md) for release summaries and the history of the native viewer.
 
 ESM imports resolve to the native source API. `require('varri-js')` resolves to
 the generated CommonJS core bundle; both expose the same library methods. The viewer has a separate public entry:
@@ -184,7 +183,7 @@ For classic-script embedding, the distribution includes a standalone core bundle
 with its own D3 engine. For a page served from an npm-based application:
 
 ```html
-<link rel="stylesheet" href="node_modules/varri-js/fornac/fornac.css" />
+<link rel="stylesheet" href="node_modules/varri-js/dist/fornac.css" />
 <script src="node_modules/varri-js/dist/varri.min.js"></script>
 ```
 
@@ -194,8 +193,8 @@ Applications with a bundler can also consume the API entry point:
 const vaRRI = require('varri-js');
 ```
 
-The core bundle installs `window.vaRRI` and includes D3. Serve the compatible
-`fornac/fornac.css` stylesheet alongside it; no Fornac runtime is required.
+The core bundle installs `window.vaRRI` and includes D3. Serve the included
+`dist/fornac.css` stylesheet alongside it.
 The [standalone embedding guide](docs/standalone-embedding.md) explains the
 downloadable core artifact built by GitHub Actions on every push and release.
 
@@ -287,5 +286,6 @@ runner, so no release-generated commit is pushed back to `main`.
 
 This project is provided under the MIT License, see [LICENSE](LICENSE) for the licence terms.
 
-The bundled Fornac library ([`fornac/`](fornac/)) is © 2014 Peter Kerpedjiev and is
-distributed under its own [licence](fornac/fornac.LICENSE.txt).
+The graph stylesheet and RNA layout algorithms adapted from Fornac are © 2014
+Peter Kerpedjiev and distributed under the [Apache License 2.0](src/core/canvas/graph/LICENSE.txt).
+See the [attribution notice](src/core/canvas/graph/NOTICE.md).

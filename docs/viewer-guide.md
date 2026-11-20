@@ -34,7 +34,7 @@
 | **Structure** | Dot-bracket structure string. Separate two molecules with `&`. |
 
 Small, unboxed play icons beside the left-hand controls open the corresponding guide.
-Hover or focus an icon to preview its video; click or tap to keep it open with
+By default, hovering or focusing an icon previews its video. Click or tap to keep it open with
 playback controls, captions, a transcript, and a download. Descriptions stay inside
 the player's collapsed **Details and transcript** section. Click the video or its gray enlargement hint to enlarge it. Escape, the close
 button, or closing the panel stops the video. Instructions are included in the
@@ -95,6 +95,7 @@ Open the **Example** dropdown to choose another RNA-RNA interaction. Each open m
 
 | Field | Description |
 |---|---|
+| **Show help video on hover** | On by default. Turn it off to open guides by clicking, tapping, or pressing Enter or Space on a play icon. |
 | **Full screen UI** | When checked, the header and footer sections are hidden, and the visualisation canvas is maximized. |
 | **Nucleotide color** | `by sequence` — use the defined colors. `by loop type` — Fornac default loop-type coloring. |
 | **Highlighting ..** |  |
@@ -298,7 +299,7 @@ Details about URL encoding are given in the following section [URL Parameters & 
 
 | Button | Description |
 |---|---|
-| **⬇ SVG** | Downloads a self-contained SVG file with embedded Fornac CSS. |
+| **⬇ SVG** | Downloads a self-contained SVG file with the graph styles embedded. |
 | **⬇ PNG** | Opens a dialog for PNG pixel dimensions and DPI, then downloads the image. |
 | **⬇ Store** | Downloads inputs, settings, profiles and user annotations as an editable JSON session for later loading. |
 | **🔗 Share Link** | Generate URL encoding of the input for sharing or embedding in other web applications; copied to clipboard. | 
