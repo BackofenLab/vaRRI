@@ -28,7 +28,8 @@ export function createViewerState(api, colors) {
     fastaSeqName1: 'Seq. 1', fastaSeqName2: 'Seq. 2',
   };
   const state = reactive({
-    fields: { ...defaults }, errors: {}, message: { text: '', type: '' },
+    // Keep the help preference across Clear and example or session loads that omit it.
+    fields: { ...defaults, showHelpVideoOnHover: true }, errors: {}, message: { text: '', type: '' },
     annotations: { subsequences: [], regions: [], mutations: [], texts: [] },
     selectedExample: null, exampleOpen: false, rotation: 0, rotationPreview: 0,
     renderingOnly: false, showFullPage: false, shareCopied: false, viewControlsOpen: true,

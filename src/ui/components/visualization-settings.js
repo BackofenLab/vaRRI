@@ -57,6 +57,10 @@ export default viewerComponent('visualization-settings', `<aside class="panel co
             <input type="checkbox" id="forceLayoutPullCrossing" v-bind:checked="state.fields.forceLayoutPullCrossing" v-on:input="actions.inputField('forceLayoutPullCrossing', $event)" v-on:change="actions.commitField('forceLayoutPullCrossing', $event)" v-bind:disabled="!state.fields.forceLayout">
             <label for="forceLayoutPullCrossing">Pull pseudoknot basepairs</label>
           </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="showHelpVideoOnHover" v-model="state.fields.showHelpVideoOnHover">
+            <label for="showHelpVideoOnHover">Show help video on hover</label>
+          </div>
         </div>
       </details>
     </aside>`, { VideoHelp });

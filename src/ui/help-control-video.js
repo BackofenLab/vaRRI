@@ -4,7 +4,7 @@ import { addVideoSizeControl } from './help-video-size.js';
 let instance = 0;
 const openPreviews = new Set();
 
-export function createControlVideo(target, clip) {
+export function createControlVideo(target, clip, allowPreview) {
   const document = target.ownerDocument;
   const window = document.defaultView;
   const section = target.closest('.control-group');
@@ -113,7 +113,7 @@ export function createControlVideo(target, clip) {
   function show(explicit = false) {
     clearTimeout(showTimer);
     clearTimeout(hideTimer);
-    if (dismissed && !explicit) return;
+    if (!explicit && (dismissed || !allowPreview())) return;
     const wasHidden = popup.hidden;
     for (const close of openPreviews) if (close !== hide) close();
     build();

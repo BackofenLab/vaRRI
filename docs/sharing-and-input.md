@@ -4,7 +4,8 @@ Click **⬇ Store** to download `vaRRI_session.json`. Click **⬆ Load** at the
 right of the **Sequence & Structure Input** heading to choose a saved file, or
 drop one JSON file directly onto that button. Files are read locally in your
 browser. Loading replaces the current inputs and annotations and renders the
-restored figure; omitted settings return to their defaults.
+restored figure. Omitted figure settings return to their defaults. Older sessions
+that omit the help-video preference keep your current choice.
 
 JSON stores the same visualization settings and user annotations as Share:
 sequences and names, structures, signed start indices, colors, highlighting,
@@ -87,6 +88,7 @@ See the [viewer guide](viewer-guide.md) and the [Input Format Reference](#input-
 
 | Parameter | Description |
 | --- | --- |
+| **`showHelpVideoOnHover`** | Open video guides on hover or focus (`1`, default), or on click, tap, Enter, or Space (`0`). |
 | **`sequence`** | IUPAC nucleotide sequence. Use `&` as a separator for two interacting molecules (*e.g., `GCAUGGCGGGCAA&CCCGCAU*`). |
 | **`seqName1` / `seqName2`** | Optional strand names, defaulting to `Seq. 1` and `Seq. 2`. Explicit names also update the corresponding text annotations. |
 | **`structure`** | Secondary structure in dot-bracket notation. Separate two molecules with `&` (*e.g., `((...))..<<..&...>>..*`). |
