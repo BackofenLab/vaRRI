@@ -27,6 +27,7 @@ vaRRI is a pure JavaScript library to visualize the base pairing of
 RNA-RNA interactions (RRIs) as 2D diagrams with additional annotation like 
 
 - coloring by sequence or loop type,
+- custom text labels,
 - highlighting of RRI regions,
 - subsequence highlightings, 
 - point mutation information or 
@@ -39,7 +40,7 @@ Use cases include
 
 > [!NOTE]
 > - production of publication-ready RRI figures that can be postprocessed,
-> - interactive visualizations of RRI data, 
+> - interactive visualizations and sharing of RRI data, 
 >   - e.g. forwarded from web applications via URL parameters,
 > - embedding of RRI visualizations in external web pages, e.g. in documentation, blogs, or web tools, and
 > - educational purposes, e.g. in online courses or tutorials.
@@ -52,7 +53,7 @@ Use cases include
 Given two sequences and the RRI secondary-structure encoding in dot-bracket notation, vaRRI renders
 them with a native D3 canvas and applies vaRRI's annotations. RNA layout
 algorithms extracted from [Fornac](https://github.com/ViennaRNA/fornac) retain
-their attribution; the viewer does not load the Fornac runtime.
+their attribution.
 
 [![vaRRI example visualization](doc/vaRRI-UI-example.png)](https://backofenlab.github.io/vaRRI/)
 
