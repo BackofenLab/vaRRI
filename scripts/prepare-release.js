@@ -49,7 +49,7 @@ export function prepareRelease(root, tag, date) {
   const heading = /^ {0,3}##(?:[ \t]+[^\r\n]*)?(?=\r?$)/m.exec(changelog);
   if (!heading) throw new Error('Changelog must contain a second-level heading');
   const releaseHeading = `## Version ${version} · ${date}`;
-  if (heading[0] !== releaseHeading) {
+  if (heading[0] !== releaseHeading && heading[0].trim() !== '## Unreleased changes') {
     const newline = changelog.includes('\r\n') ? '\r\n' : '\n';
     files['Changelog.md'] = 
       changelog.slice(0, heading.index) + 
@@ -59,9 +59,9 @@ export function prepareRelease(root, tag, date) {
       '### Development history' + newline +
       newline +
       // insert release heading
-      releaseHeading + newline + 
+      releaseHeading +
       // append the rest of the changelog after the first second-level heading
-      changelog.slice(heading.index+1);
+      changelog.slice(heading.index + heading[0].length);
   }
   for (const name of names) writeFileSync(path.join(root, name), files[name]);
   return version;
