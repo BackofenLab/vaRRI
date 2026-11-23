@@ -45,9 +45,15 @@ export function prepareRelease(root, tag, date) {
     `$1{${version}}`, 'BibTeX version');
   files['CITATION.bib'] = replaceOne(files['CITATION.bib'], /^(\s*year\s*=\s*)\{[^}\r\n]*\}/gm,
     `$1{${date.slice(0, 4)}}`, 'BibTeX year');
-  files['Changelog.md'] = replaceOne(files['Changelog.md'],
-    /^## Version [^\r\n]*pre-release \(unreleased\)[^\r\n]*/gm,
-    `## Version ${version} pre-release (unreleased)`, 'unreleased changelog heading');
+  const changelog = files['Changelog.md'];
+  const heading = /^ {0,3}##(?:[ \t]+[^\r\n]*)?(?=\r?$)/m.exec(changelog);
+  if (!heading) throw new Error('Changelog must contain a second-level heading');
+  const releaseHeading = `## Version ${version} · ${date}`;
+  if (heading[0] !== releaseHeading) {
+    const newline = changelog.includes('\r\n') ? '\r\n' : '\n';
+    files['Changelog.md'] = changelog.slice(0, heading.index) + releaseHeading +
+      newline + newline + changelog.slice(heading.index);
+  }
   for (const name of names) writeFileSync(path.join(root, name), files[name]);
   return version;
 }

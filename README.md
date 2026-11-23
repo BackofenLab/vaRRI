@@ -260,11 +260,11 @@ the old repository to `vaRRI`. The repository name is case-sensitive.
 To prepare a release, run **Prepare release** from the Actions tab on `main`, supplying
 the release tag and the intended UTC release date (`YYYY-MM-DD`). The workflow updates
 package and citation versions, the citation date and year, and the unreleased changelog
-heading, then opens a PR. It does not create a tag or publish. Review the categorized
-changelog summary and intended date; finalize the heading and date before tagging, and
-correct the citation date and year if publication is delayed. Merge the PR and create
-the release tag on the merge commit. If no unreleased changelog section exists, add one
-before running the workflow.
+by adding a dated version heading above its first second-level heading, then opens a PR.
+It does not create a tag or publish. Review the categorized changelog summary and intended
+date, and correct the changelog and citation date and year if publication is delayed.
+Merge the PR and create the release tag on the merge commit. The changelog must contain
+at least one second-level heading.
 
 An owner must configure the repository secret `RELEASE_PREPARATION_TOKEN` with a
 fine-grained token authorized for this repository with contents and pull requests
