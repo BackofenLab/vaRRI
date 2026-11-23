@@ -1,6 +1,6 @@
 # vaRRI changelog
 
-## Version 2 pre-release (unreleased)
+## Version 2.0.0 pre-release (unreleased)
 
 ### Viewer and sharing
 
