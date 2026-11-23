@@ -27,12 +27,3 @@ Reproduce the extraction from `npm pack d3@7.9.0 --ignore-scripts`:
    committed file, and `export default `; append `;` and a newline.
 4. Copy `LICENSE` verbatim. Verify all recorded SHA-256 values in
    `scripts/vendor-manifest.js`.
-
-The retained `fornac/d3.js` compatibility export remains D3 3.4.13 because the
-retained original Fornac runtime depends on that API. It is not loaded by the
-native viewer or included in the standalone core. Tests use it only as the
-legacy oracle. Its historical BSD license remains under `fornac/`.
-
-The [phase-5 audit](../../../docs/d3-upgrade.md) documents API/force adaptations
-and verification. Vendor files satisfy the 400-line source limit; authored
-adapters remain readable and are checked as ordinary native JavaScript.

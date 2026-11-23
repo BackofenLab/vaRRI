@@ -24,6 +24,27 @@ test('all example settings and annotations survive JSON replacement, including t
   }
 });
 
+test('a preference-only link opens the default example and carries click-only help through session changes', async () => {
+  fixture = await mountViewer({ url: 'http://localhost/?showHelpVideoOnHover=0' });
+  const { view, renderSpy, flush } = fixture;
+  const setting = document.getElementById('showHelpVideoOnHover');
+  expect(view.state.selectedExample).toBe('2mol');
+  expect(setting.checked).toBe(false);
+  await view.actions.loadExample('wu-2024');
+  const saved = view.actions.generateJSON();
+  expect(JSON.parse(saved).fields.showHelpVideoOnHover).toBe(false);
+
+  renderSpy.mockClear();
+  setting.click();
+  await flush();
+  expect(renderSpy).not.toHaveBeenCalled();
+  expect(new URL(view.actions.generateShareableURL()).searchParams.get('showHelpVideoOnHover')).toBe('1');
+  expect(await view.actions.loadJSON(saved)).toBe(true);
+  view.actions.clearAll();
+  expect(await view.actions.loadJSON(minimal())).toBe(true);
+  expect(setting.checked).toBe(false);
+});
+
 test('partial JSON resets omitted settings, annotations and full-screen state instead of retaining the previous figure', async () => {
   fixture = await mountViewer();
   const { view, api } = fixture;

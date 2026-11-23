@@ -7,7 +7,7 @@ revision, Chromium version, viewport, seed, and visible counts are recorded in
 All five images were reviewed alongside `../visual-core`: the two virtual
 strand-break vertices enlarge and separate the terminal loop; nucleotide,
 link, annotation, mutation, profile, and biological label content is retained.
-The [audit](../../docs/review-90-layout-audit.md) records the geometry review and
+The [original audit](https://github.com/BackofenLab/vaRRI/blob/4fb9fda/docs/review-90-layout-audit.md) records the geometry review and
 the independent Fornac constraint comparison. Force-loop sizes are separately
 checked by `tests/force-geometry.test.js`.
 

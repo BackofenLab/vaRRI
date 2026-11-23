@@ -1,6 +1,6 @@
 /**
  * Polygon coordinates from Fornac v1.0.1 (ViennaRNA/fornac), Apache-2.0.
- * Source: src/simplernaplot.js embedded in fornac/fornac.js.map.
+ * Upstream source: src/simplernaplot.js (snapshot linked in NOTICE.md).
  * The pinned algorithm is retained unchanged. See LICENSE.txt and NOTICE.md.
  */
 export function simpleXyCoordinates (pair_table) {

@@ -39,7 +39,7 @@ export function createViewerApp(options = {}) {
   app.provide(VIEWER_CONTEXT, { state, actions, examples, colors });
   app.mount(root);
   const recordingDemo = new URLSearchParams(document.defaultView.location.search).has('demoRecording');
-  const disposeHelpVideos = recordingDemo ? () => {} : enhanceHelpVideos(root);
+  const disposeHelpVideos = recordingDemo ? () => {} : enhanceHelpVideos(root, () => state.fields.showHelpVideoOnHover);
   actions.observeBackdrops();
   const outsideClick = event => {
     if (state.exampleOpen && !document.getElementById('exampleDropdown')?.contains(event.target)) state.exampleOpen = false;
@@ -49,8 +49,8 @@ export function createViewerApp(options = {}) {
   const ready = (async () => {
     actions.clearAll();
     const params = new URLSearchParams(document.defaultView.location.search);
-    if (params.size) {
-      actions.loadAllUrlParameters(params);
+    if (params.size) actions.loadAllUrlParameters(params);
+    if ([...params.keys()].some(key => key !== 'showHelpVideoOnHover')) {
       await nextTick();
       if (unmounted) return;
       await actions.runVisualization();
