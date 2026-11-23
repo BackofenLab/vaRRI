@@ -5,7 +5,7 @@ be imported without a DOM, and the canvas loads its own pinned D3 runtime when
 rendered. Vue is not a core dependency.
 
 ```html
-<link rel="stylesheet" href="fornac/fornac.css">
+<link rel="stylesheet" href="src/core/canvas/graph/structure.css">
 <div id="rendering-canvas" style="width: 800px; height: 600px"></div>
 <script type="module">
   import vaRRI, { createVaRRI } from './src/core/index.js';

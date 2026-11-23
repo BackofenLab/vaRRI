@@ -4,9 +4,7 @@ The canvas constructs its own graph in
 [`structure.js`](../src/core/canvas/graph/structure.js). It uses the pinned D3
 7.9.0 force engine and extracted RNA layout algorithms, with provenance and
 Apache licensing in [`NOTICE.md`](../src/core/canvas/graph/NOTICE.md).
-It never instantiates or loads `fornac.js`.
-The [D3 upgrade audit](d3-upgrade.md) describes the simulation adapter and
-verification against the reviewed phase-4 geometry.
+See the [changelog](../Changelog.md) for the migration to the native canvas and D3 7.
 
 ## Nucleotides and strand boundaries
 
@@ -36,7 +34,7 @@ be raised by `pullPseudoknotBasepairs`.
 Removing padding changes two-strand polygon geometry even with animation off.
 The original phase-1 screenshots remain immutable reference fixtures. New
 fixtures must be reviewed for topology, labels, highlights, and export as well
-as shape; see the [migration protocol](../MIGRATION_PROTOCOL.md).
+as shape. See the [active visual fixtures](../tests/visual-review-90/README.md).
 
 ## Force constraints
 
@@ -50,8 +48,8 @@ Fornac's two outer closure helpers are included when sizing exterior springs.
 As upstream, they receive incoming chords but do not originate spokes. Stem
 rectangles and loops retain reciprocal hidden chords as separate springs;
 deduplicating these chords weakens the constraints. Real base pairs remain
-unique. The independent legacy-browser oracle tests hidden endpoints,
-multiplicity, and spring lengths against the pinned Fornac runtime.
+unique. The [force geometry tests](../tests/force-geometry.test.js) check the
+resulting loop and stem shapes.
 
 When `pullPseudoknotBasepairs` is enabled, pseudoknot helices use the same
 scaffold builder as ordinary helices. Each contiguous stack receives a central

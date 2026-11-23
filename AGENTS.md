@@ -8,7 +8,6 @@
   extensions in local imports. Do not add TypeScript, JSX, Vue SFCs, bundler-only
   imports, or generated application source.
   Root `package.json` uses `type: module`; Jest runs native ESM without a transform.
-  The legacy `fornac/` package scope retains upstream UMD compatibility only.
   Generated `dist/varri.cjs` preserves the npm CommonJS consumer entry.
 - `src/core/model/` holds serializable data and algorithms. It must not reference
   DOM APIs, Vue, canvas, or a renderer session; its imports stay within model.
@@ -43,8 +42,18 @@
   dummy nucleotide padding or duplicate base-pair links to imitate Fornac input.
 - Preserve D3 and layout algorithms during structural refactors. Treat engine or
   geometry changes as separate work requiring an explained visual review.
-- Read `MIGRATION_PROTOCOL.md` and `docs/visualization-architecture.md` for the
-  extraction map and `docs/force-field-graph.md` for graph constraints.
+- Read `docs/visualization-architecture.md` for module boundaries and
+  `docs/force-field-graph.md` for graph constraints.
+
+## Changelog
+
+- Add each new feature to the top of the development list in the root
+  `Changelog.md`. Start the bullet with the feature commit’s UTC timestamp
+  (`YYYY-MM-DD HH:MM UTC`) and describe the user-visible change on one line.
+  Cite the commit or issue. Use a sub-bullet only for necessary migration details.
+- When preparing a version, add its summary above previous versions. Group
+  the main changes since the preceding release by category and retain the dated
+  feature entries. Label an unpublished version as a pre-release.
 
 ## Verification and distribution
 
@@ -63,7 +72,7 @@ Node is used for tests and distribution only. Install tools with `npm ci`.
 Run checks appropriate to the change, including required CI checks before a PR.
 Add meaningful behavioral regressions for bugs; do not mirror implementation.
 Never overwrite visual baselines just to make tests pass. Preserve the original
-fixtures in `tests/visual-baseline/`; changes to the active `tests/visual-core/`
+fixtures in `tests/visual-baseline/`; changes to the active `tests/visual-review-90/`
 fixtures need explicit geometry review and recorded provenance.
 
 `npm run build` compiles only `src/core/` into the external embedding distribution

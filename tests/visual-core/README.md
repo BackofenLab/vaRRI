@@ -22,4 +22,4 @@ and source/bundle parity are checked separately by `npm run test:browser`.
 
 Record new fixtures only after reviewing a deliberate rendering change, using
 `node scripts/visual-baseline.js --update --revision FULL_SOURCE_COMMIT_SHA`.
-See `MIGRATION_PROTOCOL.md` for the migration's review gates and provenance.
+See the [changelog](../../Changelog.md) for the migration history.

@@ -1,24 +1,5 @@
 import { createRnaGraph } from '../src/core/canvas/graph/structure.js';
-import { simpleXyCoordinates } from '../src/core/canvas/graph/coordinates.js';
 import { relaxForceGraphScaffold } from '../src/core/canvas/layout/scaffold.js';
-import { legacyGraph } from './helpers/legacy-graph.js';
-
-function constraints(graph) {
-  const id = node => node.nodeType === 'nucleotide' ? `n${node.num}` :
-    node.num === -1 ? `hub:${node.nucs.join(',')}` : `closure:${node.num}`;
-  return graph.links.filter(link => ['fake', 'fake_fake'].includes(link.linkType))
-    .map(link => ({ key: `${link.linkType}:${id(link.source)}:${id(link.target)}`, value: link.value }))
-    .sort((a, b) => a.key.localeCompare(b.key));
-}
-
-test.each(['(((...)))', '..(((...)))...', '((..((....))..))', '..((..))..((...))..', '....'])
-('hidden constraints match the pinned Fornac graph for %s', async structure => {
-  const graph = createRnaGraph(structure, { sequence: 'A'.repeat(structure.length), labelInterval: 0 });
-  const legacy = await legacyGraph(structure, simpleXyCoordinates(graph.pairtable));
-  const actual = constraints(graph), expected = constraints(legacy);
-  expect(actual.map(link => link.key)).toEqual(expected.map(link => link.key));
-  actual.forEach((link, index) => expect(link.value).toBeCloseTo(expected[index].value, 3));
-});
 
 test('the strand gap has exactly two virtual vertices in coordinates and forces', () => {
   const graph = createRnaGraph('((..&..))', { sequence: 'AAAA&UUUU', labelInterval: 0 });
