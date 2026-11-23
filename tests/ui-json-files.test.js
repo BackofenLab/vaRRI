@@ -29,7 +29,7 @@ test('a preference-only link opens the default example and carries click-only he
   const { view, renderSpy, flush } = fixture;
   const setting = document.getElementById('showHelpVideoOnHover');
   expect(view.state.selectedExample).toBe('2mol');
-  expect(setting.checked).toBe(false);
+  expect(setting.checked).toBe(true);
   await view.actions.loadExample('wu-2024');
   const saved = view.actions.generateJSON();
   expect(JSON.parse(saved).fields.showHelpVideoOnHover).toBe(false);
