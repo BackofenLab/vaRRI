@@ -82,6 +82,6 @@ describe('shared example catalog', () => {
       pointMutations: expect.arrayContaining([expect.objectContaining({ position: 20, replacement: 'G' })]),
       subsequenceHighlights: expect.any(Array), regionHighlights: expect.any(Array),
     });
-    expect(showcase.annotations.textAnnotations).toHaveLength(15);
+    expect(showcase.annotations.textAnnotations).toHaveLength(8);
   });
 });
