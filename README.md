@@ -36,7 +36,7 @@ RNA-RNA interactions (RRIs) as 2D diagrams with additional annotation like
 It can be used in web applications or served locally with any static HTTP server,
 without a build step.
 
-Use cases include 
+**Use cases include ...**
 
 > [!NOTE]
 > - production of publication-ready RRI figures that can be postprocessed,
