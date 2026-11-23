@@ -1,4 +1,4 @@
-# vaRRI changelog
+# vaRRI Changelog
 
 ## Version 2 pre-release (unreleased)
 

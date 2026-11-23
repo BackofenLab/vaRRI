@@ -51,8 +51,17 @@ export function prepareRelease(root, tag, date) {
   const releaseHeading = `## Version ${version} · ${date}`;
   if (heading[0] !== releaseHeading) {
     const newline = changelog.includes('\r\n') ? '\r\n' : '\n';
-    files['Changelog.md'] = changelog.slice(0, heading.index) + releaseHeading +
-      newline + newline + changelog.slice(heading.index);
+    files['Changelog.md'] = 
+      changelog.slice(0, heading.index) + 
+      // insert placeholder headings for unreleased changes and development history after release
+      '## Unreleased changes' + newline +
+      newline +
+      '### Development history' + newline +
+      newline +
+      // insert release heading
+      releaseHeading + newline + 
+      // append the rest of the changelog after the first second-level heading
+      changelog.slice(heading.index+1);
   }
   for (const name of names) writeFileSync(path.join(root, name), files[name]);
   return version;
