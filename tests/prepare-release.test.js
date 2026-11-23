@@ -39,7 +39,7 @@ test('prepares consistent metadata through the workflow entry point and is repea
     expect(read('CITATION.bib')).toMatch(/year\s*=\s*\{2027\}/);
     expect(read('Changelog.md')).toBe(oldChangelog.replace(
         '## Recent changes',
-        '## Version 2.0.0-beta.1 · 2027-02-28\n\n## Recent changes'
+        '## Unreleased changes\n\n### Development history\n\n## Version 2.0.0-beta.1 · 2027-02-28'
     ));
     expect(read('output')).toBe('version=2.0.0-beta.1\n');
     const prepared = names.map(read);
