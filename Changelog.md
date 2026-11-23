@@ -1,6 +1,12 @@
 # vaRRI changelog
 
-## Version 2.0.0 pre-release (unreleased)
+## Version 2.X · DATE
+
+
+### Development history
+
+
+## Version 2.0.0 · 2026-11-23
 
 ### Viewer and sharing
 
