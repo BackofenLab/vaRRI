@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: vaRRI - Visual annotation of RNA-RNA interactions
+title: vaRRI - visual annotation of interacting RNAs
 message: >-
   If you use this software in a publication, please cite it using the metadata
   in this file.
@@ -9,9 +9,21 @@ authors:
     family-names: Raden
     affiliation: University of Freiburg, Germany
     orcid: 'https://orcid.org/0000-0002-7926-5911'
+  - given-names: Alexander
+    family-names: Mitrofanov
+    affiliation: University of Freiburg, Germany
+    orcid: 'https://orcid.org/0000-0002-9289-6726'
   - given-names: Fabian
     family-names: Ganter
     affiliation: University of Freiburg, Germany
+  - given-names: Pavankumar
+    family-names: Videm
+    affiliation: University of Freiburg, Germany
+    orcid: 'https://orcid.org/0000-0002-5192-126X'
+  - given-names: Rolf
+    family-names: Backofen
+    affiliation: University of Freiburg, Germany
+    orcid: 'https://orcid.org/0000-0001-8231-3323'
   - name: Bioinformatics Lab, University of Freiburg
     affiliation: Department of Computer Science, University of Freiburg
     website: 'https://www.bioinformatics.uni-freiburg.de/'
@@ -20,8 +32,8 @@ date-released: '2026-07-31'
 repository-code: 'https://github.com/BackofenLab/vaRRI'
 url: 'https://backofenlab.github.io/vaRRI/'
 abstract: >-
-  vaRRI is a browser-based JavaScript library for visualizing RNA-RNA
-  interactions (RRIs) as 2D diagrams with annotations such as base-pair
+  vaRRI is a browser-only JavaScript-based webservice for visualizing RNA-RNA
+  interactions (RRIs) as 2D diagrams with annotations such as text, base-pair
   highlights, probability profiles, subsequence highlights, and point mutation
   annotations.
 keywords:
