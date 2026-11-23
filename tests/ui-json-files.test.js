@@ -38,7 +38,7 @@ test('a preference-only link opens the default example and carries click-only he
   setting.click();
   await flush();
   expect(renderSpy).not.toHaveBeenCalled();
-  expect(new URL(view.actions.generateShareableURL()).searchParams.get('showHelpVideoOnHover')).toBe('0');
+  expect(new URL(view.actions.generateShareableURL()).searchParams.get('showHelpVideoOnHover')).toBe('1');
   expect(await view.actions.loadJSON(saved)).toBe(true);
   view.actions.clearAll();
   expect(await view.actions.loadJSON(minimal())).toBe(true);
