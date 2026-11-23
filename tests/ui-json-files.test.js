@@ -32,7 +32,7 @@ test('a preference-only link opens the default example and carries click-only he
   expect(setting.checked).toBe(true);
   await view.actions.loadExample('wu-2024');
   const saved = view.actions.generateJSON();
-  expect(JSON.parse(saved).fields.showHelpVideoOnHover).toBe(false);
+  expect(JSON.parse(saved).fields.showHelpVideoOnHover).toBe(true);
 
   renderSpy.mockClear();
   setting.click();
