@@ -29,16 +29,16 @@ test('a preference-only link opens the default example and carries click-only he
   const { view, renderSpy, flush } = fixture;
   const setting = document.getElementById('showHelpVideoOnHover');
   expect(view.state.selectedExample).toBe('2mol');
-  expect(setting.checked).toBe(true);
+  expect(setting.checked).toBe(false);
   await view.actions.loadExample('wu-2024');
   const saved = view.actions.generateJSON();
-  expect(JSON.parse(saved).fields.showHelpVideoOnHover).toBe(true);
+  expect(JSON.parse(saved).fields.showHelpVideoOnHover).toBe(false);
 
   renderSpy.mockClear();
   setting.click();
   await flush();
   expect(renderSpy).not.toHaveBeenCalled();
-  expect(new URL(view.actions.generateShareableURL()).searchParams.get('showHelpVideoOnHover')).toBe('1');
+  expect(new URL(view.actions.generateShareableURL()).searchParams.get('showHelpVideoOnHover')).toBe('0');
   expect(await view.actions.loadJSON(saved)).toBe(true);
   view.actions.clearAll();
   expect(await view.actions.loadJSON(minimal())).toBe(true);

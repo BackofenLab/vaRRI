@@ -31,8 +31,7 @@ export default {
     "hideFooterAndHeader": false,
     "colorRriNodes": "#ff0000",
     "colorRriRegion": "#ff0000",
-    "colorBasepair": "#ff0000",
-    "showHelpVideoOnHover": true
+    "colorBasepair": "#ff0000"
   },
   "annotations": {
     "pointMutations": [
