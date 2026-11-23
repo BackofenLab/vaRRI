@@ -75,7 +75,7 @@ describe('shared example catalog', () => {
   test('the feature showcase matches the replacement session', () => {
     const showcase = decodeExample(examples['2mol']);
     expect(showcase.fields).toMatchObject({
-      seqName1: 'blue RNA', seqName2: 'the target', forceLayout: false,
+      seqName1: 'target RNA', seqName2: 'short RNA', forceLayout: false,
       forceLayoutLinearRRI: true, profileColorRepresentsOne2: false,
     });
     expect(showcase.annotations).toMatchObject({
