@@ -32,7 +32,7 @@ export default {
     "colorRriNodes": "#ff0000",
     "colorRriRegion": "#ff0000",
     "colorBasepair": "#ff0000",
-    "showHelpVideoOnHover": false
+    "showHelpVideoOnHover": true
   },
   "annotations": {
     "pointMutations": [
