@@ -56,12 +56,12 @@ describe('npm package publication', () => {
         ['1.2.0', false, '1.2.0', 'latest'],
         ['v2.0.0-beta.1', false, '2.0.0-beta.1', 'next'],
         ['v2.0.0', true, '2.0.0', 'next'],
-        ['v1.0.1+build-5', false, '1.0.1+build-5', 'latest'],
     ])('maps release %s to an npm version and distribution tag', (tag, prerelease, version, npmTag) => {
         expect(releaseMetadata(tag, prerelease)).toEqual({ version, npmTag });
     });
 
-    test.each(['latest', 'v01.2.3', 'v1.0.0-beta.01', '1.0', '--help', '1.0.0\nnext', undefined])(
+    test.each(['latest', 'v01.2.3', 'v1.0.0-beta.01', '1.0', '--help', '1.0.0\n',
+        '1.0.0\nnext', 'v1.0.1+build-5', '9007199254740992.0.0', undefined])(
         'rejects invalid release tag %s before running npm', tag => {
             expect(() => releaseMetadata(tag)).toThrow('semantic version');
         }

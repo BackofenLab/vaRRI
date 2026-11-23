@@ -18,6 +18,7 @@
 
 ### Development history
 
+- 2026-11-23 13:09 UTC — Added a reviewable release-preparation workflow for package and citation metadata (extends `f19924b`).
 - 2026-11-20 16:27 UTC — Removed the Fornac and D3 3 scripts, source maps, and layout comparison tests from the package. (`7b19c0a`)
 - 2026-11-20 16:27 UTC — Added click-only video guides through Visualization Settings and the shareable `showHelpVideoOnHover` option. (`db2d9db`)
 - 2026-10-31 21:19 UTC — Narrowed the right-hand view controls and aligned the manual positioning buttons. (`21b4ab7`)

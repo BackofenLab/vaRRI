@@ -135,7 +135,7 @@ npm install varri-js
 ```
 
 The npm package remains `varri-js`; the GitHub repository and project branding are `vaRRI`.
-Version 1.0.2 includes the updated complete viewer as well as the library.
+The package includes the complete viewer as well as the library.
 
 ### Open `index.html` in Browser
 
@@ -257,7 +257,22 @@ each release. See [npm trusted publishing](https://docs.npmjs.com/trusted-publis
 After the GitHub repository rename, update any existing trusted publisher that still names
 the old repository to `vaRRI`. The repository name is case-sensitive.
 
-Merge the workflow changes before creating a release tag on a commit containing them.
+To prepare a release, run **Prepare release** from the Actions tab on `main`, supplying
+the release tag and the intended UTC release date (`YYYY-MM-DD`). The workflow updates
+package and citation versions, the citation date and year, and the unreleased changelog
+heading, then opens a PR. It does not create a tag or publish. Review the categorized
+changelog summary and intended date; finalize the heading and date before tagging, and
+correct the citation date and year if publication is delayed. Merge the PR and create
+the release tag on the merge commit. If no unreleased changelog section exists, add one
+before running the workflow.
+
+An owner must configure the repository secret `RELEASE_PREPARATION_TOKEN` with a
+fine-grained token authorized for this repository with contents and pull requests
+read/write permissions. The token must be allowed to create PRs and trigger their
+checks; the default `GITHUB_TOKEN` does not trigger ordinary PR workflows. A preparation
+branch or tag that already exists causes the workflow to stop rather than overwrite it.
+If PR creation fails after the branch is pushed, open the PR from that branch manually.
+
 Every published GitHub release runs the tests, derives the npm version from the release tag,
 builds and installs a temporary package to verify its contents, and publishes with provenance.
 Stable releases use the `latest` npm tag; semantic prerelease versions or GitHub releases
@@ -276,9 +291,9 @@ Browser UI checks run in Chromium (`npm run test:ui`) and Firefox
 append `-- --png-only`. `VARRI_BROWSER_PATH` and `VARRI_BROWSER_CHANNEL` can select
 an installed browser; for stock Firefox use the `moz-firefox` channel.
 
-Release tags must be valid semantic versions with an optional leading `v`, for example `v1.2.3`
-or `1.2.3`. The workflow changes `package.json` and `package-lock.json` only inside the temporary
-runner, so no release-generated commit is pushed back to `main`.
+Release tags must be valid semantic versions without build metadata, with an optional leading
+`v`, for example `v1.2.3` or `1.2.3-beta.1`. The publishing workflow sets the npm package
+version inside its temporary runner; it does not push changes back to `main`.
 
 
 ---

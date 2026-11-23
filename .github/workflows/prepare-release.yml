@@ -1,0 +1,99 @@
+name: Prepare release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag (for example v2.0.0 or v2.0.0-beta.1)"
+        required: true
+        type: string
+      release_date:
+        description: "Intended release date (YYYY-MM-DD, UTC)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prepare-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Validate workflow ref and credentials
+        env:
+          PREPARATION_TOKEN: ${{ secrets.RELEASE_PREPARATION_TOKEN }}
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Run this workflow from main."
+            exit 1
+          fi
+          if [ -z "$PREPARATION_TOKEN" ]; then
+            echo "::error::Set the RELEASE_PREPARATION_TOKEN repository secret."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          token: ${{ secrets.RELEASE_PREPARATION_TOKEN }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+
+      - name: Prepare metadata
+        id: release
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          RELEASE_DATE: ${{ inputs.release_date }}
+        run: node scripts/prepare-release.js
+
+      - name: Check release branch and tag
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          branch="prepare-release/$VERSION"
+          git check-ref-format "refs/tags/$RELEASE_TAG"
+          git check-ref-format "refs/heads/$branch"
+          for ref in "refs/heads/$branch" "refs/tags/$RELEASE_TAG"; do
+            if git ls-remote --exit-code origin "$ref"; then
+              echo "::error::Remote $ref already exists; resolve it before retrying."
+              exit 1
+            else
+              status=$?
+              if [ "$status" -ne 2 ]; then
+                echo "::error::Could not check remote $ref."
+                exit "$status"
+              fi
+            fi
+          done
+
+      - name: Validate prepared release
+        run: |
+          npm run test:architecture
+          npm run test:ci
+          npm run test:package
+
+      - name: Create preparation pull request
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PREPARATION_TOKEN }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          RELEASE_DATE: ${{ inputs.release_date }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          branch="prepare-release/$VERSION"
+          git switch -c "$branch"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json CITATION.cff CITATION.bib Changelog.md
+          git commit -m "Prepare release $VERSION"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" --title "Prepare release $VERSION" \
+            --body "Review the changelog and intended release date ($RELEASE_DATE), then merge before creating tag $RELEASE_TAG. Finalize the changelog and citation date if the release is delayed. This PR does not create a tag or publish."
