@@ -27,8 +27,8 @@ authors:
   - name: Bioinformatics Lab, University of Freiburg
     affiliation: Department of Computer Science, University of Freiburg
     website: 'https://www.bioinformatics.uni-freiburg.de/'
-version: 1.0.0
-date-released: '2026-07-31'
+version: 2.0.0
+date-released: '2026-11-25'
 repository-code: 'https://github.com/BackofenLab/vaRRI'
 url: 'https://backofenlab.github.io/vaRRI/'
 abstract: >-
