@@ -40,6 +40,10 @@ export function createDialogActions({ state, actions, document }) {
       else { dialog.returnValue = value; dialog.removeAttribute('open'); closeDialog(id); }
     },
     openFastaDialog(event) {
+      if (!event?.detail) {
+        const button = document.getElementById('fastaInputBtn').getBoundingClientRect();
+        event = { clientX: button.left + button.width / 2, clientY: button.top + button.height / 2 };
+      }
       openDialog('fastaDialog', 'FASTA Data ...', '', event,
         () => actions.submitFastaForm(), () => actions.resetFastaForm());
     },

@@ -132,5 +132,5 @@ dialog.png-export-dialog {
 .png-export-dialog input { margin: 4px 0 0; height: 30px; }
 .png-export-dialog .png-hint { margin: 8px 0 0; color: #666; font-size: 11px; }
 .png-hint:last-child { margin-bottom: 0; }
-.png-export-error { margin: 8px 0 0; color: #a12622; font-size: 13px; }
+.png-export-error { margin: 8px 0 0; color: #a12622; font-size: var(--section-heading-size); }
 .png-export-dialog button:disabled { opacity: 0.6; cursor: wait; }

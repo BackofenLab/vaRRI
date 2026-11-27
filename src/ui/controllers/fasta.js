@@ -1,5 +1,11 @@
 import { parseFasta } from '../services/fasta-parser.js';
 
+function readFastaRecords(input) {
+  // The parser permits blank lines and full-line comments before the first header.
+  if (typeof input !== 'string' || !/^\s*[>;#]/.test(input)) return [];
+  return parseFasta(input);
+}
+
 /** FASTA form actions operate on the same fields that Vue renders. */
 export function createFastaController({ api, state, actions }) {
   const fields = state.fields;
@@ -12,10 +18,8 @@ export function createFastaController({ api, state, actions }) {
     actions.clearFieldErrors(formFields);
   }
 
-  function processFastaTextarea(fastaId, sequenceId, structureId) {
+  function processFastaTextarea(fastaId, sequenceId, structureId, records = readFastaRecords(fields[fastaId])) {
     const input = fields[fastaId];
-    if (typeof input !== 'string' || !input.trim().startsWith('>')) return false;
-    const records = parseFasta(input);
     if (!records.length) return false;
     fields[sequenceId] = records.map(record => record.sequence).join('&');
     if (structureId) {
@@ -32,24 +36,18 @@ export function createFastaController({ api, state, actions }) {
     return true;
   }
 
-  function validateFastaForm() {
+  function validateFastaForm(records) {
     actions.clearFieldErrors(formFields);
     const text = String(fields.fastaInput || '').trim();
     if (!text) {
       actions.setFieldError('fastaInput', 'FASTA input cannot be empty.');
       return false;
     }
-    const lines = text.split(/\r?\n/);
-    if (!lines[0].startsWith('>')) {
-      actions.setFieldError('fastaInput', 'FASTA input must start with a header line beginning with ">".');
-      return false;
-    }
-    if (lines.length < 2 || lines.slice(1).every(line => !line.trim())) {
-      actions.setFieldError('fastaInput', 'FASTA input must contain at least one sequence line after the header.');
-      return false;
-    }
     try {
-      if (!processFastaTextarea('fastaInput', 'fastaSequence', 'fastaStructure')) return false;
+      if (!processFastaTextarea('fastaInput', 'fastaSequence', 'fastaStructure', records)) {
+        actions.setFieldError('fastaInput', 'FASTA input must start with a header line beginning with ">".');
+        return false;
+      }
     } catch (error) {
       actions.setFieldError('fastaInput', error.message);
       return false;
@@ -75,6 +73,26 @@ export function createFastaController({ api, state, actions }) {
     return true;
   }
 
+  function moveSequenceToFasta() {
+    const source = fields.sequence;
+    try {
+      api.validateSequenceInput(source.trim());
+      return false;
+    } catch {
+      // Only try FASTA after ordinary sequence validation fails.
+    }
+    let records;
+    try { records = readFastaRecords(source); }
+    catch { return false; }
+    if (!records.length) return false;
+
+    fields.fastaInput = source;
+    fields.sequence = '';
+    validateFastaForm(records);
+    actions.openFastaDialog();
+    return true;
+  }
+
   function submitFastaForm() {
     if (!validateFastaForm()) return false;
     fields.sequence = fields.fastaSequence;
@@ -88,5 +106,5 @@ export function createFastaController({ api, state, actions }) {
     return true;
   }
 
-  return { parseFasta, processFastaTextarea, resetFastaForm, validateFastaForm, submitFastaForm };
+  return { parseFasta, processFastaTextarea, resetFastaForm, validateFastaForm, submitFastaForm, moveSequenceToFasta };
 }
