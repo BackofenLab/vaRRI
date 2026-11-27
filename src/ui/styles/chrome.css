@@ -8,7 +8,7 @@
   margin-top: .6rem;
   display: none;
 }
-#msg.error   { background: #fdecea; color: #c0392b; display: block; }
+#msg.error   { background: #fdecea; color: #c0392b; display: block; font-size: var(--section-heading-size); }
 #msg.success { background: #eafaf1; color: #1e8449; display: block; }
 
 /* ------------------------------------------------------------------ */

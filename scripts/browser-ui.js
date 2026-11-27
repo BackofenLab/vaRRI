@@ -9,6 +9,7 @@ import { checkPNGDialog, checkPNGResize } from './browser-png-export.js';
 import { exercisePositionControlsUI } from './browser-position-ui.js';
 import { exerciseTextAnnotationUI } from './browser-text-ui.js';
 import { exerciseSequenceNames } from './browser-sequence-names.js';
+import { checkFastaInput } from './browser-fasta-input.js';
 import { exerciseLeftVideoGuides } from './browser-left-video-guides.js';
 import { checkInputHighlights } from './browser-input-highlights.js';
 import { checkCrossingRriExample } from './browser-crossing-rri.js';
@@ -185,12 +186,8 @@ async function main() {
     await page.waitForFunction(() => document.querySelector('#rendering-canvas circle[node_num="2"]')?.__data__?.name === 'G');
 
     phase = 'FASTA dialog';
-    await page.locator('#fastaInputBtn').click();
-    await page.locator('#fastaInput').fill('>first\nACGU\n((..\n>second\nUGCA\n..))');
-    await page.waitForFunction(() => document.getElementById('fastaSequence')?.value === 'ACGU&UGCA');
-    await page.locator('#fastaDialog button[value="ok"]').click();
+    await checkFastaInput(page);
     await ready(page);
-    assert.equal(await page.locator('#sequence').inputValue(), 'ACGU&UGCA');
 
     const annotations = [
       { add: '#highlightSubmitBtn', dialog: '#subseqHighlightDialog', items: '#highlight-list .highlight-item',

@@ -8,6 +8,7 @@
   --text-primary: #1c2b39;
   --text-muted: #4f6478;
   --border-soft: #ccd9e5;
+  --section-heading-size: .9rem;
 }
 
 /* ------------------------------------------------------------------ */
@@ -122,7 +123,7 @@ main {
 .control-group > summary {
   cursor: pointer;
   padding: .6rem .8rem;
-  font-size: .9rem;
+  font-size: var(--section-heading-size);
   font-weight: 700;
   color: var(--brand-blue-dark);
   user-select: none;

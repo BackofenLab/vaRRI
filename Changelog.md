@@ -4,6 +4,8 @@
 
 ### Development history
 
+- 2026-11-27 15:09 UTC — Pasting FASTA into the Sequence field opens the import dialog for review. Input errors now match the section heading text size. (#127)
+
 ## Version 2.0.0 · 2026-11-25
 
 ### Viewer and sharing

@@ -47,6 +47,7 @@ users press Play or activate the icon to start playback.
 
 The **Sequence** field content can be automatically generated from **FASTA input**.
 The `FASTA` button opens a dialog, in which the provided FASTA encoding is automatically parsed and split into the sequence and structure fields.
+Pasting FASTA records into the **Sequence** field opens the same dialog. Review the parsed input and select **OK** to apply it.
 **Fasta files can also be dragged and dropped** into the dialog's FASTA input field to load.
 
 Multiline FASTA sequence input is supported, and the trimmed subsequences are concatenated into a single sequence string. The **first whitespace-free token of each FASTA header becomes its sequence name**. Parsed names can be edited in the dialog before confirming. The structure field is left unchanged unless the FASTA input contains a **second line with a dot-bracket structure string**. If structure information is provided, each FASTA record must contain a single sequence line and a single structure line; no multi-line support in this case.

@@ -33,12 +33,15 @@ export function createFieldActions({ state, actions, document }) {
     updateFromEvent(id, event);
     actions.updateInputCaret(id, event);
     actions.clearFieldError(id);
+    if (id === 'sequence' && event?.inputType === 'insertFromPaste' && actions.moveSequenceToFasta()) return;
     if (id === 'rotationSlider') actions.applySliderRotation();
     else if (id === 'fastaInput') validateDraft(id);
     else if (event?.target?.type !== 'color' && event?.target?.tagName !== 'SELECT') validateDraft(id);
     nextTick(() => { if (!disposed) { syncDimensions(id); syncScroll(id); } });
   }
   function commitField(id, event) {
+    // Moving pasted FASTA into the dialog can also commit the textarea on blur.
+    if (id === 'sequence' && state.dialog.id === 'fastaDialog') return;
     updateFromEvent(id, event);
     if (event?.type === 'keydown') skipChange.set(id, state.fields[id]);
     else if (skipChange.has(id)) {
@@ -46,6 +49,7 @@ export function createFieldActions({ state, actions, document }) {
       if (previous === state.fields[id]) return;
     }
     actions.clearFieldError(id);
+    if (id === 'sequence' && actions.moveSequenceToFasta()) return;
     if (id === 'rotationSlider') { actions.commitSliderRotation(); return; }
     if (id === 'hideFooterAndHeader') { actions.applyBodyClasses(); return; }
     if (id === 'seqName1' || id === 'seqName2') { actions.commitSequenceName(id); return; }
