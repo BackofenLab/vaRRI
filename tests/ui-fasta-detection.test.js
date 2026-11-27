@@ -1,5 +1,24 @@
 import { mountViewer } from './helpers/vue-viewer.js';
 
+test('a sequence edit after dismissal validates even before the FASTA close event arrives', async () => {
+  const viewer = await mountViewer();
+  try {
+    document.getElementById('fastaInputBtn').click();
+    await viewer.flush();
+    // Native dialogs clear open synchronously and queue their close event.
+    const dialog = document.getElementById('fastaDialog');
+    dialog.open = false;
+    const sequence = document.getElementById('sequence');
+    sequence.value = '>missing sequence';
+    sequence.dispatchEvent(new window.Event('input', { bubbles: true }));
+    sequence.dispatchEvent(new window.Event('change', { bubbles: true }));
+    dialog.dispatchEvent(new window.Event('close'));
+    await viewer.flush();
+
+    expect(document.querySelector('#sequence ~ .field-tooltip').textContent).toMatch(/IUPAC/);
+  } finally { await viewer.close(); }
+});
+
 test('a committed wrapped FASTA record opens as a draft without changing the current structure or names', async () => {
   const viewer = await mountViewer();
   try {

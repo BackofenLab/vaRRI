@@ -41,7 +41,7 @@ export function createFieldActions({ state, actions, document }) {
   }
   function commitField(id, event) {
     // Moving pasted FASTA into the dialog can also commit the textarea on blur.
-    if (id === 'sequence' && state.dialog.id === 'fastaDialog') return;
+    if (id === 'sequence' && document.getElementById('fastaDialog').open) return;
     updateFromEvent(id, event);
     if (event?.type === 'keydown') skipChange.set(id, state.fields[id]);
     else if (skipChange.has(id)) {
